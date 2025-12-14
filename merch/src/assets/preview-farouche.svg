@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="farouche-bg" x1="0%" x2="100%" y1="100%" y2="0%">
+      <stop offset="0%" stop-color="#410c68" />
+      <stop offset="100%" stop-color="#df5ef4" />
+    </linearGradient>
+    <radialGradient id="farouche-orb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd5ff" />
+      <stop offset="100%" stop-color="rgba(255, 213, 255, 0)" />
+    </radialGradient>
+  </defs>
+  <rect width="400" height="260" rx="28" fill="url(#farouche-bg)" />
+  <circle cx="200" cy="120" r="90" fill="url(#farouche-orb)" opacity="0.45" />
+  <g transform="translate(200 125)">
+    <text
+      fill="#ffe5ff"
+      font-family="IBM Plex Mono, monospace"
+      font-size="42"
+      font-weight="600"
+      text-anchor="middle"
+    >
+      FAROUCHE
+    </text>
+  </g>
+  <g transform="translate(200 175)">
+    <text
+      fill="#fce4ff"
+      font-family="IBM Plex Mono, monospace"
+      font-size="18"
+      text-anchor="middle"
+    >
+      streetwear collab
+    </text>
+  </g>
+</svg>
+

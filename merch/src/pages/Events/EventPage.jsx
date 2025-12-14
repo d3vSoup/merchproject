@@ -1,0 +1,407 @@
+// src/pages/Events/EventPage.jsx
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
+import { getCart, updateCartItem } from "../../api/cart";
+import { triggerCartUpdate } from "../../hooks/useCartCount";
+import toast from "react-hot-toast";
+import { PRODUCT_CATALOG } from "../../data/products";
+import ProductModal from "../../components/ProductModal";
+import FlipClock from "../../components/FlipClock";
+import api from "../../api";
+
+const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
+
+export default function EventPage() {
+  const { eventKey } = useParams();
+  const { user } = useAuth();
+  const [cartItems, setCartItems] = useState([]);
+  const [productSelections, setProductSelections] = useState({});
+  const [soldOutItems, setSoldOutItems] = useState({});
+  const [eventStatus, setEventStatus] = useState({ type: "ongoing", countdown: null });
+  const [productOverrides, setProductOverrides] = useState({});
+  const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Listen to localStorage changes for event statuses only (cross-tab sync)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newStatuses = localStorage.getItem('admin_event_statuses');
+      if (newStatuses) {
+        try {
+          const statuses = JSON.parse(newStatuses);
+          const status = statuses[eventKey] || { type: "ongoing", countdown: null };
+          setEventStatus(status);
+        } catch (e) {
+          console.error('Failed to parse event statuses:', e);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also load from localStorage on mount for countdown date
+    const savedStatuses = localStorage.getItem('admin_event_statuses');
+    if (savedStatuses) {
+      try {
+        const statuses = JSON.parse(savedStatuses);
+        const status = statuses[eventKey] || { type: "ongoing", countdown: null };
+        setEventStatus(status);
+      } catch (e) {
+        console.error('Failed to parse event statuses:', e);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [eventKey]);
+
+  useEffect(() => {
+    async function fetchSoldOutFromServer() {
+      setLoadingSoldOut(true);
+      try {
+        const res = await api.get('/api/items/soldouts', { params: { tabKey: eventKey } });
+        const map = {};
+        let serverStatus = null;
+        
+        // Sort by updated_at descending to get the most recent entry for each product
+        const items = (res.data?.items || []).sort((a, b) => {
+          return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+        });
+        
+        // Use a Set to track which products we've already processed
+        const processed = new Set();
+        
+        items.forEach(item => {
+          // Create a unique key for this product
+          const uniqueId = `${item.product_id}:${item.club_or_dept || ''}`;
+          
+          // Only process the most recent entry for each product
+          if (processed.has(uniqueId)) return;
+          processed.add(uniqueId);
+          
+          // Item is unavailable if:
+          // 1. Event status is soldout/over/no_new_releases (whole event unavailable)
+          // 2. OR individual item is marked sold_out (even if event is ongoing)
+          const itemEventStatus = item.event_status || 'ongoing';
+          const isEventUnavailable = 
+            itemEventStatus === "soldout" || 
+            itemEventStatus === "over" || 
+            itemEventStatus === "no_new_releases";
+          
+          // Individual item sold_out takes precedence
+          const isItemSoldOut = item.sold_out === true;
+          
+          if (isEventUnavailable || isItemSoldOut) {
+            // Create multiple keys to ensure matching works
+            const baseKey = `${item.tab_key}:${item.product_id}:${item.variant || "standard"}`;
+            const standardKey = `${item.tab_key}:${item.product_id}:standard`;
+            const nullKey = `${item.tab_key}:${item.product_id}:null`;
+            
+            // Set all possible key variants to ensure matching
+            map[baseKey] = true;
+            map[standardKey] = true;
+            map[nullKey] = true;
+            
+            // Also set for club_or_dept if present
+            if (item.club_or_dept) {
+              map[`${baseKey}:${item.club_or_dept}`] = true;
+              map[`${standardKey}:${item.club_or_dept}`] = true;
+            }
+          }
+          
+          // Track event-level status
+          if (!serverStatus && item.tab_key === eventKey && item.event_status) {
+            serverStatus = item.event_status;
+          }
+        });
+        
+        console.log('Loaded soldout items:', Object.keys(map).length, 'from', processed.size, 'unique products');
+        
+        // Replace soldOutItems with server data (authoritative source)
+        setSoldOutItems(map);
+        if (serverStatus) {
+          setEventStatus(prev => ({ ...prev, type: serverStatus }));
+        } else {
+          // If no server status found, default to ongoing
+          setEventStatus(prev => ({ ...prev, type: "ongoing" }));
+        }
+      } catch (err) {
+        console.error('Failed to load sold-out data from server', err);
+      } finally {
+        setLoadingSoldOut(false);
+      }
+    }
+
+    async function fetchOverrides() {
+      try {
+        const res = await api.get('/api/catalog/overrides', { params: { tabKey: eventKey } });
+        const map = {};
+        (res.data?.overrides || []).forEach((item) => {
+          map[item.product_id] = item;
+        });
+        setProductOverrides(map);
+      } catch (err) {
+        console.error('Failed to load catalog overrides', err);
+      }
+    }
+
+    fetchSoldOutFromServer();
+    fetchOverrides();
+    
+    // No polling - data is refreshed on page load only to prevent constant refreshing
+  }, [eventKey]);
+
+  const eventProducts = useMemo(() => {
+    const base = PRODUCT_CATALOG[eventKey] || [];
+    return base.map(product => {
+      const override = productOverrides[product.id];
+      if (!override) return product;
+      return {
+        ...product,
+        ...(override.name ? { name: override.name } : {}),
+        ...(override.description ? { description: override.description } : {}),
+        ...(override.image_url ? { imageUrl: override.image_url } : {}),
+        ...(override.price !== null && override.price !== undefined ? { price: Number(override.price) } : {}),
+        ...(override.images ? { images: override.images } : {})
+      };
+    });
+  }, [eventKey, productOverrides]);
+  const tabLabels = {
+    utsav: "Utsav",
+    phaseshift: "Phaseshift",
+    farouche: "Farouche",
+    club: "Club & Dept Merch"
+  };
+  const currentTabLabel = tabLabels[eventKey] || eventKey.charAt(0).toUpperCase() + eventKey.slice(1);
+
+  useEffect(() => {
+    if (user) {
+      loadCart();
+    } else {
+      setCartItems([]);
+    }
+  }, [user]);
+
+  async function loadCart() {
+    if (!user) return;
+    try {
+      const cart = await getCart();
+      setCartItems(cart.map(item => ({
+        tabKey: item.tab_key,
+        productId: item.product_id,
+        variant: item.variant,
+        quantity: item.quantity,
+        price: getProductPrice(item.tab_key, item.product_id),
+      })));
+    } catch (err) {
+      console.error('Failed to load cart:', err);
+    }
+  }
+
+
+  function getProductPrice(tabKey, productId) {
+    const product = PRODUCT_CATALOG[tabKey]?.find(p => p.id === productId);
+    if (tabKey === eventKey && productOverrides[productId]) {
+      const overridePrice = productOverrides[productId].price;
+      if (overridePrice !== undefined && overridePrice !== null) {
+        return Number(overridePrice) || 0;
+      }
+    }
+    return product?.price || 0;
+  }
+
+  async function adjustCart(tabKey, product, variant, delta) {
+    if (!user) {
+      toast.error("Please sign in to add items to cart");
+      return;
+    }
+
+    const existing = cartItems.find(
+      item => item.tabKey === tabKey && item.productId === product.id && (item.variant || null) === (variant || null)
+    );
+    const newQuantity = Math.max(0, (existing?.quantity || 0) + delta);
+
+    try {
+      await updateCartItem(tabKey, product.id, variant, newQuantity);
+      await loadCart();
+      triggerCartUpdate(); // Trigger cart count refresh
+      if (delta > 0) {
+        toast.success("Added to cart");
+      } else if (newQuantity === 0) {
+        toast.success("Removed from cart");
+      }
+    } catch (err) {
+      console.error('Failed to update cart:', err);
+      const errorMsg = err.message || 'Failed to update cart';
+      toast.error(errorMsg);
+    }
+  }
+
+
+  function findCartItem(tabKey, productId, variant) {
+    return cartItems.find(
+      item => item.tabKey === tabKey && item.productId === productId && (item.variant || null) === (variant || null)
+    );
+  }
+
+  function handleVariantChange(productKey, variant) {
+    setProductSelections(prev => ({ ...prev, [productKey]: variant }));
+  }
+
+  const isSoldOut = (productKey) => {
+    // If loading, don't show as sold out to avoid flashing
+    if (loadingSoldOut) return false;
+    // If entire event is sold out/over/no_new_releases, all items are unavailable
+    if (eventStatus.type === "soldout" || eventStatus.type === "over" || eventStatus.type === "no_new_releases") {
+      return true;
+    }
+    // Check for the specific key
+    if (soldOutItems[productKey]) return true;
+    
+    // Also check for the base key without variant (admin might save with null variant)
+    // productKey format: "eventKey:productId:variant"
+    const parts = productKey.split(':');
+    if (parts.length >= 2) {
+      const baseKey = `${parts[0]}:${parts[1]}:standard`;
+      const nullVariantKey = `${parts[0]}:${parts[1]}:null`;
+      if (soldOutItems[baseKey] || soldOutItems[nullVariantKey]) return true;
+    }
+    
+    return false;
+  };
+
+  // Don't render until data is loaded to avoid flash
+  if (loadingSoldOut) {
+    return (
+      <section className="product-section">
+        <div className="section-heading">Merch line-up</div>
+        <p style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Loading products...</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="product-section">
+      <div className="section-heading">
+        Merch line-up
+        {eventStatus.type === "soldout" && (
+          <span className="event-soldout" style={{ marginLeft: "16px", fontSize: "0.85rem", color: "#ef4444", fontWeight: 600 }}>
+            SOLD OUT
+          </span>
+        )}
+      </div>
+
+      {eventStatus.type === "countdown" && eventStatus.countdown && (
+        <FlipClock targetDate={eventStatus.countdown} />
+      )}
+
+      <div className="product-grid">
+        {eventProducts.map((product) => {
+          const defaultVariant = product.sleeveOptions?.[0] || null;
+          const productKey = `${eventKey}:${product.id}`;
+          const selectedVariant = productSelections[productKey] || defaultVariant;
+          const variant = selectedVariant;
+          const itemKey = `${eventKey}:${product.id}:${variant || "standard"}`;
+          const isProductSoldOut = isSoldOut(itemKey);
+          const cartItem = findCartItem(eventKey, product.id, variant);
+          const quantity = cartItem?.quantity || 0;
+
+          return (
+            <article
+              key={productKey}
+              className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
+              data-product-key={productKey}
+              style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
+            >
+              <div
+                className="product-card__preview"
+                style={{
+                  background: product.imageUrl
+                    ? `url(${product.imageUrl}) center/cover`
+                    : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`,
+                  cursor: isProductSoldOut ? 'not-allowed' : 'pointer'
+                }}
+                onClick={() => !isProductSoldOut && setSelectedProduct(product)}
+              >
+                {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
+                {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
+              </div>
+              <div className="product-card__meta">
+                <h3 
+                  style={{ cursor: isProductSoldOut ? 'not-allowed' : 'pointer' }}
+                  onClick={() => !isProductSoldOut && setSelectedProduct(product)}
+                >
+                  {product.name}
+                </h3>
+                <p>{product.description}</p>
+                <div className="product-card__price-row">
+                  <span className="product-card__price">{formatPrice(product.price)}</span>
+                  <span className="product-card__badge">{currentTabLabel}</span>
+                </div>
+                {product.sleeveOptions && product.sleeveOptions.length > 1 && (
+                  <div className="variant-toggle" role="group" aria-label={`${product.name} sleeve`}>
+                    {product.sleeveOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        className={`variant-chip ${selectedVariant === opt ? "is-active" : ""}`}
+                        onClick={() => handleVariantChange(productKey, opt)}
+                        disabled={isProductSoldOut}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="product-card__controls">
+                <div className="qty-control">
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => adjustCart(eventKey, product, variant, -1)}
+                    disabled={quantity === 0 || isProductSoldOut}
+                    aria-label={`Remove one ${product.name}`}
+                  >
+                    -
+                  </button>
+                  <span className="qty-count">{quantity}</span>
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => adjustCart(eventKey, product, variant, 1)}
+                    disabled={isProductSoldOut}
+                    aria-label={`Add one ${product.name}`}
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  className="btn btn--ghost"
+                  type="button"
+                  onClick={() => adjustCart(eventKey, product, variant, 1)}
+                  disabled={isProductSoldOut}
+                >
+                  {isProductSoldOut ? "Unavailable" : "Add to cart"}
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          tabKey={eventKey}
+          onClose={() => setSelectedProduct(null)}
+          isProductSoldOut={isSoldOut(`${eventKey}:${selectedProduct.id}:${productSelections[`${eventKey}:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || 'standard'}`)}
+        />
+      )}
+    </section>
+  );
+}
+
+

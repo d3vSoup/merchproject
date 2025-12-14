@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="utsav-bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff7a00" />
+      <stop offset="100%" stop-color="#ffd000" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" rx="28" fill="url(#utsav-bg)" />
+  <g fill="none" stroke="#fff5d6" stroke-width="2" stroke-linecap="round" opacity="0.5">
+    <path d="M40 70h40" />
+    <path d="M320 190h40" />
+    <path d="M110 200h120" />
+    <path d="M250 70h40" />
+  </g>
+  <g transform="translate(200 120)">
+    <text
+      fill="#ffffff"
+      font-family="IBM Plex Mono, monospace"
+      font-size="40"
+      font-weight="600"
+      text-anchor="middle"
+    >
+      UTSAV 2025
+    </text>
+  </g>
+  <g transform="translate(200 175)">
+    <text
+      fill="#fff5d6"
+      font-family="IBM Plex Mono, monospace"
+      font-size="18"
+      text-anchor="middle"
+    >
+      limited festival apparel
+    </text>
+  </g>
+</svg>
+

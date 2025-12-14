@@ -1,0 +1,97 @@
+// src/App.jsx
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import { useAuth } from "./auth/AuthContext";
+import Layout from "./components/Layout";
+import Landing from "./pages/Landing";
+import EventPage from "./pages/Events/EventPage";
+import ClubPage from "./pages/Events/ClubPage";
+import CartPage from "./pages/Cart/CartPage";
+import ResellPage from "./pages/Resell/ResellPage";
+import ResellChat from "./pages/Resell/ResellChat";
+import WishlistPage from "./pages/Wishlist/WishlistPage";
+import AdminOrders from "./pages/Admin/AdminOrders";
+import AdminItems from "./pages/Admin/AdminItems";
+import AboutPage from "./pages/About/AboutPage";
+import ContactPage from "./pages/Contact/ContactPage";
+import { useCartCount } from "./hooks/useCartCount";
+
+const queryClient = new QueryClient();
+
+function AppContent() {
+  const { user } = useAuth();
+  const { cartCount } = useCartCount();
+
+  return (
+    <Layout cartCount={cartCount}>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/event/club" element={<ClubPage />} />
+        <Route path="/event/:eventKey" element={<EventPage />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/resell" element={<ResellPage />} />
+        <Route path="/resell/chat/:chatId" element={<ResellChat />} />
+        <Route
+          path="/admin/orders"
+          element={
+            user?.email === "souparno.cs24@bmsce.ac.in" ? (
+              <AdminOrders />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/items"
+          element={
+            user?.email === "souparno.cs24@bmsce.ac.in" ? (
+              <AdminItems />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppContent />
+        <Toaster 
+          position="top-right" 
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#fff',
+              color: '#333',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#22c55e',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}

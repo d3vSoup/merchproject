@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260">
+  <defs>
+    <linearGradient id="phaseshift-bg" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#1f3f72" />
+      <stop offset="100%" stop-color="#43b2ff" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" rx="28" fill="url(#phaseshift-bg)" />
+  <g fill="none" stroke="#94dbff" stroke-width="2" stroke-linecap="round" opacity="0.5">
+    <path d="M60 60c40 20 80 20 120 0s80-20 120 0 80 20 120 0" />
+    <path d="M40 200h320" />
+  </g>
+  <g transform="translate(200 130)">
+    <text
+      fill="#e5f7ff"
+      font-family="IBM Plex Mono, monospace"
+      font-size="38"
+      font-weight="600"
+      text-anchor="middle"
+    >
+      PHASESHIFT
+    </text>
+  </g>
+  <g transform="translate(200 180)">
+    <text
+      fill="#cbedff"
+      font-family="IBM Plex Mono, monospace"
+      font-size="18"
+      text-anchor="middle"
+    >
+      tech fest drops
+    </text>
+  </g>
+</svg>
+
