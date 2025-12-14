@@ -44,7 +44,9 @@ export default function GoogleSignIn({ onSuccess }) {
             if (errorMsg.includes("Use a BMSCE Google account")) {
               if (confirm(`${errorMsg}\n\nWould you like to sign in with a different account?`)) {
                 // Prompt to select account again
-                window.google.accounts.id.prompt();
+                window.google.accounts.id.prompt({
+            prompt: "select_account"
+          });
               }
             } else {
               alert(errorMsg);

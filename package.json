@@ -3,5 +3,8 @@
     "axios": "^1.12.2",
     "lucide-react": "^0.545.0",
     "motion": "^12.23.26"
+  },
+  "devDependencies": {
+    "vite": "^7.2.7"
   }
 }
