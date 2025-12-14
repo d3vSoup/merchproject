@@ -58,12 +58,12 @@ export function AuthProvider({ children }) {
       const res = await api.post("/api/auth/google", { id_token }, { timeout: 5000 });
       const newToken = res.data.token;
       setToken(newToken);
-      setUser(res.data.user);
+    setUser(res.data.user);
       // Load Supabase user in background (non-blocking)
       if (res.data.user?.supabaseId) {
         // User already has supabaseId, we're good
       }
-      return res.data.user;
+    return res.data.user;
     } catch (err) {
       console.error('Sign-in error:', err);
       throw err;

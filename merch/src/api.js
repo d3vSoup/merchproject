@@ -1,9 +1,15 @@
 // src/api.js
 import axios from "axios";
 
+// Use environment variable for API URL
+// Local: http://localhost:4000
+// Production: https://bmsce-merch-backend.onrender.com
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000",
+  baseURL: API_BASE_URL,
   withCredentials: false,
+  timeout: 30000, // 30 second timeout for Render (can be slow to wake up)
 });
 
 // Attach token from localStorage on every request as fallback

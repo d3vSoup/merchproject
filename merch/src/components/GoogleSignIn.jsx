@@ -32,7 +32,7 @@ export default function GoogleSignIn({ onSuccess }) {
       const s = document.createElement("script");
       s.src = "https://accounts.google.com/gsi/client";
       s.id = "google-identity";
-      s.async = true; 
+      s.async = true;
       s.defer = true;
       document.body.appendChild(s);
       s.onload = init;
@@ -43,7 +43,7 @@ export default function GoogleSignIn({ onSuccess }) {
       const checkInterval = setInterval(() => {
         if (window.google?.accounts?.id) {
           clearInterval(checkInterval);
-          init();
+      init();
         }
       }, 100);
       return () => clearInterval(checkInterval);
