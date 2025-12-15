@@ -137,9 +137,45 @@ export default function EventPage() {
     fetchSoldOutFromServer();
     fetchOverrides();
     
+    // Lightweight function to only fetch event status (for countdown updates)
+    // This doesn't trigger loading state to avoid page refresh glitch
+    async function fetchEventStatusOnly() {
+      try {
+        const res = await api.get('/api/items/soldouts', { params: { tabKey: eventKey } });
+        
+        // Only update event status, don't touch soldOutItems or loading state
+        if (res.data?.eventStatus) {
+          const serverEventStatus = res.data.eventStatus;
+          setEventStatus({
+            type: serverEventStatus.type || "ongoing",
+            countdown: serverEventStatus.countdown || null
+          });
+        } else {
+          // Fallback: find countdown from items
+          const items = res.data?.items || [];
+          const countdownItem = items.find(item => 
+            item.tab_key === eventKey && 
+            item.event_status === "countdown" && 
+            item.countdown_date
+          );
+          if (countdownItem) {
+            setEventStatus(prev => ({
+              ...prev,
+              type: "countdown",
+              countdown: countdownItem.countdown_date
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch event status:', err);
+        // Silently fail - don't disrupt user experience
+      }
+    }
+    
     // Poll for event status updates every 10 seconds (for countdown changes)
+    // Only updates countdown, doesn't refresh the whole page
     const pollInterval = setInterval(() => {
-      fetchSoldOutFromServer();
+      fetchEventStatusOnly();
     }, 10000); // 10 seconds
     
     return () => {

@@ -454,27 +454,99 @@ app.post('/api/auth/google', async (req, res) => {
       console.error('   Error stack:', e.stack);
     }
 
-    // attach supabase id to returned user object for frontend to store
-    const returnedUser = { ...user.toObject ? user.toObject() : user, supabaseId };
+    // Fetch full profile from Supabase to return to frontend
+    let fullProfile = { ...user.toObject ? user.toObject() : user, supabaseId };
+    
+    if (supabaseAdmin && supabaseId) {
+      try {
+        const { data: sbUser } = await supabaseAdmin
+          .from('users')
+          .select('id, email, name, usn, phone, branch, sem, profile_percent, pfp_url')
+          .eq('id', supabaseId)
+          .single();
+        
+        if (sbUser) {
+          // Use Supabase data as authoritative source for profile fields
+          fullProfile = {
+            id: sbUser.id,
+            email: sbUser.email,
+            name: sbUser.name || fullProfile.name || null,
+            usn: sbUser.usn || null,
+            phone: sbUser.phone || null,
+            branch: sbUser.branch || null,
+            sem: sbUser.sem || null,
+            profilePercent: sbUser.profile_percent || 50,
+            pfpUrl: sbUser.pfp_url || null,
+            supabaseId: sbUser.id
+          };
+          console.log('   ✅ Loaded full profile from Supabase');
+        }
+      } catch (e) {
+        console.warn('   Could not fetch full profile from Supabase:', e.message);
+        // Continue with MongoDB user data as fallback
+      }
+    }
 
-    // return token + user (which now includes supabaseId)
-    return res.json({ token, user: returnedUser });
+    // return token + user (which now includes full profile from Supabase)
+    return res.json({ token, user: fullProfile });
   } catch (err) {
     console.error('Create/find user error', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
 
-// GET /api/me
+// GET /api/me - Get current user profile (from Supabase)
 app.get('/api/me', authMiddleware, async (req, res) => {
   try {
-    const uid = req.auth.uid;
-    const user = usingMongoose ? await Users.findById(uid) : await Users.findById(uid);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    // Get user from Supabase (authoritative source)
+    let supabaseId = req.auth.supabaseId;
+    if (!supabaseId) {
+      // Try to get from email
+      const ensured = await ensureSupabaseUserRecord(req.auth.email);
+      if (!ensured.id) {
+        return res.status(404).json({ message: 'User not found in database' });
+      }
+      supabaseId = ensured.id;
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Database not configured' });
+    }
+
+    // Fetch user from Supabase
+    const { data: sbUser, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, name, usn, phone, branch, sem, profile_percent, pfp_url')
+      .eq('id', supabaseId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user from Supabase:', error);
+      return res.status(500).json({ message: 'Failed to fetch user', error: error.message });
+    }
+
+    if (!sbUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Map Supabase user to frontend user format
+    const user = {
+      id: sbUser.id,
+      email: sbUser.email,
+      name: sbUser.name || null,
+      usn: sbUser.usn || null,
+      phone: sbUser.phone || null,
+      branch: sbUser.branch || null,
+      sem: sbUser.sem || null,
+      profilePercent: sbUser.profile_percent || 50,
+      pfpUrl: sbUser.pfp_url || null,
+      supabaseId: sbUser.id
+    };
+
     return res.json({ user });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error('GET /api/me error:', err);
+    return res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

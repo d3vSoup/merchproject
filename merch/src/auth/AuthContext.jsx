@@ -52,18 +52,18 @@ export function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
-  // Sign in using server-side Google exchange (optimized - don't wait for Supabase)
+  // Sign in using server-side Google exchange
   async function signinWithGoogle(id_token) {
     try {
       const res = await api.post("/api/auth/google", { id_token }, { timeout: 5000 });
       const newToken = res.data.token;
       setToken(newToken);
-    setUser(res.data.user);
-      // Load Supabase user in background (non-blocking)
-      if (res.data.user?.supabaseId) {
-        // User already has supabaseId, we're good
-      }
-    return res.data.user;
+      setUser(res.data.user);
+      
+      // Profile is already loaded from backend (includes full Supabase profile)
+      // No need to call loadMe() again as the user object already has all profile data
+      
+      return res.data.user;
     } catch (err) {
       console.error('Sign-in error:', err);
       throw err;
