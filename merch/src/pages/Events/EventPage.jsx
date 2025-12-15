@@ -146,9 +146,15 @@ export default function EventPage() {
         // Only update event status, don't touch soldOutItems or loading state
         if (res.data?.eventStatus) {
           const serverEventStatus = res.data.eventStatus;
-          setEventStatus({
-            type: serverEventStatus.type || "ongoing",
-            countdown: serverEventStatus.countdown || null
+          // Only update if status or countdown actually changed to avoid unnecessary re-renders
+          setEventStatus(prev => {
+            if (prev.type === serverEventStatus.type && prev.countdown === serverEventStatus.countdown) {
+              return prev; // No change, return same object to prevent re-render
+            }
+            return {
+              type: serverEventStatus.type || "ongoing",
+              countdown: serverEventStatus.countdown || null
+            };
           });
         } else {
           // Fallback: find countdown from items
@@ -159,11 +165,16 @@ export default function EventPage() {
             item.countdown_date
           );
           if (countdownItem) {
-            setEventStatus(prev => ({
-              ...prev,
-              type: "countdown",
-              countdown: countdownItem.countdown_date
-            }));
+            setEventStatus(prev => {
+              // Only update if countdown actually changed
+              if (prev.type === "countdown" && prev.countdown === countdownItem.countdown_date) {
+                return prev;
+              }
+              return {
+                type: "countdown",
+                countdown: countdownItem.countdown_date
+              };
+            });
           }
         }
       } catch (err) {

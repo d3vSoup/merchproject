@@ -2175,11 +2175,20 @@ app.get('/api/items/soldouts', async (req, res) => {
         }
 
         // Extract event status and countdown date (use first item with status for the tab)
-        if (!eventStatusInfo && item.tab_key === tabKey && item.event_status) {
-          eventStatusInfo = {
-            type: item.event_status,
-            countdown: item.countdown_date || null
-          };
+        // Prioritize items with countdown_date if status is "countdown"
+        if (item.tab_key === tabKey && item.event_status) {
+          if (!eventStatusInfo) {
+            eventStatusInfo = {
+              type: item.event_status,
+              countdown: item.countdown_date || null
+            };
+          } else if (item.event_status === "countdown" && item.countdown_date && !eventStatusInfo.countdown) {
+            // If we find a countdown item with a date, use it (more complete info)
+            eventStatusInfo = {
+              type: item.event_status,
+              countdown: item.countdown_date
+            };
+          }
         }
       });
     }
@@ -2353,12 +2362,19 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
       event_status: status
     };
 
-    // If status is countdown and countdownDate is provided, store it
-    if (status === "countdown" && countdownDate) {
-      // Convert datetime-local string to ISO timestamp
-      const countdownTimestamp = new Date(countdownDate).toISOString();
-      updateData.countdown_date = countdownTimestamp;
-    } else if (status !== "countdown") {
+    // Handle countdown_date:
+    // - If status is "countdown" and countdownDate is provided, store it
+    // - If status is "countdown" but countdownDate is not provided, preserve existing countdown_date
+    // - If status is NOT "countdown", clear countdown_date
+    if (status === "countdown") {
+      if (countdownDate) {
+        // Convert datetime-local string to ISO timestamp
+        const countdownTimestamp = new Date(countdownDate).toISOString();
+        updateData.countdown_date = countdownTimestamp;
+      }
+      // If countdownDate is not provided, don't set it in updateData
+      // This preserves the existing countdown_date in the database
+    } else {
       // Clear countdown_date if status is not countdown
       updateData.countdown_date = null;
     }
