@@ -68,7 +68,7 @@ export default function ProfileModal({ open, onClose }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000
+        zIndex: 10000
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();

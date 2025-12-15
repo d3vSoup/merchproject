@@ -660,6 +660,7 @@ select:focus {
     display: block;
     position: fixed;
     top: 60px;
+    z-index: 40; /* Keep lower than modals */
   }
 
   /* Adjust topbar for mobile */

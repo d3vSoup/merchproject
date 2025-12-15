@@ -340,7 +340,11 @@ export default function Layout({ children, cartCount = 0 }) {
                       </div>
 
                       <div className="profile-actions">
-                        <button className="btn btn--primary" onClick={() => { setProfileOpen(true); setAccountOpen(false); }}>
+                        <button className="btn btn--primary" onClick={() => { 
+                          setAccountOpen(false);
+                          setMobileMenuOpen(false); // Also close mobile menu if open
+                          setProfileOpen(true); 
+                        }}>
                           Edit Profile
                         </button>
                         <button
