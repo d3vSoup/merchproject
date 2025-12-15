@@ -2079,6 +2079,8 @@ app.get('/api/items/soldouts', async (req, res) => {
     // Convert to map for easy lookup
     // Important: If event_status is "ongoing" or "countdown", items should be available unless explicitly marked sold_out
     const soldOutMap = {};
+    let eventStatusInfo = null; // Track event status and countdown for the tab
+    
     if (data && Array.isArray(data)) {
       data.forEach(item => {
         const baseKey = `${item.tab_key}:${item.product_id}:${item.variant || 'standard'}`;
@@ -2099,10 +2101,22 @@ app.get('/api/items/soldouts', async (req, res) => {
         if (isUnavailable) {
           soldOutMap[key] = true;
         }
+
+        // Extract event status and countdown date (use first item with status for the tab)
+        if (!eventStatusInfo && item.tab_key === tabKey && item.event_status) {
+          eventStatusInfo = {
+            type: item.event_status,
+            countdown: item.countdown_date || null
+          };
+        }
       });
     }
 
-    return res.json({ soldOuts: soldOutMap, items: data || [] });
+    return res.json({ 
+      soldOuts: soldOutMap, 
+      items: data || [],
+      eventStatus: eventStatusInfo || { type: 'ongoing', countdown: null }
+    });
   } catch (err) {
     console.error('Get soldouts error', err);
     // Return empty data instead of error to allow page to load
@@ -2253,7 +2267,7 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
     return res.status(403).json({ message: "Admin only" });
   }
 
-  const { tabKey, status, clubOrDept } = req.body;
+  const { tabKey, status, clubOrDept, countdownDate } = req.body;
 
   try {
     const soldOut =
@@ -2261,20 +2275,33 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
       status === "over" ||
       status === "no_new_releases";
 
+    // Prepare update data
+    const updateData = {
+      sold_out: soldOut,
+      event_status: status
+    };
+
+    // If status is countdown and countdownDate is provided, store it
+    if (status === "countdown" && countdownDate) {
+      // Convert datetime-local string to ISO timestamp
+      const countdownTimestamp = new Date(countdownDate).toISOString();
+      updateData.countdown_date = countdownTimestamp;
+    } else if (status !== "countdown") {
+      // Clear countdown_date if status is not countdown
+      updateData.countdown_date = null;
+    }
+
     // Build query - filter by tab_key and optionally by club_or_dept
     let updateQuery = supabaseAdmin
       .from("admin_items")
-      .update({
-        sold_out: soldOut,  // Explicitly set sold_out based on status
-        event_status: status
-      })
+      .update(updateData)
       .eq("tab_key", tabKey);
 
     // If clubOrDept is provided, only update items for that specific club/dept
     // If clubOrDept is null/undefined, update all items for the tab (for non-club tabs)
     if (clubOrDept !== undefined && clubOrDept !== null && clubOrDept !== "") {
       updateQuery = updateQuery.eq("club_or_dept", clubOrDept);
-      console.log(`Updating event status for ${tabKey} - ${clubOrDept} to ${status} (sold_out: ${soldOut})`);
+      console.log(`Updating event status for ${tabKey} - ${clubOrDept} to ${status}${countdownDate ? ` (countdown: ${countdownDate})` : ''} (sold_out: ${soldOut})`);
     } else if (tabKey === "club") {
       // For club tab, if no clubOrDept specified, don't update anything
       // (admin should select a specific club/dept to change its status)
@@ -2282,7 +2309,7 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
         message: "For club tab, please specify a clubOrDept to update event status" 
       });
     } else {
-      console.log(`Updating event status for ${tabKey} to ${status} (sold_out: ${soldOut})`);
+      console.log(`Updating event status for ${tabKey} to ${status}${countdownDate ? ` (countdown: ${countdownDate})` : ''} (sold_out: ${soldOut})`);
     }
 
     const { data, error } = await updateQuery.select();

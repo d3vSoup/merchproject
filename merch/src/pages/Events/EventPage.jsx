@@ -23,39 +23,7 @@ export default function EventPage() {
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Listen to localStorage changes for event statuses only (cross-tab sync)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const newStatuses = localStorage.getItem('admin_event_statuses');
-      if (newStatuses) {
-        try {
-          const statuses = JSON.parse(newStatuses);
-          const status = statuses[eventKey] || { type: "ongoing", countdown: null };
-          setEventStatus(status);
-        } catch (e) {
-          console.error('Failed to parse event statuses:', e);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also load from localStorage on mount for countdown date
-    const savedStatuses = localStorage.getItem('admin_event_statuses');
-    if (savedStatuses) {
-      try {
-        const statuses = JSON.parse(savedStatuses);
-        const status = statuses[eventKey] || { type: "ongoing", countdown: null };
-        setEventStatus(status);
-      } catch (e) {
-        console.error('Failed to parse event statuses:', e);
-      }
-    }
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [eventKey]);
+  // Removed localStorage dependency - countdown is now fetched from backend
 
   useEffect(() => {
     async function fetchSoldOutFromServer() {
@@ -121,11 +89,30 @@ export default function EventPage() {
         
         // Replace soldOutItems with server data (authoritative source)
         setSoldOutItems(map);
-        if (serverStatus) {
-          setEventStatus(prev => ({ ...prev, type: serverStatus }));
+        
+        // Update event status from server response (includes countdown date)
+        if (res.data?.eventStatus) {
+          const serverEventStatus = res.data.eventStatus;
+          setEventStatus({
+            type: serverEventStatus.type || "ongoing",
+            countdown: serverEventStatus.countdown || null
+          });
+          console.log('Event status from server:', serverEventStatus);
+        } else if (serverStatus) {
+          // Fallback: use status from items if eventStatus not in response
+          // Try to find countdown date from items
+          const countdownItem = items.find(item => 
+            item.tab_key === eventKey && 
+            item.event_status === "countdown" && 
+            item.countdown_date
+          );
+          setEventStatus({
+            type: serverStatus,
+            countdown: countdownItem?.countdown_date || null
+          });
         } else {
           // If no server status found, default to ongoing
-          setEventStatus(prev => ({ ...prev, type: "ongoing" }));
+          setEventStatus({ type: "ongoing", countdown: null });
         }
       } catch (err) {
         console.error('Failed to load sold-out data from server', err);
@@ -150,7 +137,14 @@ export default function EventPage() {
     fetchSoldOutFromServer();
     fetchOverrides();
     
-    // No polling - data is refreshed on page load only to prevent constant refreshing
+    // Poll for event status updates every 10 seconds (for countdown changes)
+    const pollInterval = setInterval(() => {
+      fetchSoldOutFromServer();
+    }, 10000); // 10 seconds
+    
+    return () => {
+      clearInterval(pollInterval);
+    };
   }, [eventKey]);
 
   const eventProducts = useMemo(() => {

@@ -287,10 +287,15 @@ export default function AdminItems() {
                   
                   // Call backend to sync event status (club/dept-specific for club tab)
                   try {
+                    const countdownDate = newStatus === "countdown" 
+                      ? eventStatuses[selectedTab]?.countdown 
+                      : null;
+                    
                     await api.post("/api/admin/event/status", {
                       tabKey: selectedTab,
                       status: newStatus,
                       clubOrDept: selectedTab === "club" ? currentCategory : null,
+                      countdownDate: countdownDate || null,
                     });
                     toast.success(selectedTab === "club" 
                       ? `Event status updated for ${currentCategory}` 
@@ -346,11 +351,27 @@ export default function AdminItems() {
               <input
                 type="datetime-local"
                 value={eventStatuses[selectedTab]?.countdown || ""}
-                onChange={(e) => {
+                onChange={async (e) => {
+                  const newCountdown = e.target.value;
                   setEventStatuses(prev => ({
                     ...prev,
-                    [selectedTab]: { ...prev[selectedTab], countdown: e.target.value }
+                    [selectedTab]: { ...prev[selectedTab], countdown: newCountdown }
                   }));
+                  
+                  // Save countdown date to backend immediately
+                  try {
+                    const currentCategory = ieeeSubclub || selectedClub || selectedDept;
+                    await api.post("/api/admin/event/status", {
+                      tabKey: selectedTab,
+                      status: "countdown",
+                      clubOrDept: selectedTab === "club" ? currentCategory : null,
+                      countdownDate: newCountdown || null,
+                    });
+                    toast.success('Countdown date updated');
+                  } catch (err) {
+                    console.error('Failed to update countdown date:', err);
+                    toast.error('Failed to save countdown date');
+                  }
                 }}
               />
             )}
