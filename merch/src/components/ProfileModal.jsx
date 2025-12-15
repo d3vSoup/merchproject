@@ -1,5 +1,6 @@
 // merch/src/components/ProfileModal.jsx
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../api";              // axios instance (src/api.js)
 import { useAuth } from "../auth/AuthContext";
 import toast from "react-hot-toast";
@@ -22,6 +23,16 @@ export default function ProfileModal({ open, onClose }) {
       setSem(user?.sem || "");
     }
   }, [open, user]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -55,37 +66,39 @@ export default function ProfileModal({ open, onClose }) {
     }
   }
 
-  return (
+  const modalContent = (
     <div 
-      className="modal-backdrop" 
+      className="modal-backdrop profile-modal-backdrop" 
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
+        background: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 10000
+        zIndex: 99999,
+        padding: '20px'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="modal" 
+        className="modal profile-modal-content" 
         style={{
           background: '#fff',
           borderRadius: '12px',
           padding: '24px',
           maxWidth: '500px',
-          width: '90%',
+          width: '100%',
           maxHeight: '90vh',
           overflow: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          position: 'relative'
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          position: 'relative',
+          zIndex: 100000
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -163,6 +176,9 @@ export default function ProfileModal({ open, onClose }) {
       </div>
     </div>
   );
+
+  // Use portal to render modal at document.body level, outside normal DOM hierarchy
+  return createPortal(modalContent, document.body);
 }
 
 // inline styles so the modal looks good without extra CSS (you can remove if you prefer)
