@@ -58,7 +58,9 @@ export default function Layout({ children, cartCount = 0 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const accountRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [wishlistCount, setWishlistCount] = useState(0);
 
@@ -91,6 +93,9 @@ export default function Layout({ children, cartCount = 0 }) {
       if (accountRef.current && !accountRef.current.contains(e.target)) {
         setAccountOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target) && !e.target.closest('.mobile-menu-btn')) {
+        setMobileMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -98,11 +103,19 @@ export default function Layout({ children, cartCount = 0 }) {
 
   useEffect(() => {
     function handleEscape(e) {
-      if (e.key === "Escape") setSearchOpen(false);
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setMobileMenuOpen(false);
+      }
     }
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleGoogleSuccess = async (userData) => {
     setAccountOpen(false);
@@ -173,7 +186,38 @@ export default function Layout({ children, cartCount = 0 }) {
   return (
     <div className={`app-root theme-${activeTab || "default"}`}>
       <header className="topbar">
-        <nav className="tabs-row">
+        {/* Mobile Hamburger Menu Button - Only visible on phones */}
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Menu"
+          aria-expanded={mobileMenuOpen}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Mobile Menu Dropdown - Only visible on phones when open */}
+        {mobileMenuOpen && (
+          <div className="mobile-menu-dropdown" ref={mobileMenuRef}>
+            {TABS.map((tab) => (
+              <Link
+                key={tab.key}
+                to={tab.path}
+                className={`mobile-menu-item ${activeTab === tab.key ? "mobile-menu-item--active" : ""}`}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                }}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Desktop Tabs - Hidden on phones */}
+        <nav className="tabs-row desktop-tabs">
           {TABS.map((tab) => (
             <div
               key={tab.key}
