@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import GoogleSignIn from "./GoogleSignIn";
 import ProfileModal from "./ProfileModal";
+import ProfileCompletionPopup from "./ProfileCompletionPopup";
 import previewUtsav from "../assets/preview-utsav.svg";
 import previewPhaseshift from "../assets/preview-phaseshift.svg";
 import previewFarouche from "../assets/preview-farouche.svg";
@@ -416,6 +417,8 @@ export default function Layout({ children, cartCount = 0 }) {
           onClose={() => setProfileOpen(false)}
         />
       )}
+
+      <ProfileCompletionPopup onOpenProfile={() => setProfileOpen(true)} />
     </div>
   );
 }

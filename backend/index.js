@@ -466,6 +466,10 @@ app.post('/api/auth/google', async (req, res) => {
           .single();
         
         if (sbUser) {
+          // Calculate profile percent from actual data (authoritative)
+          // Profile is 100% if name, USN, and sem are all present
+          const calculatedPercent = (sbUser.name && sbUser.usn && sbUser.sem) ? 100 : 50;
+          
           // Use Supabase data as authoritative source for profile fields
           fullProfile = {
             id: sbUser.id,
@@ -475,11 +479,11 @@ app.post('/api/auth/google', async (req, res) => {
             phone: sbUser.phone || null,
             branch: sbUser.branch || null,
             sem: sbUser.sem || null,
-            profilePercent: sbUser.profile_percent || 50,
+            profilePercent: calculatedPercent, // Calculate from actual data
             pfpUrl: sbUser.pfp_url || null,
             supabaseId: sbUser.id
           };
-          console.log('   ✅ Loaded full profile from Supabase');
+          console.log('   ✅ Loaded full profile from Supabase, profilePercent:', calculatedPercent);
         }
       } catch (e) {
         console.warn('   Could not fetch full profile from Supabase:', e.message);
@@ -529,6 +533,10 @@ app.get('/api/me', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Calculate profile percent from actual data (authoritative)
+    // Profile is 100% if name, USN, and sem are all present
+    const calculatedPercent = (sbUser.name && sbUser.usn && sbUser.sem) ? 100 : 50;
+    
     // Map Supabase user to frontend user format
     const user = {
       id: sbUser.id,
@@ -538,7 +546,7 @@ app.get('/api/me', authMiddleware, async (req, res) => {
       phone: sbUser.phone || null,
       branch: sbUser.branch || null,
       sem: sbUser.sem || null,
-      profilePercent: sbUser.profile_percent || 50,
+      profilePercent: calculatedPercent, // Calculate from actual data, not stored value
       pfpUrl: sbUser.pfp_url || null,
       supabaseId: sbUser.id
     };
