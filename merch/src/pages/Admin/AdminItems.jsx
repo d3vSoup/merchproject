@@ -265,51 +265,68 @@ export default function AdminItems() {
         </div>
 
         <div className="admin-event-status">
-          <h4>Event Status</h4>
+          <h4>Event Status{selectedTab === "club" && (ieeeSubclub || selectedClub || selectedDept) ? ` - ${ieeeSubclub || selectedClub || selectedDept}` : ""}</h4>
           <div className="status-controls">
             <label>
               <select
                 value={eventStatuses[selectedTab]?.type || "ongoing"}
                 onChange={async (e) => {
                   const newStatus = e.target.value;
+                  const currentCategory = ieeeSubclub || selectedClub || selectedDept;
+                  
+                  // For club tab, require a specific club/dept to be selected
+                  if (selectedTab === "club" && !currentCategory) {
+                    toast.error('Please select a specific club or department to change event status');
+                    return;
+                  }
+                  
                   setEventStatuses(prev => ({
                     ...prev,
                     [selectedTab]: { ...prev[selectedTab], type: newStatus, soldOut: newStatus === "soldout" || newStatus === "over" || newStatus === "no_new_releases" }
                   }));
                   
-                  // Call backend to sync event status globally
+                  // Call backend to sync event status (club/dept-specific for club tab)
                   try {
                     await api.post("/api/admin/event/status", {
                       tabKey: selectedTab,
                       status: newStatus,
+                      clubOrDept: selectedTab === "club" ? currentCategory : null,
                     });
-                    toast.success('Event status updated globally');
+                    toast.success(selectedTab === "club" 
+                      ? `Event status updated for ${currentCategory}` 
+                      : 'Event status updated globally');
                   } catch (err) {
                     console.error('Failed to update event status:', err);
-                    toast.error('Failed to sync event status');
+                    toast.error(err.response?.data?.message || 'Failed to sync event status');
+                    return; // Don't update UI if backend failed
                   }
                   
                   const newSoldOuts = { ...soldOutItems };
                   
                   // If event is sold out/over/no_new_releases, mark all products as sold out
+                  // For club tab, only update products for the selected club/dept
                   if (newStatus === "soldout" || newStatus === "over" || newStatus === "no_new_releases") {
                     currentProducts.forEach(product => {
                       const productKey = `${selectedTab}:${product.id}`;
-                      newSoldOuts[productKey] = true;
-                      // Save to backend
-                      saveSoldOutStatus(selectedTab, product.id, null, true, null, newStatus);
+                      const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
+                      newSoldOuts[categoryKey] = true;
+                      // Save to backend with club/dept
+                      saveSoldOutStatus(selectedTab, product.id, null, true, currentCategory || null, newStatus);
                     });
                   } else if (newStatus === "ongoing") {
                     // If event is ongoing, make all products available
                     currentProducts.forEach(product => {
                       const productKey = `${selectedTab}:${product.id}`;
-                      newSoldOuts[productKey] = false;
-                      // Save to backend
-                      saveSoldOutStatus(selectedTab, product.id, null, false, null, newStatus);
+                      const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
+                      newSoldOuts[categoryKey] = false;
+                      // Save to backend with club/dept
+                      saveSoldOutStatus(selectedTab, product.id, null, false, currentCategory || null, newStatus);
                     });
                   }
                   
                   setSoldOutItems(newSoldOuts);
+                  // Reload to ensure UI matches database
+                  setTimeout(() => loadSoldOutStatus(), 200);
                 }}
               >
                 <option value="ongoing">Ongoing</option>

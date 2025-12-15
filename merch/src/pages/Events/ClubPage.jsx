@@ -121,9 +121,6 @@ export default function ClubPage() {
         const map = {};
         const statusMap = {};
         (res.data?.items || []).forEach(item => {
-          const baseKey = `club:${item.product_id}:${item.variant || "standard"}`;
-          const key = item.club_or_dept ? `${baseKey}:${item.club_or_dept}` : baseKey;
-          
           // Item is unavailable if:
           // 1. Event status is soldout/over/no_new_releases (whole event unavailable)
           // 2. OR individual item is marked sold_out (even if event is ongoing)
@@ -135,12 +132,39 @@ export default function ClubPage() {
           
           // Individual item sold_out takes precedence
           const isItemSoldOut = item.sold_out === true;
-            
-          if (isEventUnavailable || isItemSoldOut) {
-            map[key] = true;
+          const isUnavailable = isEventUnavailable || isItemSoldOut;
+          
+          if (!isUnavailable) return; // Skip if item is available
+          
+          // Create multiple key variations to ensure matching works
+          const variant = item.variant || null;
+          const variantStr = variant || "standard";
+          const clubOrDept = item.club_or_dept;
+          
+          // Base keys (without club/dept)
+          const baseKeyStandard = `club:${item.product_id}:standard`;
+          const baseKeyNull = `club:${item.product_id}:null`;
+          const baseKeyVariant = `club:${item.product_id}:${variantStr}`;
+          const baseKeyNoVariant = `club:${item.product_id}`;
+          
+          // If club/dept is specified, create keys with it
+          if (clubOrDept) {
+            // Keys with club/dept
+            map[`${baseKeyStandard}:${clubOrDept}`] = true;
+            map[`${baseKeyNull}:${clubOrDept}`] = true;
+            map[`${baseKeyVariant}:${clubOrDept}`] = true;
+            map[`${baseKeyNoVariant}:${clubOrDept}`] = true;
+          } else {
+            // Keys without club/dept (for non-club tabs or general items)
+            map[baseKeyStandard] = true;
+            map[baseKeyNull] = true;
+            map[baseKeyVariant] = true;
+            map[baseKeyNoVariant] = true;
           }
-          if (item.club_or_dept && item.event_status && item.event_status !== "ongoing") {
-            statusMap[item.club_or_dept] = item.event_status;
+          
+          // Store event status per club/dept
+          if (clubOrDept && eventStatus !== "ongoing" && eventStatus !== "countdown") {
+            statusMap[clubOrDept] = eventStatus;
           }
         });
         if (mounted) {
@@ -431,10 +455,36 @@ export default function ClubPage() {
               const productKey = `club:${product.id}`;
               const selectedVariant = productSelections[productKey] || defaultVariant;
               const variant = selectedVariant;
-              const itemKey = `club:${product.id}:${variant || "standard"}`;
-              const categoryKey = `${itemKey}:${currentCategory}`;
+              
+              // Create multiple possible keys to check
+              const variantStr = variant || "standard";
+              const nullVariantKey = `club:${product.id}:null:${currentCategory}`;
+              const standardVariantKey = `club:${product.id}:standard:${currentCategory}`;
+              const actualVariantKey = `club:${product.id}:${variantStr}:${currentCategory}`;
+              const categoryKey = actualVariantKey;
+              
+              // Also check without variant
+              const baseCategoryKey = `club:${product.id}:${currentCategory}`;
+              const baseItemKey = `club:${product.id}:${variantStr}`;
+              const baseNullKey = `club:${product.id}:null`;
+              const baseStandardKey = `club:${product.id}:standard`;
+              
               // Check if loading to avoid flashing
-              const isProductSoldOut = loadingSoldOut ? false : (soldOutItems[categoryKey] || soldOutItems[itemKey] || (clubStatuses[currentCategory] && (clubStatuses[currentCategory] === "soldout" || clubStatuses[currentCategory] === "over" || clubStatuses[currentCategory] === "no_new_releases")));
+              // Priority: category-specific keys > base keys > event status
+              const isProductSoldOut = loadingSoldOut ? false : (
+                soldOutItems[categoryKey] ||
+                soldOutItems[nullVariantKey] ||
+                soldOutItems[standardVariantKey] ||
+                soldOutItems[baseCategoryKey] ||
+                soldOutItems[baseItemKey] ||
+                soldOutItems[baseNullKey] ||
+                soldOutItems[baseStandardKey] ||
+                (clubStatuses[currentCategory] && (
+                  clubStatuses[currentCategory] === "soldout" || 
+                  clubStatuses[currentCategory] === "over" || 
+                  clubStatuses[currentCategory] === "no_new_releases"
+                ))
+              );
               const cartItem = findCartItem(product.id, variant);
               const quantity = cartItem?.quantity || 0;
 
@@ -529,18 +579,29 @@ export default function ClubPage() {
         </div>
       )}
 
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          tabKey="club"
-          onClose={() => setSelectedProduct(null)}
-          isProductSoldOut={
-            soldOutItems[`club:${selectedProduct.id}:${productSelections[`club:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || 'standard'}:${currentCategory}`] ||
-            soldOutItems[`club:${selectedProduct.id}:${productSelections[`club:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || 'standard'}`] ||
-            (clubStatuses[currentCategory] && (clubStatuses[currentCategory] === "soldout" || clubStatuses[currentCategory] === "over" || clubStatuses[currentCategory] === "no_new_releases"))
-          }
-        />
-      )}
+      {selectedProduct && (() => {
+        const variant = productSelections[`club:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || null;
+        const variantStr = variant || "standard";
+        const categoryKey = `club:${selectedProduct.id}:${variantStr}:${currentCategory}`;
+        const baseKey = `club:${selectedProduct.id}:${variantStr}`;
+        const isModalSoldOut = soldOutItems[categoryKey] || 
+                               soldOutItems[`club:${selectedProduct.id}:null:${currentCategory}`] ||
+                               soldOutItems[`club:${selectedProduct.id}:standard:${currentCategory}`] ||
+                               soldOutItems[baseKey] ||
+                               (clubStatuses[currentCategory] && (
+                                 clubStatuses[currentCategory] === "soldout" || 
+                                 clubStatuses[currentCategory] === "over" || 
+                                 clubStatuses[currentCategory] === "no_new_releases"
+                               ));
+        return (
+          <ProductModal
+            product={selectedProduct}
+            tabKey="club"
+            onClose={() => setSelectedProduct(null)}
+            isProductSoldOut={isModalSoldOut}
+          />
+        );
+      })()}
     </section>
   );
 }

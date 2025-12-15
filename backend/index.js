@@ -2253,7 +2253,7 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
     return res.status(403).json({ message: "Admin only" });
   }
 
-  const { tabKey, status } = req.body;
+  const { tabKey, status, clubOrDept } = req.body;
 
   try {
     const soldOut =
@@ -2261,17 +2261,32 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
       status === "over" ||
       status === "no_new_releases";
 
-    // Update ALL products under this event (tab)
-    const { error } = await supabaseAdmin
+    // Build query - filter by tab_key and optionally by club_or_dept
+    let updateQuery = supabaseAdmin
       .from("admin_items")
       .update({
-        sold_out: soldOut,      // this applies to ALL items of the event
+        sold_out: soldOut,
         event_status: status
       })
       .eq("tab_key", tabKey);
 
+    // If clubOrDept is provided, only update items for that specific club/dept
+    // If clubOrDept is null/undefined, update all items for the tab (for non-club tabs)
+    if (clubOrDept !== undefined && clubOrDept !== null) {
+      updateQuery = updateQuery.eq("club_or_dept", clubOrDept);
+    } else if (tabKey === "club") {
+      // For club tab, if no clubOrDept specified, don't update anything
+      // (admin should select a specific club/dept to change its status)
+      return res.status(400).json({ 
+        message: "For club tab, please specify a clubOrDept to update event status" 
+      });
+    }
+
+    const { error } = await updateQuery;
+
     if (error) throw error;
 
+    console.log(`Updated event status for ${tabKey}${clubOrDept ? ` (${clubOrDept})` : ''} to ${status}`);
     return res.json({ ok: true });
   } catch (err) {
     console.error("Event status update error:", err);
