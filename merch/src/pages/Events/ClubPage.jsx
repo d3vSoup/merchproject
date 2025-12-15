@@ -122,7 +122,7 @@ export default function ClubPage() {
         const statusMap = {};
         (res.data?.items || []).forEach(item => {
           // Item is unavailable if:
-          // 1. Event status is soldout/over/no_new_releases (whole event unavailable)
+          // 1. Event status is soldout/over/no_new_releases (whole event unavailable for that club/dept)
           // 2. OR individual item is marked sold_out (even if event is ongoing)
           const eventStatus = item.event_status || 'ongoing';
           const isEventUnavailable = 
@@ -130,8 +130,12 @@ export default function ClubPage() {
             eventStatus === "over" || 
             eventStatus === "no_new_releases";
           
-          // Individual item sold_out takes precedence
+          // Individual item sold_out flag
           const isItemSoldOut = item.sold_out === true;
+          
+          // Item is unavailable if:
+          // - Event status makes it unavailable (soldout/over/no_new_releases), OR
+          // - Item is individually marked as sold_out (regardless of event status)
           const isUnavailable = isEventUnavailable || isItemSoldOut;
           
           if (!isUnavailable) return; // Skip if item is available

@@ -313,20 +313,26 @@ export default function AdminItems() {
                       // Save to backend with club/dept
                       saveSoldOutStatus(selectedTab, product.id, null, true, currentCategory || null, newStatus);
                     });
-                  } else if (newStatus === "ongoing") {
-                    // If event is ongoing, make all products available
+                  } else if (newStatus === "ongoing" || newStatus === "countdown") {
+                    // If event is ongoing/countdown, clear sold_out for all products
+                    // The backend endpoint will handle this, but we also update UI optimistically
                     currentProducts.forEach(product => {
                       const productKey = `${selectedTab}:${product.id}`;
                       const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
-                      newSoldOuts[categoryKey] = false;
-                      // Save to backend with club/dept
-                      saveSoldOutStatus(selectedTab, product.id, null, false, currentCategory || null, newStatus);
+                      // Clear from UI - backend will set sold_out: false
+                      delete newSoldOuts[categoryKey];
+                      // Also clear base keys
+                      delete newSoldOuts[productKey];
+                      delete newSoldOuts[`${productKey}:standard`];
+                      delete newSoldOuts[`${productKey}:null`];
                     });
                   }
                   
                   setSoldOutItems(newSoldOuts);
-                  // Reload to ensure UI matches database
-                  setTimeout(() => loadSoldOutStatus(), 200);
+                  // Reload to ensure UI matches database - wait a bit longer for backend to process
+                  setTimeout(() => {
+                    loadSoldOutStatus();
+                  }, 500);
                 }}
               >
                 <option value="ongoing">Ongoing</option>

@@ -2265,32 +2265,35 @@ app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
     let updateQuery = supabaseAdmin
       .from("admin_items")
       .update({
-        sold_out: soldOut,
+        sold_out: soldOut,  // Explicitly set sold_out based on status
         event_status: status
       })
       .eq("tab_key", tabKey);
 
     // If clubOrDept is provided, only update items for that specific club/dept
     // If clubOrDept is null/undefined, update all items for the tab (for non-club tabs)
-    if (clubOrDept !== undefined && clubOrDept !== null) {
+    if (clubOrDept !== undefined && clubOrDept !== null && clubOrDept !== "") {
       updateQuery = updateQuery.eq("club_or_dept", clubOrDept);
+      console.log(`Updating event status for ${tabKey} - ${clubOrDept} to ${status} (sold_out: ${soldOut})`);
     } else if (tabKey === "club") {
       // For club tab, if no clubOrDept specified, don't update anything
       // (admin should select a specific club/dept to change its status)
       return res.status(400).json({ 
         message: "For club tab, please specify a clubOrDept to update event status" 
       });
+    } else {
+      console.log(`Updating event status for ${tabKey} to ${status} (sold_out: ${soldOut})`);
     }
 
-    const { error } = await updateQuery;
+    const { data, error } = await updateQuery.select();
 
     if (error) throw error;
 
-    console.log(`Updated event status for ${tabKey}${clubOrDept ? ` (${clubOrDept})` : ''} to ${status}`);
-    return res.json({ ok: true });
+    console.log(`Updated ${data?.length || 0} items. Event status for ${tabKey}${clubOrDept ? ` (${clubOrDept})` : ''} set to ${status}`);
+    return res.json({ ok: true, updated: data?.length || 0 });
   } catch (err) {
     console.error("Event status update error:", err);
-    return res.status(500).json({ message: "Failed to update event status" });
+    return res.status(500).json({ message: "Failed to update event status", error: err.message });
   }
 });
 // start up: init storage then listen
