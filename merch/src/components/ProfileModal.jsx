@@ -68,44 +68,13 @@ export default function ProfileModal({ open, onClose }) {
 
   const modalContent = (
     <div 
-      className="modal-backdrop profile-modal-backdrop" 
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 999999,
-        padding: '20px',
-        margin: 0,
-        border: 'none',
-        outline: 'none',
-        boxSizing: 'border-box'
-      }}
+      className="profile-modal-backdrop" 
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div 
-        className="modal profile-modal-content" 
-        style={{
-          background: '#fff',
-          borderRadius: '12px',
-          padding: '24px',
-          maxWidth: '500px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflow: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          position: 'relative',
-          zIndex: 1000000,
-          margin: 0,
-          boxSizing: 'border-box'
-        }}
+        className="profile-modal-content" 
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -184,7 +153,11 @@ export default function ProfileModal({ open, onClose }) {
   );
 
   // Use portal to render modal at document.body level, outside normal DOM hierarchy
-  return createPortal(modalContent, document.body);
+  // This ensures it's not affected by any parent stacking contexts
+  if (typeof document !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+  return null;
 }
 
 // inline styles so the modal looks good without extra CSS (you can remove if you prefer)
