@@ -75,12 +75,17 @@ export default function ProfileModal({ open, onClose }) {
         left: 0,
         right: 0,
         bottom: 0,
-        background: 'rgba(0, 0, 0, 0.6)',
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.7)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 99999,
-        padding: '20px'
+        zIndex: 999999,
+        padding: '20px',
+        margin: 0,
+        border: 'none',
+        outline: 'none'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -96,9 +101,10 @@ export default function ProfileModal({ open, onClose }) {
           width: '100%',
           maxHeight: '90vh',
           overflow: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           position: 'relative',
-          zIndex: 100000
+          zIndex: 1000000,
+          margin: 0
         }}
         onClick={(e) => e.stopPropagation()}
       >
