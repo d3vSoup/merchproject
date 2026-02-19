@@ -196,33 +196,35 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
 
             {/* Quantity Controls and Actions */}
             <div className="modal-actions">
-              <div className="qty-control">
-                <button
-                  type="button"
-                  className="qty-btn"
-                  onClick={() => handleAdjustCart(-1)}
-                  disabled={quantity === 0 || isProductSoldOut || loading}
-                >
-                  -
-                </button>
-                <span className="qty-count">{quantity}</span>
-                <button
-                  type="button"
-                  className="qty-btn"
+              <div className="modal-actions-row">
+                <div className="qty-control">
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => handleAdjustCart(-1)}
+                    disabled={quantity === 0 || isProductSoldOut || loading}
+                  >
+                    -
+                  </button>
+                  <span className="qty-count">{quantity}</span>
+                  <button
+                    type="button"
+                    className="qty-btn"
+                    onClick={() => handleAdjustCart(1)}
+                    disabled={isProductSoldOut || loading}
+                  >
+                    +
+                  </button>
+                </div>
+                
+                <button 
+                  className="btn btn--primary" 
                   onClick={() => handleAdjustCart(1)}
                   disabled={isProductSoldOut || loading}
                 >
-                  +
+                  {isProductSoldOut ? "Unavailable" : "Add to Cart"}
                 </button>
               </div>
-              
-              <button 
-                className="btn btn--primary" 
-                onClick={() => handleAdjustCart(1)}
-                disabled={isProductSoldOut || loading}
-              >
-                {isProductSoldOut ? "Unavailable" : "Add to Cart"}
-              </button>
               
               <button 
                 className={`btn btn--ghost wishlist-btn ${isWishlisted ? 'is-wishlisted' : ''}`}

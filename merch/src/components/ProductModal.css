@@ -212,9 +212,14 @@
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 14px;
   margin-top: auto;
-  flex-wrap: wrap;
+}
+
+.modal-actions-row {
+  display: flex;
+  gap: 12px;
   align-items: center;
 }
 
@@ -254,9 +259,16 @@
   font-weight: 600;
 }
 
-.modal-actions .btn {
+.modal-actions-row .btn {
   flex: 1;
   min-width: 120px;
+}
+
+.modal-actions .wishlist-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 0.95rem;
 }
 
 .modal-actions .wishlist-btn {
@@ -284,12 +296,12 @@
     font-size: 1.5rem;
   }
   
-  .modal-actions {
+  .modal-actions-row {
     flex-direction: column;
   }
   
-  .modal-actions .btn,
-  .modal-actions .qty-control {
+  .modal-actions-row .btn,
+  .modal-actions-row .qty-control {
     width: 100%;
     justify-content: center;
   }
