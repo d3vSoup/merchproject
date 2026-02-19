@@ -62,6 +62,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 /* Account avatar */
 .account{position:relative}
 .account-avatar{width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);cursor:pointer;background-color:var(--accent);background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="10" fill="%23e6e6e6" opacity="0.25"/></svg>');background-repeat:no-repeat;background-position:center;background-size:60%;box-shadow:0 6px 18px rgba(255,102,0,0.12);border:none}
+.account-avatar--letter{background-image:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;text-transform:uppercase}
 
 .account-dropdown{position:absolute;right:0;top:46px;min-width:280px;padding:0;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,0.08);box-shadow:0 12px 40px rgba(16,24,40,0.12);z-index:50;overflow:hidden}
 .signin-section{padding:20px;display:flex;flex-direction:column;gap:16px}
@@ -74,6 +75,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .profile-section{padding:20px;display:flex;flex-direction:column;gap:16px}
 .profile-header{display:flex;gap:16px;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid rgba(0,0,0,0.08)}
 .profile-avatar{width:72px;height:72px;border-radius:12px;object-fit:cover;border:2px solid rgba(255,102,0,0.2);box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.profile-avatar--letter{display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;background-color:var(--accent);text-transform:uppercase}
 .profile-info{flex:1;display:flex;flex-direction:column;gap:6px}
 .profile-name{font-weight:700;font-size:1rem;color:var(--text)}
 .profile-email{font-size:0.85rem;color:var(--muted);word-break:break-word}

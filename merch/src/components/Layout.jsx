@@ -66,7 +66,8 @@ export default function Layout({ children, cartCount = 0 }) {
 
   const isAdmin = user?.email === "souparno.cs24@bmsce.ac.in";
   const profilePercent = user?.profilePercent || 0;
-  const avatarUrl = user?.pfpUrl || (user?.email ? `https://unavatar.io/${encodeURIComponent(user.email)}` : null);
+  const avatarUrl = user?.pfpUrl || null;
+  const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : null;
 
   // Fetch wishlist count
   useEffect(() => {
@@ -287,7 +288,7 @@ export default function Layout({ children, cartCount = 0 }) {
 
             <div className="account" ref={accountRef}>
               <button
-                className="account-avatar"
+                className={`account-avatar${!avatarUrl && avatarLetter ? ' account-avatar--letter' : ''}`}
                 aria-haspopup="true"
                 aria-expanded={accountOpen}
                 onClick={() => setAccountOpen((v) => !v)}
@@ -297,7 +298,9 @@ export default function Layout({ children, cartCount = 0 }) {
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 } : {}}
-              />
+              >
+                {!avatarUrl && avatarLetter ? avatarLetter : ''}
+              </button>
               {accountOpen && (
                 <div className="account-dropdown" role="menu">
                   {!user ? (
@@ -319,11 +322,17 @@ export default function Layout({ children, cartCount = 0 }) {
                   ) : (
                     <div className="profile-section">
                       <div className="profile-header">
-                        <img
-                          src={avatarUrl}
-                          alt="avatar"
-                          className="profile-avatar"
-                        />
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt="avatar"
+                            className="profile-avatar"
+                          />
+                        ) : (
+                          <div className="profile-avatar profile-avatar--letter">
+                            {avatarLetter}
+                          </div>
+                        )}
                         <div className="profile-info">
                           <div className="profile-name">{user.name || user.email.split('@')[0]}</div>
                           <div className="profile-email">{user.email}</div>

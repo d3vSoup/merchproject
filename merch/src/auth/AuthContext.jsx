@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
   // Sign in using server-side Google exchange
   async function signinWithGoogle(id_token) {
     try {
-      const res = await api.post("/api/auth/google", { id_token }, { timeout: 5000 });
+      const res = await api.post("/api/auth/google", { id_token });
       const newToken = res.data.token;
       setToken(newToken);
     setUser(res.data.user);
