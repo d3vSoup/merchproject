@@ -65,6 +65,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .account-avatar--letter{background-image:none;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;text-transform:uppercase}
 
 .account-dropdown{position:absolute;right:0;top:46px;min-width:280px;padding:0;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,0.08);box-shadow:0 12px 40px rgba(16,24,40,0.12);z-index:50;overflow:hidden}
+.account-dropdown-close{display:none}
 .signin-section{padding:20px;display:flex;flex-direction:column;gap:16px}
 .signin-header h3{margin:0 0 4px;font-size:1.2rem;font-weight:700;color:var(--text)}
 .signin-header p{margin:0;font-size:0.9rem;color:var(--muted);line-height:1.4}
@@ -713,8 +714,9 @@ select:focus {
 
   /* Prevent horizontal scroll on mobile */
   .topbar {
-    overflow-x: hidden;
+    overflow: visible;
     position: relative;
+    max-width: 100vw;
   }
 
   /* Make hamburger icon more visible on mobile */
@@ -733,6 +735,68 @@ select:focus {
   .account-avatar {
     width: 32px;
     height: 32px;
+  }
+
+  /* Account dropdown close button on mobile */
+  .account-dropdown-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.06);
+    font-size: 1.1rem;
+    cursor: pointer;
+    z-index: 1;
+    color: var(--text);
+  }
+
+  /* Account dropdown: full-screen overlay on mobile */
+  .account {
+    position: static;
+  }
+  .account-dropdown {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    min-width: unset;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    z-index: 9999;
+    overflow-y: auto;
+    animation: mobileSlideUp 0.25s ease-out;
+  }
+  @keyframes mobileSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .account-dropdown .signin-section,
+  .account-dropdown .profile-section {
+    padding: 24px 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+  .account-dropdown .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .account-dropdown .profile-info {
+    align-items: center;
+  }
+  .account-dropdown .profile-actions {
+    justify-content: center;
   }
 }
 

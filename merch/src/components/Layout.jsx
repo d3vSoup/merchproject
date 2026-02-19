@@ -303,6 +303,11 @@ export default function Layout({ children, cartCount = 0 }) {
               </button>
               {accountOpen && (
                 <div className="account-dropdown" role="menu">
+                  <button
+                    className="account-dropdown-close"
+                    onClick={() => setAccountOpen(false)}
+                    aria-label="Close"
+                  >✕</button>
                   {!user ? (
                     <div className="signin-section">
                       <div className="signin-header">
