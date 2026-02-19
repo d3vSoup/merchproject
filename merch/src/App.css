@@ -263,7 +263,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .admin-edit-form label{display:flex;flex-direction:column;gap:6px;font-size:0.9rem;font-weight:600}
 .admin-edit-form input{padding:10px 12px;border:1px solid rgba(0,0,0,0.1);border-radius:8px;font-size:0.9rem}
 .admin-edit-actions{display:flex;gap:12px;margin-top:8px}
-.admin-orders-header{margin-bottom:24px}
+.admin-orders-header{display:flex;gap:12px;margin-bottom:20px;align-items:center}
+.admin-orders-tabs{display:flex;gap:8px;margin-left:auto}
 .admin-orders-list{width:100%}
 .orders-table{display:flex;flex-direction:column;gap:12px;overflow-x:auto;padding:8px 0}
 .orders-header-row,.orders-row{display:grid;grid-template-columns:minmax(200px,2fr) minmax(110px,1fr) minmax(120px,1.3fr) minmax(110px,1.2fr) minmax(90px,1fr) minmax(90px,1fr) minmax(70px,0.8fr);gap:20px;padding:18px 20px;align-items:start;border-bottom:none}
@@ -797,6 +798,33 @@ select:focus {
   }
   .account-dropdown .profile-actions {
     justify-content: center;
+  }
+
+  /* Admin orders header: stack vertically, scrollable tabs on mobile */
+  .admin-orders-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .admin-orders-header > .btn {
+    width: 100%;
+  }
+  .admin-orders-tabs {
+    margin-left: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
+  .admin-orders-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-orders-tabs .btn {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    padding: 8px 14px;
+    white-space: nowrap;
   }
 }
 

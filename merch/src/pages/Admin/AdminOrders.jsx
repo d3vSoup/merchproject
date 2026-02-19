@@ -181,11 +181,11 @@ export default function AdminOrders() {
     <section className="admin-section">
       <div className="section-heading">Order Management</div>
       <div className="admin-panel">
-        <div className="admin-orders-header" style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <div className="admin-orders-header">
           <button className="btn" onClick={loadAllOrders} disabled={loading}>
             {loading ? "Loading..." : "Refresh Orders"}
           </button>
-          <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+          <div className="admin-orders-tabs">
             <button 
               className={`btn ${activeTab === 'all' ? '' : 'btn--ghost'}`}
               onClick={() => setActiveTab('all')}
