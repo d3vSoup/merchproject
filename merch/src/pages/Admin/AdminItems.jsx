@@ -5,6 +5,20 @@ import api from "../../api";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 
+function toLocalDatetime(isoOrLocal) {
+  if (!isoOrLocal) return '';
+  const d = new Date(isoOrLocal);
+  if (isNaN(d)) return isoOrLocal;
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function toISO(localDatetime) {
+  if (!localDatetime) return null;
+  const d = new Date(localDatetime);
+  return isNaN(d) ? null : d.toISOString();
+}
+
 const TABS = [
   { key: "utsav", label: "Utsav" },
   { key: "phaseshift", label: "Phaseshift" },
@@ -288,7 +302,7 @@ export default function AdminItems() {
                   // Call backend to sync event status (club/dept-specific for club tab)
                   try {
                     const countdownDate = newStatus === "countdown" 
-                      ? eventStatuses[selectedTab]?.countdown 
+                      ? toISO(eventStatuses[selectedTab]?.countdown) 
                       : null;
                     
                     await api.post("/api/admin/event/status", {
@@ -350,12 +364,13 @@ export default function AdminItems() {
             {eventStatuses[selectedTab]?.type === "countdown" && (
               <input
                 type="datetime-local"
-                value={eventStatuses[selectedTab]?.countdown || ""}
+                value={toLocalDatetime(eventStatuses[selectedTab]?.countdown)}
                 onChange={async (e) => {
                   const newCountdown = e.target.value;
+                  const isoCountdown = toISO(newCountdown);
                   setEventStatuses(prev => ({
                     ...prev,
-                    [selectedTab]: { ...prev[selectedTab], countdown: newCountdown }
+                    [selectedTab]: { ...prev[selectedTab], countdown: isoCountdown || newCountdown }
                   }));
                   
                   // Save countdown date to backend immediately
@@ -365,7 +380,7 @@ export default function AdminItems() {
                       tabKey: selectedTab,
                       status: "countdown",
                       clubOrDept: selectedTab === "club" ? currentCategory : null,
-                      countdownDate: newCountdown || null,
+                      countdownDate: isoCountdown,
                     });
                     toast.success('Countdown date updated');
                   } catch (err) {
