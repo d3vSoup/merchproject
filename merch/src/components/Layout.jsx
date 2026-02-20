@@ -21,10 +21,45 @@ const TABS = [
 ];
 
 const overrideCache = {};
+let prefetchStarted = false;
+
+function mergeOverrides(catalogKey, overridesData) {
+  const base = PRODUCT_CATALOG[catalogKey] || [];
+  const map = {};
+  (overridesData || []).forEach(o => { map[o.product_id] = o; });
+  return base.map(p => {
+    const ov = map[p.id];
+    if (!ov) return p;
+    return {
+      ...p,
+      ...(ov.name ? { name: ov.name } : {}),
+      ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
+      ...(ov.price != null ? { price: Number(ov.price) } : {}),
+    };
+  });
+}
+
+function prefetchAllOverrides() {
+  if (prefetchStarted) return;
+  prefetchStarted = true;
+  const keys = ["utsav", "phaseshift", "farouche", "club"];
+  keys.forEach(key => {
+    if (overrideCache[key]) return;
+    api.get('/api/catalog/overrides', { params: { tabKey: key } })
+      .then(res => {
+        overrideCache[key] = mergeOverrides(key, res.data?.overrides);
+        const urls = overrideCache[key]
+          .filter(p => p.imageUrl)
+          .map(p => p.imageUrl);
+        urls.forEach(url => { const img = new Image(); img.src = url; });
+      })
+      .catch(() => {});
+  });
+}
 
 function TabPreview({ catalogKey }) {
   const base = catalogKey ? PRODUCT_CATALOG[catalogKey] : [];
-  const [products, setProducts] = useState(base);
+  const [products, setProducts] = useState(() => overrideCache[catalogKey] || base);
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
 
@@ -34,24 +69,13 @@ function TabPreview({ catalogKey }) {
       setProducts(overrideCache[catalogKey]);
       return;
     }
-    api.get('/api/catalog/overrides', { params: { tabKey: catalogKey } })
-      .then(res => {
-        const overrides = {};
-        (res.data?.overrides || []).forEach(o => { overrides[o.product_id] = o; });
-        const merged = base.map(p => {
-          const ov = overrides[p.id];
-          if (!ov) return p;
-          return {
-            ...p,
-            ...(ov.name ? { name: ov.name } : {}),
-            ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
-            ...(ov.price != null ? { price: Number(ov.price) } : {}),
-          };
-        });
-        overrideCache[catalogKey] = merged;
-        setProducts(merged);
-      })
-      .catch(() => {});
+    const poll = setInterval(() => {
+      if (overrideCache[catalogKey]) {
+        setProducts(overrideCache[catalogKey]);
+        clearInterval(poll);
+      }
+    }, 200);
+    return () => clearInterval(poll);
   }, [catalogKey]);
 
   useEffect(() => {
@@ -61,7 +85,7 @@ function TabPreview({ catalogKey }) {
       setTimeout(() => {
         setIdx(i => (i + 1) % products.length);
         setFade(true);
-      }, 2200);
+      }, 300);
     }, 2500);
     return () => clearInterval(timer);
   }, [products.length]);
@@ -112,7 +136,8 @@ export default function Layout({ children, cartCount = 0 }) {
   const avatarUrl = user?.pfpUrl || null;
   const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : null;
 
-  // Fetch wishlist count
+  useEffect(() => { prefetchAllOverrides(); }, []);
+
   useEffect(() => {
     async function fetchWishlistCount() {
       if (!user) {
