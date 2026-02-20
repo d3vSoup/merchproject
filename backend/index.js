@@ -2216,6 +2216,31 @@ app.post('/api/admin/resell/items/:id/restore', authMiddleware, async (req, res)
   }
 });
 
+// DELETE /api/admin/resell/items/:id - Permanently delete resell item (admin only)
+app.delete('/api/admin/resell/items/:id', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .delete()
+      .eq('id', id);
+    if (error) {
+      console.error('Admin perma-delete resell item error:', error);
+      return res.status(500).json({ message: 'Failed to delete item' });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Admin perma-delete resell item error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Public: GET /api/catalog/overrides - fetch product overrides
 app.get('/api/catalog/overrides', async (req, res) => {
   try {

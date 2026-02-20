@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
-import { SkeletonGrid } from "../../components/Skeleton";
+import { SkeletonGrid, SkeletonList } from "../../components/Skeleton";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
 
@@ -594,42 +594,54 @@ export default function AdminItems() {
           <div className="admin-products-list">
             <h4>Resell Listings</h4>
             {loadingResell ? (
-              <SkeletonGrid count={3} />
+              <SkeletonList rows={5} />
             ) : resellItems.length === 0 ? (
               <p>No resell items listed yet.</p>
             ) : (
-              <div className="admin-products-grid">
+              <div className="resell-admin-list">
+                <div className="resell-admin-header">
+                  <div>Seller / Email</div>
+                  <div>Title</div>
+                  <div>Status</div>
+                  <div>Price</div>
+                  <div>Actions</div>
+                </div>
                 {resellItems.map((item) => {
                   const isHidden = !!item.admin_hidden;
+                  const status = isHidden ? 'Hidden' : (item.display_status || item.status);
+                  const statusCls = status?.toLowerCase?.() || '';
                   return (
-                    <div key={item.id} className={`admin-product-card ${isHidden ? 'is-hidden' : ''}`}>
-                      {isHidden && <div className="admin-product-hidden-badge">HIDDEN</div>}
-                      <div className="admin-product-preview" style={{ background: item.pictures?.[0] ? `url(${item.pictures[0]}) center/cover` : '#f0f0f0', position: 'relative' }}>
-                        {item.pictures?.length > 0 && (
-                          <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem' }}>
-                            {item.pictures.length} images
-                          </div>
-                        )}
-                      </div>
-                      <div className="admin-product-info">
-                        <div className="admin-product-name">{item.title}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>
-                          Condition: {item.condition} {item.year && `• Year: ${item.year}`}
+                    <div key={item.id} className={`resell-admin-row ${isHidden ? 'is-hidden' : ''}`}>
+                      <div className="resell-admin-seller">
+                        <div style={{ fontWeight: 600, marginBottom: 2 }}>
+                          {item.user?.name || (item.user?.email || 'Unknown').split('@')[0]}
                         </div>
-                        {item.price_range && (
-                          <div className="admin-product-price">{item.price_range}</div>
-                        )}
-                        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 8, maxHeight: 60, overflow: 'hidden' }}>
-                          {item.description}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
-                          Status: <strong>{item.display_status || item.status}</strong> • Listed by: {item.user?.email || 'Unknown'}
+                        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', wordBreak: 'break-word' }}>
+                          {item.user?.email || 'Unknown'}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <div className="resell-admin-title">
+                        <div style={{ fontWeight: 600 }}>{item.title}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 2 }}>
+                          {item.condition}{item.year ? ` • ${item.year}` : ''}
+                        </div>
+                      </div>
+                      <div>
+                        <span className={`resell-status-badge resell-status--${statusCls}`}>
+                          {statusCls === 'active' && '✓ '}
+                          {statusCls === 'expired' && '⏱ '}
+                          {statusCls === 'deleted' && '🗑 '}
+                          {statusCls === 'hidden' && '👁 '}
+                          {status}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 500 }}>
+                        {item.price_range || 'TBD'}
+                      </div>
+                      <div className="resell-admin-actions">
                         {isHidden ? (
                           <button
-                            className="btn btn--ghost"
+                            className="btn btn--ghost btn--sm"
                             style={{ color: 'var(--accent)' }}
                             onClick={async () => {
                               try {
@@ -645,10 +657,10 @@ export default function AdminItems() {
                           </button>
                         ) : (
                           <button
-                            className="btn btn--ghost"
+                            className="btn btn--ghost btn--sm"
                             style={{ color: '#dc2626' }}
                             onClick={async () => {
-                              if (window.confirm(`Hide "${item.title}" from the resell tab? It will no longer be visible to buyers.`)) {
+                              if (window.confirm(`Hide "${item.title}" from the resell tab?`)) {
                                 try {
                                   await api.post(`/api/admin/resell/items/${item.id}/hide`);
                                   toast.success('Item hidden');
@@ -662,6 +674,23 @@ export default function AdminItems() {
                             Hide
                           </button>
                         )}
+                        <button
+                          className="btn btn--ghost btn--sm"
+                          style={{ color: '#991b1b' }}
+                          onClick={async () => {
+                            if (window.confirm(`Permanently delete "${item.title}"? This cannot be undone.`)) {
+                              try {
+                                await api.delete(`/api/admin/resell/items/${item.id}`);
+                                toast.success('Item deleted');
+                                loadResellItems();
+                              } catch (err) {
+                                toast.error('Failed to delete');
+                              }
+                            }
+                          }}
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   );
