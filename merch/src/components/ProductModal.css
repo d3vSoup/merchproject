@@ -223,6 +223,24 @@
   align-items: center;
 }
 
+.modal-actions-buttons {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-actions-buttons .btn--primary {
+  flex: 1;
+  min-width: 120px;
+}
+
+.modal-actions-buttons .wishlist-btn {
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 100px;
+}
+
 .modal-actions .qty-control {
   display: flex;
   align-items: center;
@@ -265,9 +283,8 @@
 }
 
 .modal-actions .wishlist-btn {
-  width: 100%;
   justify-content: center;
-  padding: 12px;
+  padding: 12px 16px;
   font-size: 0.95rem;
 }
 
@@ -300,10 +317,20 @@
     flex-direction: column;
   }
   
-  .modal-actions-row .btn,
   .modal-actions-row .qty-control {
     width: 100%;
     justify-content: center;
+  }
+  
+  .modal-actions-buttons {
+    width: 100%;
+    flex-direction: row;
+  }
+  
+  .modal-actions-buttons .btn,
+  .modal-actions-buttons .wishlist-btn {
+    flex: 1;
+    min-width: 0;
   }
 }
 

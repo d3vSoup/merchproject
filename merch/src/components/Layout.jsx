@@ -404,7 +404,7 @@ export default function Layout({ children, cartCount = 0 }) {
                       </div>
                       <GoogleSignIn onSuccess={handleGoogleSuccess} />
                       <div className="signin-note">
-                        <span>Use your BMSCE Google account:</span>
+                        <span>Use your College Google account:</span>
                         <ul>
                           <li>@bmsce.ac.in</li>
                           <li>@bmsca.org</li>

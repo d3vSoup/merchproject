@@ -40,7 +40,7 @@ const EVENTS = [
 export default function Landing() {
   return (
     <div className="landing-page">
-      <div className="landing-watermark">BMS MERCH</div>
+      <div className="landing-watermark" aria-hidden="true" />
       <div className="landing-content">
         <h1 className="landing-title">BMSCE Merchandise</h1>
         <p className="landing-description">

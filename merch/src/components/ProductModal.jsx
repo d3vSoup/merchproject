@@ -217,23 +217,23 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
                     +
                   </button>
                 </div>
-                
-                <button 
-                  className="btn btn--primary" 
-                  onClick={() => handleAdjustCart(1)}
-                  disabled={isProductSoldOut || loading}
-                >
-                  {isProductSoldOut ? "Unavailable" : "Add to Cart"}
-                </button>
+                <div className="modal-actions-buttons">
+                  <button 
+                    className="btn btn--primary" 
+                    onClick={() => handleAdjustCart(1)}
+                    disabled={isProductSoldOut || loading}
+                  >
+                    {isProductSoldOut ? "Unavailable" : "Add to Cart"}
+                  </button>
+                  <button 
+                    className={`btn btn--ghost wishlist-btn ${isWishlisted ? 'is-wishlisted' : ''}`}
+                    onClick={handleToggleWishlist}
+                    disabled={loading}
+                  >
+                    {isWishlisted ? '♥ Wishlisted' : '♡ Wishlist'}
+                  </button>
+                </div>
               </div>
-              
-              <button 
-                className={`btn btn--ghost wishlist-btn ${isWishlisted ? 'is-wishlisted' : ''}`}
-                onClick={handleToggleWishlist}
-                disabled={loading}
-              >
-                {isWishlisted ? '♥ Wishlisted' : '♡ Wishlist'}
-              </button>
             </div>
           </div>
         </div>
