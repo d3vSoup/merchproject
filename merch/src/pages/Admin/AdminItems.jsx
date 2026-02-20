@@ -623,7 +623,7 @@ export default function AdminItems() {
                           {item.description}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
-                          Status: <strong>{item.status}</strong> • Listed by: {item.user?.email || 'Unknown'}
+                          Status: <strong>{item.display_status || item.status}</strong> • Listed by: {item.user?.email || 'Unknown'}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>

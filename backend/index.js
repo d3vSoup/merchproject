@@ -2144,10 +2144,20 @@ app.get('/api/admin/resell/items', authMiddleware, async (req, res) => {
         console.warn('Could not fetch user details for resell items:', userErr?.message);
       }
     }
-    const enriched = list.map(item => ({
-      ...item,
-      user: item.user_id ? usersMap[item.user_id] || null : null
-    }));
+    const now = new Date();
+    const statusLabels = { active: 'Active', under_chat: 'Under chat', completed: 'Completed', cancelled: 'Cancelled', expired: 'Expired', deleted: 'Deleted' };
+    const enriched = list.map(item => {
+      const isDeleted = !!item.deleted_at;
+      const isExpired = item.expires_at && new Date(item.expires_at) < now;
+      let displayStatus = item.status;
+      if (isDeleted) displayStatus = 'deleted';
+      else if (isExpired) displayStatus = 'expired';
+      return {
+        ...item,
+        user: item.user_id ? usersMap[item.user_id] || null : null,
+        display_status: statusLabels[displayStatus] || displayStatus
+      };
+    });
 
     return res.json({ items: enriched });
   } catch (err) {
