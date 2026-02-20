@@ -224,6 +224,9 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .landing-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .btn--large{padding:12px 28px;font-size:1rem}
 
+@media (max-width:1024px){
+.tab-preview{display:none !important}
+}
 @media (max-width:900px){
 .main-content{padding:18px;overflow-x:hidden}
 .admin-panel{padding:16px}
@@ -232,10 +235,15 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .cart-item{flex-direction:column;align-items:flex-start}
 .cart-item__controls{width:100%;justify-content:space-between}
 .cart-summary{flex-direction:column;align-items:flex-start}
-.tabs-row{overflow:auto}
-.tab{min-width:110px}
+.tabs-row{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs-row::-webkit-scrollbar{display:none}
+.tab{min-width:auto;padding:8px 14px;font-size:0.85rem;white-space:nowrap;flex-shrink:0}
 .brand{display:none}
 .landing-page{min-height:60vh;padding:24px 16px}
+.events-scroll-container{margin:24px 0}
+.event-card{flex:0 0 220px}
+.event-card-image{height:160px}
+.event-card-label{padding:12px;font-size:0.95rem}
 .merch-showcase{grid-template-columns:repeat(2,1fr);gap:16px;max-width:100%}
 .landing-title{font-size:2rem}
 .landing-description{font-size:1rem}
