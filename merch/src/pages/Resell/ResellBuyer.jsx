@@ -87,7 +87,7 @@ export default function ResellBuyer() {
             >
               <div className="item-images">
                 {item.pictures && item.pictures.length > 0 && item.pictures.slice(0, 1).map((url, idx) => (
-                  <img key={idx} src={url} alt={item.title} />
+                  <img key={idx} src={url} alt={item.title} loading="lazy" />
                 ))}
               </div>
               <div className="item-info">
@@ -208,6 +208,7 @@ export default function ResellBuyer() {
                       key={idx} 
                       src={url} 
                       alt={`${selectedItem.title} - Image ${idx + 1}`}
+                      loading="lazy"
                       style={{
                         width: '100%',
                         height: '120px',

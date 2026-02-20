@@ -136,6 +136,7 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
                   src={images[currentImageIndex]} 
                   alt={product.name} 
                   className="modal-main-image"
+                  loading="lazy"
                 />
                 {hasMultipleImages && (
                   <>

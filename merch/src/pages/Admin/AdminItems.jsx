@@ -90,7 +90,7 @@ export default function AdminItems() {
 
   // Load sold-out status from backend
   async function loadSoldOutStatus() {
-    if (!user || user.email !== 'souparno.cs24@bmsce.ac.in') return;
+    if (!user || !user.isAdmin) return;
     
     try {
       const res = await api.get('/api/items/soldouts', { params: { tabKey: selectedTab } });
@@ -144,14 +144,14 @@ export default function AdminItems() {
 
   // Load sold-out status when tab changes
   useEffect(() => {
-    if (user && user.email === 'souparno.cs24@bmsce.ac.in' && selectedTab !== 'listed') {
+    if (user && user.isAdmin && selectedTab !== 'listed') {
       loadSoldOutStatus();
     }
   }, [selectedTab, user]);
 
   // Save sold-out status to backend
   async function saveSoldOutStatus(tabKey, productId, variant, soldOut, clubOrDept = null, eventStatusOverride = null) {
-    if (!user || user.email !== 'souparno.cs24@bmsce.ac.in') return;
+    if (!user || !user.isAdmin) return;
     
     try {
       const payload = {
@@ -183,7 +183,7 @@ export default function AdminItems() {
   }
 
   async function saveCatalogOverride(product) {
-    if (!user || user.email !== 'souparno.cs24@bmsce.ac.in') return;
+    if (!user || !user.isAdmin) return;
     const payload = {
       tabKey: product.tabKey,
       productId: product.id,
@@ -244,7 +244,7 @@ export default function AdminItems() {
   }, [selectedTab]);
 
   async function loadResellItems() {
-    if (!user || user.email !== 'souparno.cs24@bmsce.ac.in') return;
+    if (!user || !user.isAdmin) return;
     setLoadingResell(true);
     try {
       const res = await api.get('/api/admin/resell/items');

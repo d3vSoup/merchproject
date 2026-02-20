@@ -12,6 +12,7 @@ import CartPage from "./pages/Cart/CartPage";
 import ResellPage from "./pages/Resell/ResellPage";
 import ResellChat from "./pages/Resell/ResellChat";
 import WishlistPage from "./pages/Wishlist/WishlistPage";
+import OrderHistory from "./pages/Orders/OrderHistory";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import AdminItems from "./pages/Admin/AdminItems";
 import AboutPage from "./pages/About/AboutPage";
@@ -32,12 +33,13 @@ function AppContent() {
         <Route path="/event/:eventKey" element={<EventPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/orders" element={<OrderHistory />} />
         <Route path="/resell" element={<ResellPage />} />
         <Route path="/resell/chat/:chatId" element={<ResellChat />} />
         <Route
           path="/admin/orders"
           element={
-            user?.email === "souparno.cs24@bmsce.ac.in" ? (
+            user?.isAdmin ? (
               <AdminOrders />
             ) : (
               <Navigate to="/" replace />
@@ -47,7 +49,7 @@ function AppContent() {
         <Route
           path="/admin/items"
           element={
-            user?.email === "souparno.cs24@bmsce.ac.in" ? (
+            user?.isAdmin ? (
               <AdminItems />
             ) : (
               <Navigate to="/" replace />

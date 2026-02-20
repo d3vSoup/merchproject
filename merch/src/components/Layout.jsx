@@ -64,7 +64,7 @@ export default function Layout({ children, cartCount = 0 }) {
   const [hoveredTab, setHoveredTab] = useState(null);
   const [wishlistCount, setWishlistCount] = useState(0);
 
-  const isAdmin = user?.email === "souparno.cs24@bmsce.ac.in";
+  const isAdmin = !!user?.isAdmin;
   const profilePercent = user?.profilePercent || 0;
   const avatarUrl = user?.pfpUrl || null;
   const avatarLetter = user?.email ? user.email.charAt(0).toUpperCase() : null;
@@ -235,7 +235,7 @@ export default function Layout({ children, cartCount = 0 }) {
               {tab.preview && hoveredTab === tab.key && (
                 <div className="tab-preview">
                   <div className="preview-img">
-                    <img src={tab.preview.src} alt={tab.preview.caption} />
+                    <img src={tab.preview.src} alt={tab.preview.caption} loading="lazy" />
                   </div>
                   <p className="preview-caption">{tab.preview.caption}</p>
                 </div>
@@ -354,9 +354,16 @@ export default function Layout({ children, cartCount = 0 }) {
                       </div>
 
                       <div className="profile-actions">
+                        <Link
+                          to="/orders"
+                          className="btn btn--secondary"
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          My Orders
+                        </Link>
                         <button className="btn btn--primary" onClick={() => { 
                           setAccountOpen(false);
-                          setMobileMenuOpen(false); // Also close mobile menu if open
+                          setMobileMenuOpen(false);
                           setProfileOpen(true); 
                         }}>
                           Edit Profile

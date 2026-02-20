@@ -56,7 +56,7 @@ export default function Landing() {
                 className={`event-card theme-${event.color}`}
               >
                 <div className="event-card-image">
-                  <img src={event.preview} alt={event.label} />
+                  <img src={event.preview} alt={event.label} loading="lazy" />
                 </div>
                 <div className="event-card-label">{event.label}</div>
               </Link>
@@ -69,7 +69,7 @@ export default function Landing() {
                 className={`event-card theme-${event.color}`}
               >
                 <div className="event-card-image">
-                  <img src={event.preview} alt={event.label} />
+                  <img src={event.preview} alt={event.label} loading="lazy" />
                 </div>
                 <div className="event-card-label">{event.label}</div>
               </Link>

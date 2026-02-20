@@ -8,6 +8,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 app.use(cors({
@@ -18,11 +19,37 @@ app.use(cors({
     'http://127.0.0.1:3000',
     'https://bmscemerch.vercel.app',
     'https://merchproject.vercel.app',
-    /^https:\/\/.*\.vercel\.app$/  // Allow all Vercel preview deployments
+    /^https:\/\/.*\.vercel\.app$/
   ],
   credentials: true
 }));
+app.set('trust proxy', 1);
 app.use(express.json());
+
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' }
+});
+app.use(globalLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many sign-in attempts, please try again in 15 minutes.' }
+});
+
+const orderLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many order requests, please slow down.' }
+});
 
 // configuration
 const PORT = process.env.PORT || 4000;
@@ -31,6 +58,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret_in_prod';
 const MONGO_URI = process.env.MONGO_URI || '';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+// Admin emails - comma-separated list in env var, fallback to default
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'souparno.cs24@bmsce.ac.in')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean);
+
+function isAdmin(email) {
+  return email && ADMIN_EMAILS.includes(email.toLowerCase());
+}
 
 // Google client (for verifying id_token)
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -325,7 +362,7 @@ app.get('/api/health', (req, res) => {
 
 // POST /api/auth/google
 // body: { id_token }
-app.post('/api/auth/google', async (req, res) => {
+app.post('/api/auth/google', authLimiter, async (req, res) => {
   const { id_token } = req.body || {};
   if (!id_token) return res.status(400).json({ message: 'id_token required' });
 
@@ -491,7 +528,7 @@ app.post('/api/auth/google', async (req, res) => {
       }
     }
 
-    // return token + user (which now includes full profile from Supabase)
+    fullProfile.isAdmin = isAdmin(email);
     return res.json({ token, user: fullProfile });
   } catch (err) {
     console.error('Create/find user error', err);
@@ -548,7 +585,8 @@ app.get('/api/me', authMiddleware, async (req, res) => {
       sem: sbUser.sem || null,
       profilePercent: calculatedPercent, // Calculate from actual data, not stored value
       pfpUrl: sbUser.pfp_url || null,
-      supabaseId: sbUser.id
+      supabaseId: sbUser.id,
+      isAdmin: isAdmin(sbUser.email)
     };
 
     return res.json({ user });
@@ -1127,6 +1165,7 @@ app.post('/api/user/profile', authMiddleware, async (req, res) => {
     if (req.auth.supabaseId) {
       user.supabaseId = req.auth.supabaseId;
     }
+    user.isAdmin = isAdmin(req.auth.email);
 
     return res.json({ user });
   } catch (err) {
@@ -1533,7 +1572,7 @@ app.post('/api/wishlist/toggle', authMiddleware, async (req, res) => {
 // ========== ORDERS ROUTES ==========
 
 // POST /api/orders/create
-app.post('/api/orders/create', authMiddleware, async (req, res) => {
+app.post('/api/orders/create', orderLimiter, authMiddleware, async (req, res) => {
   try {
     if (!supabaseAdmin) {
       return res.status(500).json({ message: 'Supabase not configured on server' });
@@ -1678,11 +1717,43 @@ if (orderErr) {
   }
 });
 
+// GET /api/orders - Get current user's orders
+app.get('/api/orders', authMiddleware, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Database not configured' });
+    }
+
+    let supabaseId = req.auth.supabaseId;
+    if (!supabaseId) {
+      const ensured = await ensureSupabaseUserRecord(req.auth.email);
+      if (!ensured.id) return res.status(404).json({ message: 'User not found' });
+      supabaseId = ensured.id;
+    }
+
+    const { data: orders, error } = await supabaseAdmin
+      .from('confirmed_orders')
+      .select('id, order_number, items, total_amount, payment_status, created_at')
+      .eq('user_id', supabaseId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Fetch user orders error:', error);
+      return res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+
+    return res.json({ orders: orders || [] });
+  } catch (err) {
+    console.error('GET /api/orders error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/admin/orders - Get all orders (admin only)
 app.get('/api/admin/orders', authMiddleware, async (req, res) => {
   try {
     // Check if admin
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
 
@@ -2000,7 +2071,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
 app.post('/api/admin/orders/update-status', authMiddleware, async (req, res) => {
   try {
     // Check if admin
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
 
@@ -2035,7 +2106,7 @@ app.post('/api/admin/orders/update-status', authMiddleware, async (req, res) => 
 // GET /api/admin/resell/items - Get all resell items for admin
 app.get('/api/admin/resell/items', authMiddleware, async (req, res) => {
   try {
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
 
@@ -2092,7 +2163,7 @@ app.get('/api/catalog/overrides', async (req, res) => {
 // Admin: POST /api/admin/items/catalog - update product overrides
 app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
   try {
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
     if (!supabaseAdmin) {
@@ -2216,7 +2287,7 @@ app.get('/api/items/soldouts', async (req, res) => {
 // GET /api/admin/items/soldouts - Get all sold-out items (admin endpoint - kept for backward compatibility)
 app.get('/api/admin/items/soldouts', authMiddleware, async (req, res) => {
   try {
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
 
@@ -2272,7 +2343,7 @@ app.get('/api/admin/items/soldouts', authMiddleware, async (req, res) => {
 // POST /api/admin/items/soldout - Update sold-out status
 app.post('/api/admin/items/soldout', authMiddleware, async (req, res) => {
   try {
-    if (req.auth.email !== 'souparno.cs24@bmsce.ac.in') {
+    if (!isAdmin(req.auth.email)) {
       return res.status(403).json({ message: 'Admin access required' });
     }
 
@@ -2352,7 +2423,7 @@ app.post('/api/admin/items/soldout', authMiddleware, async (req, res) => {
   }
 });
 app.post("/api/admin/event/status", authMiddleware, async (req, res) => {
-  if (req.auth.email !== "souparno.cs24@bmsce.ac.in") {
+  if (!isAdmin(req.auth.email)) {
     return res.status(403).json({ message: "Admin only" });
   }
 

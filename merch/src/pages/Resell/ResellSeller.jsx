@@ -311,7 +311,7 @@ export default function ResellSeller() {
             <div className="image-preview">
               {formData.pictures.map((url, idx) => (
                 <div key={idx} className="preview-image">
-                  <img src={url} alt={`Preview ${idx + 1}`} />
+                  <img src={url} alt={`Preview ${idx + 1}`} loading="lazy" />
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({
@@ -346,7 +346,7 @@ export default function ResellSeller() {
               >
                 <div className="listing-images">
                   {item.pictures && item.pictures.length > 0 && item.pictures.slice(0, 3).map((url, idx) => (
-                    <img key={idx} src={url} alt={`${item.title} ${idx + 1}`} />
+                    <img key={idx} src={url} alt={`${item.title} ${idx + 1}`} loading="lazy" />
                   ))}
                 </div>
                 <div className="listing-info">
@@ -395,7 +395,7 @@ export default function ResellSeller() {
                 >
                   <div className="listing-images">
                     {item.pictures && item.pictures.length > 0 && item.pictures.slice(0, 3).map((url, idx) => (
-                      <img key={idx} src={url} alt={`${item.title} ${idx + 1}`} />
+                      <img key={idx} src={url} alt={`${item.title} ${idx + 1}`} loading="lazy" />
                     ))}
                   </div>
                   <div className="listing-info">
@@ -524,6 +524,7 @@ export default function ResellSeller() {
                       key={idx} 
                       src={url} 
                       alt={`${selectedItem.title} - Image ${idx + 1}`}
+                      loading="lazy"
                       style={{
                         width: '100%',
                         height: '120px',

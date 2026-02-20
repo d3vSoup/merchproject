@@ -79,3 +79,6 @@ Thumbs.db
 # Backend debug logs
 /tmp/backend_debug.log
 backend_debug.log
+
+# Integration guides (optional; keep local / internal)
+docs/CASHFREE_INTEGRATION.md
