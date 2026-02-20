@@ -5,10 +5,6 @@ import { useAuth } from "../auth/AuthContext";
 import GoogleSignIn from "./GoogleSignIn";
 import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
-import previewUtsav from "../assets/preview-utsav.svg";
-import previewPhaseshift from "../assets/preview-phaseshift.svg";
-import previewFarouche from "../assets/preview-farouche.svg";
-import previewClub from "../assets/preview-club.svg";
 import { getUserIdByEmail, getCart } from "../supabase/client";
 import { PRODUCT_CATALOG } from "../data/products";
 import api from "../api";
@@ -17,37 +13,55 @@ import toast from "react-hot-toast";
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
 const TABS = [
-  {
-    key: "utsav",
-    label: "Utsav",
-    preview: { src: previewUtsav, caption: "For the Annual Utsav Merch" },
-    path: "/event/utsav",
-  },
-  {
-    key: "phaseshift",
-    label: "Phaseshift",
-    preview: { src: previewPhaseshift, caption: "Tech fest limited drops" },
-    path: "/event/phaseshift",
-  },
-  {
-    key: "farouche",
-    label: "Farouche",
-    preview: { src: previewFarouche, caption: "Hostelites Unite" },
-    path: "/event/farouche",
-  },
-  {
-    key: "club",
-    label: "Club & Dept Merch",
-    preview: { src: previewClub, caption: "Society merchandise & kits" },
-    path: "/event/club",
-  },
-  { 
-    key: "resell", 
-    label: "Resell", 
-    preview: null,
-    path: "/resell",
-  },
+  { key: "utsav", label: "Utsav", catalogKey: "utsav", path: "/event/utsav" },
+  { key: "phaseshift", label: "Phaseshift", catalogKey: "phaseshift", path: "/event/phaseshift" },
+  { key: "farouche", label: "Farouche", catalogKey: "farouche", path: "/event/farouche" },
+  { key: "club", label: "Club & Dept Merch", catalogKey: "club", path: "/event/club" },
+  { key: "resell", label: "Resell", catalogKey: null, path: "/resell" },
 ];
+
+function TabPreview({ catalogKey }) {
+  const products = catalogKey ? PRODUCT_CATALOG[catalogKey] : [];
+  const [idx, setIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (products.length <= 1) return;
+    const timer = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIdx((i) => (i + 1) % products.length);
+        setFade(true);
+      }, 300);
+    }, 2200);
+    return () => clearInterval(timer);
+  }, [products.length]);
+
+  if (!products.length) return null;
+  const p = products[idx];
+  const bg = p.imageUrl
+    ? `url(${p.imageUrl}) center/cover`
+    : `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})`;
+
+  return (
+    <div className="tab-preview-inner">
+      <div className={`tab-preview-slide ${fade ? "tab-preview-slide--visible" : ""}`}>
+        <div className="tab-preview-img" style={{ background: bg }}>
+          {!p.imageUrl && <span className="tab-preview-label">{p.previewLabel}</span>}
+        </div>
+      </div>
+      <div className="tab-preview-info">
+        <span className="tab-preview-name">{p.name}</span>
+        <span className="tab-preview-price">{formatPrice(p.price)}</span>
+      </div>
+      <div className="tab-preview-dots">
+        {products.slice(0, 7).map((_, i) => (
+          <span key={i} className={`tab-preview-dot ${i === idx % 7 ? "tab-preview-dot--active" : ""}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Layout({ children, cartCount = 0 }) {
   const { user, signout } = useAuth();
@@ -240,12 +254,9 @@ export default function Layout({ children, cartCount = 0 }) {
               >
                 {tab.label}
               </Link>
-              {tab.preview && hoveredTab === tab.key && (
+              {tab.catalogKey && hoveredTab === tab.key && (
                 <div className="tab-preview">
-                  <div className="preview-img">
-                    <img src={tab.preview.src} alt={tab.preview.caption} loading="lazy" />
-                  </div>
-                  <p className="preview-caption">{tab.preview.caption}</p>
+                  <TabPreview catalogKey={tab.catalogKey} />
                 </div>
               )}
             </div>
