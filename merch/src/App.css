@@ -225,7 +225,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .btn--large{padding:12px 28px;font-size:1rem}
 
 @media (max-width:900px){
-.main-content{padding:18px}
+.main-content{padding:18px;overflow-x:hidden}
 .admin-panel{padding:16px}
 .product-grid{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
 .product-card__controls{flex-direction:column;align-items:stretch}
