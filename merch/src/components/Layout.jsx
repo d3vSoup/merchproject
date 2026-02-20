@@ -214,6 +214,14 @@ export default function Layout({ children, cartCount = 0 }) {
                 {tab.label}
               </Link>
             ))}
+            <div className="mobile-menu-divider" />
+            <Link
+              to="/about"
+              className={`mobile-menu-item ${location.pathname === "/about" ? "mobile-menu-item--active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About Us
+            </Link>
           </div>
         )}
 

@@ -27,6 +27,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .mobile-menu-item{display:block;padding:14px 18px;text-decoration:none;color:var(--text);font-weight:600;font-size:0.95rem;transition:background 0.15s ease,border-left 0.15s ease;border-left:3px solid transparent}
 .mobile-menu-item:hover,.mobile-menu-item:active{background:rgba(0,0,0,0.04);border-left-color:var(--accent)}
 .mobile-menu-item--active{background:linear-gradient(90deg, rgba(255,102,0,0.08), rgba(255,102,0,0.04));border-left-color:var(--accent);color:var(--accent)}
+.mobile-menu-divider{height:1px;background:rgba(0,0,0,0.06);margin:6px 18px}
 
 /* Tabs */
 .tabs-row{display:flex;gap:8px;flex:1}
