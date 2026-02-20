@@ -8,6 +8,7 @@ import { triggerCartUpdate } from "../../hooks/useCartCount";
 import toast from "react-hot-toast";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import ProductModal from "../../components/ProductModal";
+import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
 
@@ -387,6 +388,11 @@ export default function EventPage() {
               >
                 {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
                 {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
+                <WishlistHeart
+                  tabKey={eventKey}
+                  productId={product.id}
+                  variant={variant}
+                />
               </div>
               <div className="product-card__meta">
                 <h3 

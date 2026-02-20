@@ -3,7 +3,6 @@ import { useAuth } from '../auth/AuthContext';
 import { getCart, updateCartItem } from '../api/cart';
 import { triggerCartUpdate } from '../hooks/useCartCount';
 import toast from 'react-hot-toast';
-import api from '../api';
 import './ProductModal.css';
 
 export default function ProductModal({ product, tabKey, onClose, isProductSoldOut = false }) {
@@ -11,7 +10,6 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState(product?.sleeveOptions?.[0] || null);
   const [quantity, setQuantity] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(false);
   
   if (!product) return null;
@@ -25,17 +23,14 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
   const images = allImages.length > 0 ? allImages : [];
   const hasMultipleImages = images.length > 1;
 
-  // Load cart quantity and wishlist status on mount and when variant changes
+  // Load cart quantity on mount and when variant changes
   useEffect(() => {
     async function loadData() {
       if (!user) {
         setQuantity(0);
-        setIsWishlisted(false);
         return;
       }
-      
       try {
-        // Get cart quantity for this item
         const cart = await getCart();
         const cartItem = cart.find(
           item => item.tab_key === tabKey && 
@@ -43,24 +38,10 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
                   (item.variant || null) === (selectedVariant || null)
         );
         setQuantity(cartItem?.quantity || 0);
-        
-        // Check wishlist status
-        try {
-          const wishlistRes = await api.get('/api/wishlist');
-          const wishlisted = (wishlistRes.data?.items || []).some(
-            item => item.tab_key === tabKey && 
-                    item.product_id === product.id && 
-                    (item.variant || null) === (selectedVariant || null)
-          );
-          setIsWishlisted(wishlisted);
-        } catch (err) {
-          console.warn('Could not load wishlist status:', err);
-        }
       } catch (err) {
         console.error('Failed to load cart:', err);
       }
     }
-    
     loadData();
   }, [user, product.id, tabKey, selectedVariant]);
 
@@ -95,29 +76,6 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
     } catch (err) {
       console.error('Failed to update cart:', err);
       toast.error(err.message || 'Failed to update cart');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleWishlist = async () => {
-    if (!user) {
-      toast.error("Please sign in to add items to wishlist");
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const res = await api.post('/api/wishlist/toggle', {
-        tabKey,
-        productId: product.id,
-        variant: selectedVariant
-      });
-      setIsWishlisted(res.data.added);
-      toast.success(res.data.added ? "Added to wishlist" : "Removed from wishlist");
-    } catch (err) {
-      console.error('Failed to toggle wishlist:', err);
-      toast.error(err.message || 'Failed to update wishlist');
     } finally {
       setLoading(false);
     }
@@ -225,13 +183,6 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
                   disabled={isProductSoldOut || loading}
                 >
                   {isProductSoldOut ? "Unavailable" : "Add to Cart"}
-                </button>
-                <button 
-                  className={`btn btn--ghost wishlist-btn ${isWishlisted ? 'is-wishlisted' : ''}`}
-                  onClick={handleToggleWishlist}
-                  disabled={loading}
-                >
-                  {isWishlisted ? '♥ Wishlisted' : '♡ Wishlist'}
                 </button>
               </div>
             </div>

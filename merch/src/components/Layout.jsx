@@ -153,24 +153,30 @@ export default function Layout({ children, cartCount = 0 }) {
 
   useEffect(() => { prefetchAllOverrides(); }, []);
 
-  useEffect(() => {
-    async function fetchWishlistCount() {
-      if (!user) {
-        setWishlistCount(0);
-        return;
-      }
-      try {
-        const res = await api.get('/api/wishlist');
-        const items = res.data?.items || res.data || [];
-        setWishlistCount(Array.isArray(items) ? items.length : 0);
-      } catch (err) {
-        // Wishlist table might not exist yet - silently ignore
-        console.warn('Failed to fetch wishlist:', err.message);
-        setWishlistCount(0);
-      }
+  const fetchWishlistCount = React.useCallback(async () => {
+    if (!user) {
+      setWishlistCount(0);
+      return;
     }
+    try {
+      const res = await api.get('/api/wishlist');
+      const items = res.data?.items || res.data || [];
+      setWishlistCount(Array.isArray(items) ? items.length : 0);
+    } catch (err) {
+      console.warn('Failed to fetch wishlist:', err.message);
+      setWishlistCount(0);
+    }
+  }, [user]);
+
+  useEffect(() => {
     fetchWishlistCount();
-  }, [user, location.pathname]); // Refresh when navigating
+  }, [fetchWishlistCount, location.pathname]);
+
+  useEffect(() => {
+    const handler = () => fetchWishlistCount();
+    window.addEventListener('wishlist-update', handler);
+    return () => window.removeEventListener('wishlist-update', handler);
+  }, [fetchWishlistCount]);
 
   useEffect(() => {
     function handleClickOutside(e) {

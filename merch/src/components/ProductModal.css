@@ -217,7 +217,7 @@
   margin-top: auto;
 }
 
-/* Laptop: qty on row 1, Add to Cart + Wishlist on row 2, side by side */
+/* Laptop: qty on row 1, Add to Cart on row 2 */
 .modal-actions-qty-row {
   display: flex;
   align-items: center;
@@ -229,8 +229,7 @@
   align-items: stretch;
 }
 
-.modal-actions-buttons .btn--primary,
-.modal-actions-buttons .wishlist-btn {
+.modal-actions-buttons .btn--primary {
   flex: 1;
   min-width: 0;
   min-height: 44px;
@@ -275,27 +274,6 @@
   font-weight: 600;
 }
 
-.modal-actions .wishlist-btn {
-  justify-content: center;
-  padding: 12px 16px;
-  font-size: 0.95rem;
-}
-
-.modal-actions .wishlist-btn {
-  transition: all 0.2s ease;
-}
-
-.modal-actions .wishlist-btn.is-wishlisted {
-  color: #ef4444;
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.modal-actions .wishlist-btn:hover:not(:disabled) {
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
 @media (max-width: 768px) {
   .modal-layout {
     grid-template-columns: 1fr;
@@ -306,7 +284,7 @@
     font-size: 1.5rem;
   }
   
-  /* Handheld: centered layout, qty then Add to Cart + Wishlist side by side */
+  /* Handheld: centered layout, qty then Add to Cart */
   .modal-actions {
     align-items: center;
     width: 100%;
@@ -327,8 +305,7 @@
     gap: 10px;
   }
   
-  .modal-actions-buttons .btn--primary,
-  .modal-actions-buttons .wishlist-btn {
+  .modal-actions-buttons .btn--primary {
     flex: 1;
   }
 }
