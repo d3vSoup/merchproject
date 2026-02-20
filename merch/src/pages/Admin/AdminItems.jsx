@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
-import { PRODUCT_CATALOG } from "../../data/products";
+import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
 
 function toLocalDatetime(isoOrLocal) {
@@ -74,6 +74,7 @@ export default function AdminItems() {
   });
   const [soldOutItems, setSoldOutItems] = useState({});
   const [editingProduct, setEditingProduct] = useState(null);
+  const [addingProduct, setAddingProduct] = useState(false);
   const [resellItems, setResellItems] = useState([]);
   const [loadingResell, setLoadingResell] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -192,12 +193,84 @@ export default function AdminItems() {
       price: product.price,
       imageUrl: product.imageUrl || "",
       description: product.description || "",
-      images: product.images || []
+      images: product.images || [],
+      hidden: product.hidden || false
     };
     try {
       await api.post('/api/admin/items/catalog', payload);
     } catch (err) {
       console.error('Failed to save product override:', err);
+      throw err;
+    }
+  }
+
+  async function hideOrDeleteProduct(tabKey, productId) {
+    const isBase = BASE_PRODUCT_IDS.includes(productId);
+    const product = editableCatalog[tabKey]?.find(p => p.id === productId);
+    try {
+      if (isBase) {
+        await api.post('/api/admin/items/catalog', {
+          tabKey,
+          productId,
+          name: product?.name,
+          price: product?.price,
+          imageUrl: product?.imageUrl,
+          description: product?.description,
+          images: product?.images || [],
+          hidden: true
+        });
+        toast.success('Product hidden from listing');
+      } else {
+        await api.delete('/api/admin/items/catalog', { params: { tabKey, productId } });
+        toast.success('Product removed');
+      }
+      await fetchOverrides();
+    } catch (err) {
+      console.error('Failed to hide/delete:', err);
+      toast.error('Failed to remove product');
+    }
+  }
+
+  async function restoreProduct(tabKey, productId) {
+    const product = editableCatalog[tabKey]?.find(p => p.id === productId);
+    try {
+      await api.post('/api/admin/items/catalog', {
+        tabKey,
+        productId,
+        name: product?.name,
+        price: product?.price,
+        imageUrl: product?.imageUrl,
+        description: product?.description,
+        images: product?.images || [],
+        hidden: false
+      });
+      toast.success('Product restored');
+      await fetchOverrides();
+    } catch (err) {
+      console.error('Failed to restore:', err);
+      toast.error('Failed to restore product');
+    }
+  }
+
+  async function addNewProduct(tabKey, product) {
+    const productId = `custom_${Date.now()}`;
+    try {
+      await api.post('/api/admin/items/catalog', {
+        tabKey,
+        productId,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl || "",
+        description: product.description || "",
+        images: product.images || [],
+        hidden: false
+      });
+      toast.success('Product added');
+      await fetchOverrides();
+      setAddingProduct(false);
+    } catch (err) {
+      console.error('Failed to add product:', err);
+      toast.error('Failed to add product');
       throw err;
     }
   }
@@ -210,24 +283,40 @@ export default function AdminItems() {
     try {
       const res = await api.get('/api/catalog/overrides');
       const overrides = res.data?.overrides || [];
-      if (!overrides.length) {
-        return;
-      }
       const updated = JSON.parse(JSON.stringify(PRODUCT_CATALOG));
       overrides.forEach((override) => {
         const tab = override.tab_key;
         if (!updated[tab]) return;
-        updated[tab] = updated[tab].map(product => {
-          if (product.id !== override.product_id) return product;
-          return {
-            ...product,
-            ...(override.name ? { name: override.name } : {}),
-            ...(override.price !== null && override.price !== undefined ? { price: Number(override.price) } : {}),
-            ...(override.image_url ? { imageUrl: override.image_url } : {}),
-            ...(override.description ? { description: override.description } : {}),
-            ...(override.images ? { images: override.images } : {}),
+        const isCustom = !BASE_PRODUCT_IDS.includes(override.product_id);
+        const baseProduct = updated[tab].find(p => p.id === override.product_id);
+        if (baseProduct) {
+          updated[tab] = updated[tab].map(product => {
+            if (product.id !== override.product_id) return product;
+            return {
+              ...product,
+              hidden: !!override.hidden,
+              ...(override.name ? { name: override.name } : {}),
+              ...(override.price !== null && override.price !== undefined ? { price: Number(override.price) } : {}),
+              ...(override.image_url ? { imageUrl: override.image_url } : {}),
+              ...(override.description ? { description: override.description } : {}),
+              ...(override.images ? { images: override.images } : {}),
+            };
+          });
+        } else if (isCustom) {
+          const customProduct = {
+            id: override.product_id,
+            name: override.name || 'Custom Item',
+            description: override.description || '',
+            price: override.price != null ? Number(override.price) : 0,
+            imageUrl: override.image_url || null,
+            images: override.images || [],
+            sleeveOptions: [],
+            previewLabel: (override.name || 'Custom').slice(0, 12),
+            swatch: ['#6b7280', '#9ca3af'],
+            hidden: !!override.hidden,
           };
-        });
+          updated[tab] = updated[tab] ? [...updated[tab], customProduct] : [customProduct];
+        }
       });
       setEditableCatalog(updated);
     } catch (err) {
@@ -541,7 +630,15 @@ export default function AdminItems() {
           </div>
         ) : (
         <div className="admin-products-list">
-          <h4>Products{selectedClub || selectedDept || ieeeSubclub ? ` - ${ieeeSubclub || selectedClub || selectedDept}` : ''}</h4>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h4 style={{ margin: 0 }}>Products{selectedClub || selectedDept || ieeeSubclub ? ` - ${ieeeSubclub || selectedClub || selectedDept}` : ''}</h4>
+            <button
+              className="btn btn--primary"
+              onClick={() => setAddingProduct({ tabKey: selectedTab, name: '', price: 0, imageUrl: '', description: '', images: [] })}
+            >
+              + Add Product
+            </button>
+          </div>
           <div className="admin-products-grid">
             {displayProducts.map((product) => {
               const productKey = `${selectedTab}:${product.id}`;
@@ -553,8 +650,10 @@ export default function AdminItems() {
               const isCategorySoldOut = currentCategory ? soldOutItems[categoryKey] : false;
               const finalSoldOut = isCategorySoldOut || isSoldOut || eventStatuses[selectedTab]?.soldOut;
               
+              const isHidden = !!product.hidden;
               return (
-                <div key={product.id} className={`admin-product-card ${finalSoldOut ? "is-soldout" : ""}`}>
+                <div key={product.id} className={`admin-product-card ${finalSoldOut ? "is-soldout" : ""} ${isHidden ? "is-hidden" : ""}`}>
+                  {isHidden && <div className="admin-product-hidden-badge">HIDDEN</div>}
                   <div
                     className="admin-product-preview"
                     style={{
@@ -563,7 +662,7 @@ export default function AdminItems() {
                         : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`
                     }}
                   >
-                    {finalSoldOut && <div className="sold-out-badge">UNAVAILABLE</div>}
+                    {finalSoldOut && !isHidden && <div className="sold-out-badge">UNAVAILABLE</div>}
                   </div>
                   <div className="admin-product-info">
                     <div className="admin-product-name">{product.name}</div>
@@ -573,6 +672,7 @@ export default function AdminItems() {
                         <input
                           type="checkbox"
                           checked={!finalSoldOut}
+                          disabled={isHidden}
                           onChange={async (e) => {
                             const newSoldOut = !e.target.checked;
                             const keyToUpdate = currentCategory ? categoryKey : productKey;
@@ -615,12 +715,35 @@ export default function AdminItems() {
                       </div>
                     )}
                   </div>
-                  <button
-                    className="btn btn--ghost"
-                    onClick={() => setEditingProduct({ ...product, tabKey: selectedTab, productKey })}
-                  >
-                    Edit
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      className="btn btn--ghost"
+                      onClick={() => setEditingProduct({ ...product, tabKey: selectedTab, productKey })}
+                    >
+                      Edit
+                    </button>
+                    {isHidden ? (
+                      <button
+                        className="btn btn--ghost"
+                        style={{ color: 'var(--accent)' }}
+                        onClick={() => restoreProduct(selectedTab, product.id)}
+                      >
+                        Restore
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn--ghost"
+                        style={{ color: '#dc2626' }}
+                        onClick={() => {
+                          if (window.confirm(`Remove "${product.name}" from this event? It will no longer appear in the merch lineup.`)) {
+                            hideOrDeleteProduct(selectedTab, product.id);
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -701,6 +824,15 @@ export default function AdminItems() {
                   />
                 </label>
                 <label>
+                  Description
+                  <textarea
+                    value={editingProduct.description || ""}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                    rows={2}
+                    placeholder="Product description"
+                  />
+                </label>
+                <label>
                   Price (₹)
                   <input
                     type="number"
@@ -715,13 +847,7 @@ export default function AdminItems() {
                       const productToSave = { ...editingProduct };
                       try {
                         await saveCatalogOverride(productToSave);
-                        const updated = {
-                          ...editableCatalog,
-                          [productToSave.tabKey]: editableCatalog[productToSave.tabKey].map(p =>
-                            p.id === productToSave.id ? productToSave : p
-                          )
-                        };
-                        setEditableCatalog(updated);
+                        await fetchOverrides();
                         setEditingProduct(null);
                         toast.success("Product updated successfully!");
                       } catch {
@@ -732,6 +858,109 @@ export default function AdminItems() {
                     Save
                   </button>
                   <button className="btn btn--ghost" onClick={() => setEditingProduct(null)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {addingProduct && (
+          <div className="admin-edit-modal">
+            <div className="admin-edit-content">
+              <h3>Add New Product</h3>
+              <div className="admin-edit-form">
+                <label>
+                  Name *
+                  <input
+                    type="text"
+                    value={addingProduct.name}
+                    onChange={(e) => setAddingProduct({ ...addingProduct, name: e.target.value })}
+                    placeholder="e.g. Limited Edition Cap"
+                  />
+                </label>
+                <label>
+                  Price (₹) *
+                  <input
+                    type="number"
+                    value={addingProduct.price || ''}
+                    onChange={(e) => setAddingProduct({ ...addingProduct, price: parseInt(e.target.value) || 0 })}
+                    placeholder="499"
+                  />
+                </label>
+                <label>
+                  Primary Image URL
+                  <input
+                    type="url"
+                    value={addingProduct.imageUrl || ""}
+                    onChange={(e) => setAddingProduct({ ...addingProduct, imageUrl: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </label>
+                <label>
+                  Upload Image from PC
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      setUploadingImage(true);
+                      try {
+                        const formData = new FormData();
+                        formData.append('image', file);
+                        const res = await api.post('/api/resell/upload-image', formData, {
+                          headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        if (res.data?.url) {
+                          setAddingProduct({ ...addingProduct, imageUrl: res.data.url });
+                          toast.success('Image uploaded successfully');
+                        }
+                      } catch (err) {
+                        toast.error('Failed to upload image');
+                      } finally {
+                        setUploadingImage(false);
+                      }
+                    }}
+                    disabled={uploadingImage}
+                  />
+                  {uploadingImage && <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Uploading...</p>}
+                </label>
+                <label>
+                  Description
+                  <textarea
+                    value={addingProduct.description || ""}
+                    onChange={(e) => setAddingProduct({ ...addingProduct, description: e.target.value })}
+                    rows={2}
+                    placeholder="Product description"
+                  />
+                </label>
+                <label>
+                  Additional Images (URLs, one per line)
+                  <textarea
+                    value={(addingProduct.images || []).join('\n')}
+                    onChange={(e) => {
+                      const urls = e.target.value.split('\n').filter(url => url.trim());
+                      setAddingProduct({ ...addingProduct, images: urls });
+                    }}
+                    rows={3}
+                    placeholder="https://example.com/image1.jpg"
+                  />
+                </label>
+                <div className="admin-edit-actions">
+                  <button
+                    className="btn"
+                    disabled={!addingProduct.name?.trim() || (addingProduct.price === undefined || addingProduct.price === null || addingProduct.price < 0)}
+                    onClick={async () => {
+                      try {
+                        await addNewProduct(addingProduct.tabKey, addingProduct);
+                      } catch (e) {}
+                    }}
+                  >
+                    Add Product
+                  </button>
+                  <button className="btn btn--ghost" onClick={() => setAddingProduct(false)}>
                     Cancel
                   </button>
                 </div>

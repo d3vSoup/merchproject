@@ -6,7 +6,7 @@ import GoogleSignIn from "./GoogleSignIn";
 import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
 import { getUserIdByEmail, getCart } from "../supabase/client";
-import { PRODUCT_CATALOG } from "../data/products";
+import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../data/products";
 import api from "../api";
 import toast from "react-hot-toast";
 
@@ -25,18 +25,33 @@ let prefetchStarted = false;
 
 function mergeOverrides(catalogKey, overridesData) {
   const base = PRODUCT_CATALOG[catalogKey] || [];
+  const overrideList = overridesData || [];
   const map = {};
-  (overridesData || []).forEach(o => { map[o.product_id] = o; });
-  return base.map(p => {
-    const ov = map[p.id];
-    if (!ov) return p;
-    return {
-      ...p,
-      ...(ov.name ? { name: ov.name } : {}),
-      ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
-      ...(ov.price != null ? { price: Number(ov.price) } : {}),
-    };
-  });
+  overrideList.forEach(o => { map[o.product_id] = o; });
+  const hiddenIds = new Set(overrideList.filter(o => o.hidden).map(o => o.product_id));
+  const mergedBase = base
+    .filter(p => !hiddenIds.has(p.id))
+    .map(p => {
+      const ov = map[p.id];
+      if (!ov) return p;
+      return {
+        ...p,
+        ...(ov.name ? { name: ov.name } : {}),
+        ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
+        ...(ov.price != null ? { price: Number(ov.price) } : {}),
+      };
+    });
+  const customProducts = overrideList
+    .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !o.hidden)
+    .map(o => ({
+      id: o.product_id,
+      name: o.name || 'Custom Item',
+      price: o.price != null ? Number(o.price) : 0,
+      imageUrl: o.image_url || null,
+      previewLabel: (o.name || 'Custom').slice(0, 12),
+      swatch: ['#6b7280', '#9ca3af']
+    }));
+  return [...mergedBase, ...customProducts];
 }
 
 function prefetchAllOverrides() {

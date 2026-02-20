@@ -1,4 +1,6 @@
 // src/data/products.js
+export const BASE_PRODUCT_IDS = ['tee', 'oversized', 'poptee', 'polo', 'jacket', 'varsity', 'hoodie'];
+
 const BASE_PRODUCTS = [
   {
     id: "tee",

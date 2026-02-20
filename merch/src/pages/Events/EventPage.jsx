@@ -6,7 +6,7 @@ import { getCart, updateCartItem } from "../../api/cart";
 import { SkeletonGrid } from "../../components/Skeleton";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import toast from "react-hot-toast";
-import { PRODUCT_CATALOG } from "../../data/products";
+import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import ProductModal from "../../components/ProductModal";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
@@ -197,18 +197,36 @@ export default function EventPage() {
 
   const eventProducts = useMemo(() => {
     const base = PRODUCT_CATALOG[eventKey] || [];
-    return base.map(product => {
-      const override = productOverrides[product.id];
-      if (!override) return product;
-      return {
-        ...product,
-        ...(override.name ? { name: override.name } : {}),
-        ...(override.description ? { description: override.description } : {}),
-        ...(override.image_url ? { imageUrl: override.image_url } : {}),
-        ...(override.price !== null && override.price !== undefined ? { price: Number(override.price) } : {}),
-        ...(override.images ? { images: override.images } : {})
-      };
-    });
+    const overrideList = Object.values(productOverrides);
+    const hiddenIds = new Set(overrideList.filter(o => o.hidden).map(o => o.product_id));
+    const mergedBase = base
+      .filter(p => !hiddenIds.has(p.id))
+      .map(product => {
+        const override = productOverrides[product.id];
+        if (!override) return product;
+        return {
+          ...product,
+          ...(override.name ? { name: override.name } : {}),
+          ...(override.description ? { description: override.description } : {}),
+          ...(override.image_url ? { imageUrl: override.image_url } : {}),
+          ...(override.price !== null && override.price !== undefined ? { price: Number(override.price) } : {}),
+          ...(override.images ? { images: override.images } : {})
+        };
+      });
+    const customProducts = overrideList
+      .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !o.hidden)
+      .map(o => ({
+        id: o.product_id,
+        name: o.name || 'Custom Item',
+        description: o.description || '',
+        price: o.price != null ? Number(o.price) : 0,
+        imageUrl: o.image_url || null,
+        images: o.images || [],
+        sleeveOptions: [],
+        previewLabel: (o.name || 'Custom').slice(0, 12),
+        swatch: ['#6b7280', '#9ca3af']
+      }));
+    return [...mergedBase, ...customProducts];
   }, [eventKey, productOverrides]);
   const tabLabels = {
     utsav: "Utsav",

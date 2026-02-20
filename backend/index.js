@@ -2169,7 +2169,7 @@ app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
     if (!supabaseAdmin) {
       return res.status(500).json({ message: 'Supabase not configured on server' });
     }
-    const { tabKey, productId, name, price, imageUrl, description, images } = req.body || {};
+    const { tabKey, productId, name, price, imageUrl, description, images, hidden } = req.body || {};
     if (!tabKey || !productId) {
       return res.status(400).json({ message: 'tabKey and productId are required' });
     }
@@ -2181,6 +2181,7 @@ app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
       image_url: imageUrl || null,
       description: description || null,
       images: images || [],
+      hidden: hidden === true || hidden === 'true',
       updated_at: new Date().toISOString()
     };
     const { data, error } = await supabaseAdmin
@@ -2195,6 +2196,35 @@ app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
     return res.json({ success: true, override: data });
   } catch (err) {
     console.error('Save catalog override error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Admin: DELETE /api/admin/items/catalog - remove product listing (delete override row)
+app.delete('/api/admin/items/catalog', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured on server' });
+    }
+    const { tabKey, productId } = req.query;
+    if (!tabKey || !productId) {
+      return res.status(400).json({ message: 'tabKey and productId are required' });
+    }
+    const { error } = await supabaseAdmin
+      .from('product_overrides')
+      .delete()
+      .eq('tab_key', tabKey)
+      .eq('product_id', productId);
+    if (error) {
+      console.error('Delete catalog override error:', error);
+      return res.status(500).json({ message: 'Failed to delete override' });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Delete catalog override error', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
