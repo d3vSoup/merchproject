@@ -6,6 +6,7 @@ import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
 import { updateCartItem } from "../../api/cart";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
+import { triggerWishlistUpdate } from "../../components/WishlistHeart";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 import "./WishlistPage.css";
@@ -79,24 +80,40 @@ export default function WishlistPage() {
         farouche: "Farouche",
         club: "Club & Dept"
       };
-      const items = wishlist.map(item => {
-        const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
-        const overrideKey = `${item.tab_key}:${item.product_id}`;
-        const override = overrides[overrideKey];
-        const eventLabel = eventLabels[item.tab_key] || item.tab_key;
-        
-        // Use override image if available (can be single URL or array)
-        let imageUrl = product?.imageUrl;
-        if (override) {
-          if (override.images && override.images.length > 0) {
-            // Use first image from array
-            imageUrl = override.images[0];
-          } else if (override.image_url) {
-            imageUrl = override.image_url;
+      const itemsToRemove = [];
+      const hasOverrides = Object.keys(overrides).length > 0;
+      const items = wishlist
+        .filter(item => {
+          if (!hasOverrides) return true;
+          const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
+          const overrideKey = `${item.tab_key}:${item.product_id}`;
+          const override = overrides[overrideKey];
+          if (override && (override.hidden === true || override.hidden === 'true')) {
+            itemsToRemove.push(item);
+            return false;
           }
-        }
-        
-        return {
+          if (!product && !override) {
+            itemsToRemove.push(item);
+            return false;
+          }
+          return true;
+        })
+        .map(item => {
+          const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
+          const overrideKey = `${item.tab_key}:${item.product_id}`;
+          const override = overrides[overrideKey];
+          const eventLabel = eventLabels[item.tab_key] || item.tab_key;
+          
+          let imageUrl = product?.imageUrl;
+          if (override) {
+            if (override.images && override.images.length > 0) {
+              imageUrl = override.images[0];
+            } else if (override.image_url) {
+              imageUrl = override.image_url;
+            }
+          }
+          
+          return {
           tabKey: item.tab_key,
           productId: item.product_id,
           variant: item.variant,
@@ -113,6 +130,20 @@ export default function WishlistPage() {
         };
       });
       setWishlistItems(items);
+      for (const item of itemsToRemove) {
+        try {
+          await api.post('/api/wishlist/toggle', {
+            tabKey: item.tab_key,
+            productId: item.product_id,
+            variant: item.variant
+          });
+        } catch (e) {
+          console.warn('Failed to remove deleted item from wishlist:', e);
+        }
+      }
+      if (itemsToRemove.length > 0) {
+        triggerWishlistUpdate();
+      }
     } catch (err) {
       console.error('Failed to load wishlist:', err);
       toast.error('Failed to load wishlist');

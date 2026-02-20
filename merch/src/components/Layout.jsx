@@ -28,7 +28,7 @@ function mergeOverrides(catalogKey, overridesData) {
   const overrideList = overridesData || [];
   const map = {};
   overrideList.forEach(o => { map[o.product_id] = o; });
-  const hiddenIds = new Set(overrideList.filter(o => o.hidden).map(o => o.product_id));
+  const hiddenIds = new Set(overrideList.filter(o => o.hidden === true || o.hidden === 'true').map(o => o.product_id));
   const mergedBase = base
     .filter(p => !hiddenIds.has(p.id))
     .map(p => {
@@ -42,7 +42,7 @@ function mergeOverrides(catalogKey, overridesData) {
       };
     });
   const customProducts = overrideList
-    .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !o.hidden)
+    .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !(o.hidden === true || o.hidden === 'true'))
     .map(o => ({
       id: o.product_id,
       name: o.name || 'Custom Item',

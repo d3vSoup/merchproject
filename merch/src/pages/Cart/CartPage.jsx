@@ -65,51 +65,77 @@ export default function CartPage() {
     setLoading(true);
     try {
       const cart = await getCart();
-      const items = cart.map(item => {
-        const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
-        const overrideKey = `${item.tab_key}:${item.product_id}`;
-        const override = productOverrides[overrideKey];
-        
-        // Use override price if available, otherwise use product price
-        let price = product?.price || 0;
-        if (override && override.price !== null && override.price !== undefined) {
-          price = Number(override.price);
-        }
-        
-        // Use override name if available
-        const name = override?.name || product?.name || "Unknown";
-        const description = override?.description || product?.description || "";
-        
-        // For club items, show the club/dept name as the badge
-        let eventLabel;
-        if (item.tab_key === 'club' && item.club_or_dept) {
-          eventLabel = item.club_or_dept;
-        } else {
-          const eventLabels = {
-            utsav: "Utsav",
-            phaseshift: "Phaseshift",
-            farouche: "Farouche",
-            club: "Club & Dept Merch"
+      const itemsToRemove = [];
+      const hasOverrides = Object.keys(productOverrides).length > 0;
+      const items = cart
+        .filter(item => {
+          if (!hasOverrides) return true;
+          const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
+          const overrideKey = `${item.tab_key}:${item.product_id}`;
+          const override = productOverrides[overrideKey];
+          if (override && (override.hidden === true || override.hidden === 'true')) {
+            itemsToRemove.push(item);
+            return false;
+          }
+          if (!product && !override) {
+            itemsToRemove.push(item);
+            return false;
+          }
+          return true;
+        })
+        .map(item => {
+          const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
+          const overrideKey = `${item.tab_key}:${item.product_id}`;
+          const override = productOverrides[overrideKey];
+          
+          let price = product?.price || 0;
+          if (override && override.price !== null && override.price !== undefined) {
+            price = Number(override.price);
+          }
+          
+          const name = override?.name || product?.name || "Unknown";
+          const description = override?.description || product?.description || "";
+          
+          let eventLabel;
+          if (item.tab_key === 'club' && item.club_or_dept) {
+            eventLabel = item.club_or_dept;
+          } else {
+            const eventLabels = {
+              utsav: "Utsav",
+              phaseshift: "Phaseshift",
+              farouche: "Farouche",
+              club: "Club & Dept Merch"
+            };
+            eventLabel = eventLabels[item.tab_key] || item.tab_key;
+          }
+          
+          return {
+            tabKey: item.tab_key,
+            productId: item.product_id,
+            variant: item.variant,
+            quantity: item.quantity,
+            price: price,
+            name: name,
+            description: description,
+            eventLabel: eventLabel,
+            clubOrDept: item.club_or_dept || null,
+            imageUrl: override?.image_url || product?.imageUrl || null,
+            swatch: product?.swatch || ['#2a2a2a', '#1a1a1a'],
+            previewLabel: product?.previewLabel || name.substring(0, 4).toUpperCase(),
           };
-          eventLabel = eventLabels[item.tab_key] || item.tab_key;
-        }
-        
-        return {
-          tabKey: item.tab_key,
-          productId: item.product_id,
-          variant: item.variant,
-          quantity: item.quantity,
-          price: price,
-          name: name,
-          description: description,
-          eventLabel: eventLabel,
-          clubOrDept: item.club_or_dept || null,
-          imageUrl: override?.image_url || product?.imageUrl || null,
-          swatch: product?.swatch || ['#2a2a2a', '#1a1a1a'],
-          previewLabel: product?.previewLabel || name.substring(0, 4).toUpperCase(),
-        };
-      });
+        });
       setCartItems(items);
+      // Remove hidden/deleted items from cart in backend
+      for (const item of itemsToRemove) {
+        try {
+          await updateCartItem(item.tab_key, item.product_id, item.variant, 0, item.club_or_dept || null);
+        } catch (e) {
+          console.warn('Failed to remove deleted item from cart:', e);
+        }
+      }
+      if (itemsToRemove.length > 0) {
+        triggerCartUpdate();
+      }
     } catch (err) {
       console.error('Failed to load cart:', err);
       const errorMsg = err.response?.data?.message || err.message || 'Failed to load cart';

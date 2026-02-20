@@ -1,5 +1,6 @@
 -- Add hidden column to product_overrides for soft-delete / hide listings
--- Run this in your Supabase SQL Editor
+-- REQUIRED: Run this in your Supabase SQL Editor for admin delete/hide to work.
+-- Without this, deleted items will still appear in catalog, cart, and wishlist.
 
 DO $$
 BEGIN

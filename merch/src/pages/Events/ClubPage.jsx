@@ -238,7 +238,7 @@ export default function ClubPage() {
         return [];
       }
       const overrideList = Object.values(productOverrides);
-      const hiddenIds = new Set(overrideList.filter(o => o.hidden).map(o => o.product_id));
+      const hiddenIds = new Set(overrideList.filter(o => o.hidden === true || o.hidden === 'true').map(o => o.product_id));
       const mergedBase = base
         .filter(p => p && p.id && !hiddenIds.has(p.id))
         .map(product => {
@@ -254,7 +254,7 @@ export default function ClubPage() {
           };
         });
       const customProducts = overrideList
-        .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !o.hidden)
+        .filter(o => !BASE_PRODUCT_IDS.includes(o.product_id) && !(o.hidden === true || o.hidden === 'true'))
         .map(o => ({
           id: o.product_id,
           name: o.name || 'Custom Item',

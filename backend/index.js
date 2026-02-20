@@ -2256,7 +2256,6 @@ app.get('/api/catalog/overrides', async (req, res) => {
     const { data, error } = await query;
     if (error) {
       console.error('Fetch catalog overrides error:', error);
-      // Return empty array instead of error to allow page to load
       return res.json({ overrides: [] });
     }
     return res.json({ overrides: data || [] });

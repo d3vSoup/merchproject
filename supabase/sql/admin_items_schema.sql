@@ -62,9 +62,17 @@ CREATE TABLE IF NOT EXISTS product_overrides (
   price NUMERIC,
   image_url TEXT,
   description TEXT,
+  hidden BOOLEAN DEFAULT FALSE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(tab_key, product_id)
 );
+
+DO $$
+BEGIN
+  ALTER TABLE product_overrides ADD COLUMN hidden BOOLEAN DEFAULT FALSE;
+EXCEPTION
+  WHEN duplicate_column THEN NULL;
+END $$;
 
 DO $$
 BEGIN
