@@ -221,6 +221,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .modal-actions-buttons {
@@ -228,6 +229,7 @@
   gap: 12px;
   flex: 1;
   min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .modal-actions-buttons .btn--primary {
@@ -313,8 +315,15 @@
     font-size: 1.5rem;
   }
   
+  .modal-actions {
+    align-items: center;
+  }
+  
   .modal-actions-row {
     flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
   }
   
   .modal-actions-row .qty-control {
@@ -324,12 +333,22 @@
   
   .modal-actions-buttons {
     width: 100%;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .modal-actions-buttons .btn--primary {
+    order: 1;
+  }
+  
+  .modal-actions-buttons .wishlist-btn {
+    order: 2;
   }
   
   .modal-actions-buttons .btn,
   .modal-actions-buttons .wishlist-btn {
-    flex: 1;
+    width: 100%;
     min-width: 0;
   }
 }
