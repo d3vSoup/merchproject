@@ -2117,10 +2117,7 @@ app.get('/api/admin/resell/items', authMiddleware, async (req, res) => {
 
     const { data: items, error } = await supabaseAdmin
       .from('resell_items')
-      .select(`
-        *,
-        user:users(email, name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -2128,7 +2125,31 @@ app.get('/api/admin/resell/items', authMiddleware, async (req, res) => {
       return res.status(500).json({ message: 'Failed to fetch resell items' });
     }
 
-    return res.json({ items: items || [] });
+    const list = items || [];
+    const userIds = [...new Set(list.map(i => i.user_id).filter(Boolean))];
+    let usersMap = {};
+    if (userIds.length > 0) {
+      try {
+        const { data: users } = await supabaseAdmin
+          .from('users')
+          .select('id, email, name')
+          .in('id', userIds);
+        if (users) {
+          usersMap = users.reduce((acc, u) => {
+            if (u?.id) acc[u.id] = u;
+            return acc;
+          }, {});
+        }
+      } catch (userErr) {
+        console.warn('Could not fetch user details for resell items:', userErr?.message);
+      }
+    }
+    const enriched = list.map(item => ({
+      ...item,
+      user: item.user_id ? usersMap[item.user_id] || null : null
+    }));
+
+    return res.json({ items: enriched });
   } catch (err) {
     console.error('Admin resell items fetch error', err);
     return res.status(500).json({ message: 'Server error' });
