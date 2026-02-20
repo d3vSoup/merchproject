@@ -696,9 +696,10 @@ app.get('/api/resell/items/available', authMiddleware, async (req, res) => {
       return res.status(500).json({ message: 'Failed to fetch items', error: fetchError.message });
     }
 
-    // Filter out expired items in JavaScript (Supabase .or() can be tricky with nulls)
+    // Filter out expired and admin-hidden items in JavaScript
     const data = (allItems || []).filter(item => {
-      if (!item.expires_at) return true; // No expiration date means it's still valid
+      if (item.admin_hidden) return false;
+      if (!item.expires_at) return true;
       return new Date(item.expires_at) > new Date(now);
     });
 
@@ -2130,6 +2131,56 @@ app.get('/api/admin/resell/items', authMiddleware, async (req, res) => {
     return res.json({ items: items || [] });
   } catch (err) {
     console.error('Admin resell items fetch error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/admin/resell/items/:id/hide - Hide resell item from public (admin moderation)
+app.post('/api/admin/resell/items/:id/hide', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .update({ admin_hidden: true })
+      .eq('id', id);
+    if (error) {
+      console.error('Hide resell item error:', error);
+      return res.status(500).json({ message: 'Failed to hide item' });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Admin hide resell item error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/admin/resell/items/:id/restore - Restore hidden resell item
+app.post('/api/admin/resell/items/:id/restore', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .update({ admin_hidden: false })
+      .eq('id', id);
+    if (error) {
+      console.error('Restore resell item error:', error);
+      return res.status(500).json({ message: 'Failed to restore item' });
+    }
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Admin restore resell item error', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });

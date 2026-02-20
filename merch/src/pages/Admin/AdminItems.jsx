@@ -599,32 +599,73 @@ export default function AdminItems() {
               <p>No resell items listed yet.</p>
             ) : (
               <div className="admin-products-grid">
-                {resellItems.map((item) => (
-                  <div key={item.id} className="admin-product-card">
-                    <div className="admin-product-preview" style={{ background: item.pictures?.[0] ? `url(${item.pictures[0]}) center/cover` : '#f0f0f0', position: 'relative' }}>
-                      {item.pictures?.length > 0 && (
-                        <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem' }}>
-                          {item.pictures.length} images
+                {resellItems.map((item) => {
+                  const isHidden = !!item.admin_hidden;
+                  return (
+                    <div key={item.id} className={`admin-product-card ${isHidden ? 'is-hidden' : ''}`}>
+                      {isHidden && <div className="admin-product-hidden-badge">HIDDEN</div>}
+                      <div className="admin-product-preview" style={{ background: item.pictures?.[0] ? `url(${item.pictures[0]}) center/cover` : '#f0f0f0', position: 'relative' }}>
+                        {item.pictures?.length > 0 && (
+                          <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem' }}>
+                            {item.pictures.length} images
+                          </div>
+                        )}
+                      </div>
+                      <div className="admin-product-info">
+                        <div className="admin-product-name">{item.title}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>
+                          Condition: {item.condition} {item.year && `• Year: ${item.year}`}
                         </div>
-                      )}
+                        {item.price_range && (
+                          <div className="admin-product-price">{item.price_range}</div>
+                        )}
+                        <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 8, maxHeight: 60, overflow: 'hidden' }}>
+                          {item.description}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
+                          Status: <strong>{item.status}</strong> • Listed by: {item.user?.email || 'Unknown'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {isHidden ? (
+                          <button
+                            className="btn btn--ghost"
+                            style={{ color: 'var(--accent)' }}
+                            onClick={async () => {
+                              try {
+                                await api.post(`/api/admin/resell/items/${item.id}/restore`);
+                                toast.success('Item restored');
+                                loadResellItems();
+                              } catch (err) {
+                                toast.error('Failed to restore');
+                              }
+                            }}
+                          >
+                            Restore
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn--ghost"
+                            style={{ color: '#dc2626' }}
+                            onClick={async () => {
+                              if (window.confirm(`Hide "${item.title}" from the resell tab? It will no longer be visible to buyers.`)) {
+                                try {
+                                  await api.post(`/api/admin/resell/items/${item.id}/hide`);
+                                  toast.success('Item hidden');
+                                  loadResellItems();
+                                } catch (err) {
+                                  toast.error('Failed to hide item');
+                                }
+                              }
+                            }}
+                          >
+                            Hide
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="admin-product-info">
-                      <div className="admin-product-name">{item.title}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>
-                        Condition: {item.condition} {item.year && `• Year: ${item.year}`}
-                      </div>
-                      {item.price_range && (
-                        <div className="admin-product-price">{item.price_range}</div>
-                      )}
-                      <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 8, maxHeight: 60, overflow: 'hidden' }}>
-                        {item.description}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
-                        Status: <strong>{item.status}</strong> • Listed by: {item.user?.email || 'Unknown'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
