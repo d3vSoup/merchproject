@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
+import { SkeletonList } from "../../components/Skeleton";
 import { PRODUCT_CATALOG } from "../../data/products";
 import "./OrderHistory.css";
 
@@ -86,7 +87,7 @@ export default function OrderHistory() {
   if (loading) {
     return (
       <section className="orders-section">
-        <div className="orders-loading">Loading your orders...</div>
+        <div style={{ padding: "24px 0" }}><SkeletonList rows={4} /></div>
       </section>
     );
   }

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import toast from "react-hot-toast";
 import api from "../../api";
+import { SkeletonGrid } from "../../components/Skeleton";
 
 export default function ResellBuyer() {
   const { user } = useAuth();
@@ -68,7 +69,7 @@ export default function ResellBuyer() {
   }
 
   if (loading) {
-    return <div className="loading-skeleton">Loading items...</div>;
+    return <div style={{ padding: "24px 16px" }}><SkeletonGrid count={4} /></div>;
   }
 
   return (

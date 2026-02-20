@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { supabase, addMessageToChat, closeChat, createTicket } from "../../supabase/client";
 import toast from "react-hot-toast";
+import { SkeletonList } from "../../components/Skeleton";
 
 export default function ResellChat() {
   const { chatId } = useParams();
@@ -117,7 +118,7 @@ export default function ResellChat() {
   }
 
   if (!chat) {
-    return <div className="loading-skeleton">Loading chat...</div>;
+    return <div style={{ padding: "24px 16px", maxWidth: 600, margin: "0 auto" }}><SkeletonList rows={6} /></div>;
   }
 
   const isBuyer = user?.email === chat.buyer.email;

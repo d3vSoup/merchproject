@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api";
 import toast from "react-hot-toast";
+import { SkeletonList } from "../../components/Skeleton";
 import { PRODUCT_CATALOG } from "../../data/products";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -214,9 +215,7 @@ export default function AdminOrders() {
         </div>
 
         {loading && allOrders.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--muted)', padding: 24 }}>
-            Loading orders...
-          </p>
+          <div style={{ padding: 24 }}><SkeletonList rows={5} /></div>
         ) : displayOrders.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--muted)', padding: 24 }}>
             No {activeTab === 'all' ? '' : activeTab} items found.

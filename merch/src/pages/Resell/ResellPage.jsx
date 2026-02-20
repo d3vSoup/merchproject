@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { getUserIdByEmail, getUserByEmail } from "../../supabase/client";
+import { SkeletonPage } from "../../components/Skeleton";
 import ResellOnboarding from "./ResellOnboarding";
 import ResellSeller from "./ResellSeller";
 import ResellBuyer from "./ResellBuyer";
@@ -43,7 +44,7 @@ export default function ResellPage() {
   }
 
   if (loading) {
-    return <div className="loading-skeleton">Loading...</div>;
+    return <SkeletonPage type="grid" />;
   }
 
   if (!user) {

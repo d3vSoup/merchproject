@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
+import { SkeletonGrid } from "../../components/Skeleton";
 import { updateCartItem } from "../../api/cart";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import { PRODUCT_CATALOG } from "../../data/products";
@@ -154,7 +155,7 @@ export default function WishlistPage() {
   if (loading) {
     return (
       <div className="wishlist-page">
-        <div className="wishlist-loading">Loading wishlist...</div>
+        <div style={{ padding: "24px 0" }}><SkeletonGrid count={4} /></div>
       </div>
     );
   }

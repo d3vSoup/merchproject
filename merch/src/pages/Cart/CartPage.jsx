@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
+import { SkeletonList } from "../../components/Skeleton";
 import { createOrder } from "../../api/orders";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import { PRODUCT_CATALOG } from "../../data/products";
@@ -204,7 +205,7 @@ export default function CartPage() {
   if (loading) {
     return (
       <section className="cart-section">
-        <div className="cart-loading">Loading cart...</div>
+        <div style={{ padding: "24px 0" }}><SkeletonList rows={3} /></div>
       </section>
     );
   }

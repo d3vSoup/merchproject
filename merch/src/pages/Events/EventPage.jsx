@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
+import { SkeletonGrid } from "../../components/Skeleton";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import toast from "react-hot-toast";
 import { PRODUCT_CATALOG } from "../../data/products";
@@ -318,7 +319,7 @@ export default function EventPage() {
     return (
       <section className="product-section">
         <div className="section-heading">Merch line-up</div>
-        <p style={{ padding: 40, textAlign: 'center', color: 'var(--muted)' }}>Loading products...</p>
+        <SkeletonGrid />
       </section>
     );
   }

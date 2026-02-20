@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
+import { SkeletonGrid } from "../../components/Skeleton";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 
@@ -504,7 +505,7 @@ export default function AdminItems() {
           <div className="admin-products-list">
             <h4>Resell Listings</h4>
             {loadingResell ? (
-              <p>Loading...</p>
+              <SkeletonGrid count={3} />
             ) : resellItems.length === 0 ? (
               <p>No resell items listed yet.</p>
             ) : (
