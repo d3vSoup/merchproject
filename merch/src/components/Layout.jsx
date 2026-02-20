@@ -20,27 +20,56 @@ const TABS = [
   { key: "resell", label: "Resell", catalogKey: null, path: "/resell" },
 ];
 
+const overrideCache = {};
+
 function TabPreview({ catalogKey }) {
-  const products = catalogKey ? PRODUCT_CATALOG[catalogKey] : [];
+  const base = catalogKey ? PRODUCT_CATALOG[catalogKey] : [];
+  const [products, setProducts] = useState(base);
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (!catalogKey) return;
+    if (overrideCache[catalogKey]) {
+      setProducts(overrideCache[catalogKey]);
+      return;
+    }
+    api.get('/api/catalog/overrides', { params: { tabKey: catalogKey } })
+      .then(res => {
+        const overrides = {};
+        (res.data?.overrides || []).forEach(o => { overrides[o.product_id] = o; });
+        const merged = base.map(p => {
+          const ov = overrides[p.id];
+          if (!ov) return p;
+          return {
+            ...p,
+            ...(ov.name ? { name: ov.name } : {}),
+            ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
+            ...(ov.price != null ? { price: Number(ov.price) } : {}),
+          };
+        });
+        overrideCache[catalogKey] = merged;
+        setProducts(merged);
+      })
+      .catch(() => {});
+  }, [catalogKey]);
 
   useEffect(() => {
     if (products.length <= 1) return;
     const timer = setInterval(() => {
       setFade(false);
       setTimeout(() => {
-        setIdx((i) => (i + 1) % products.length);
+        setIdx(i => (i + 1) % products.length);
         setFade(true);
-      }, 300);
-    }, 2200);
+      }, 2200);
+    }, 2500);
     return () => clearInterval(timer);
   }, [products.length]);
 
   if (!products.length) return null;
   const p = products[idx];
   const bg = p.imageUrl
-    ? `url(${p.imageUrl}) center/cover`
+    ? `url(${p.imageUrl}) center/cover no-repeat`
     : `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})`;
 
   return (
