@@ -9,6 +9,7 @@ import { triggerCartUpdate } from "../../hooks/useCartCount";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 import api from "../../api";
+import { useSortPreference, SORT_OPTIONS, sortItems } from "../../hooks/useSortPreference";
 import "./CartPage.css";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -19,6 +20,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productOverrides, setProductOverrides] = useState({});
+  const [sortBy, changeSort] = useSortPreference('cart_sort', 'price_asc');
 
   useEffect(() => {
     if (user) {
@@ -227,6 +229,7 @@ export default function CartPage() {
   }
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const sortedCartItems = sortItems(cartItems, sortBy, (i) => i.price, (i) => i.eventLabel);
 
   if (loading) {
     return (
@@ -267,12 +270,27 @@ export default function CartPage() {
   return (
     <section className="cart-section">
       <div className="cart-header">
-        <h1 className="cart-title">Your Cart</h1>
-        <p className="cart-subtitle">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
+        <div>
+          <h1 className="cart-title">Your Cart</h1>
+          <p className="cart-subtitle">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
+        </div>
+        <div className="cart-sort">
+          <label htmlFor="cart-sort-select" className="cart-sort-label">Sort by</label>
+          <select
+            id="cart-sort-select"
+            value={sortBy}
+            onChange={(e) => changeSort(e.target.value)}
+            className="cart-sort-select"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
       
       <div className="cart-items">
-        {cartItems.map((item, idx) => {
+        {sortedCartItems.map((item, idx) => {
           const badgeClass = getBadgeClass(item.eventLabel);
           const itemColor = item.swatch?.[0] || '#ff6b35';
           const itemStyle = {

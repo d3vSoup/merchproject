@@ -4,6 +4,7 @@ import api from "../../api";
 import toast from "react-hot-toast";
 import { SkeletonList } from "../../components/Skeleton";
 import { PRODUCT_CATALOG } from "../../data/products";
+import "./AdminOrders.css";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -249,87 +250,39 @@ export default function AdminOrders() {
               return (
                 <div 
                   key={order.id || idx} 
-                  className={`orders-row ${isSoldOut ? 'is-soldout' : ''}`}
+                  className={`order-card ${isSoldOut ? 'is-soldout' : ''}`}
                   style={isSoldOut ? { opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
                 >
-                  <div className="order-email">
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                      {order.name && order.name !== 'Unknown' && order.name.trim() ? order.name : (order.email ? order.email.split('@')[0] : 'Unknown')}
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--muted)', wordBreak: 'break-word' }}>
-                      {order.email || 'No email'}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: order.usn ? 500 : 400 }}>
-                    {order.usn && order.usn.trim() ? order.usn : '-'}
-                  </div>
-                  <div className="order-type">
-                    <span className={`type-badge type-${order.type === 'confirmed_order' ? 'order' : order.type === 'resell_listing' ? 'resell' : order.type}`}>
-                      {order.type === 'confirmed_order' ? 'Order' : order.type === 'resell_listing' ? 'Resell Listing' : order.type}
-                    </span>
-                    {order.orderNumber && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
-                        {order.orderNumber}
+                  <div className="orders-row">
+                    <div className="order-email">
+                      <div className="order-name">
+                        {order.name && order.name !== 'Unknown' && order.name.trim() ? order.name : (order.email ? order.email.split('@')[0] : 'Unknown')}
                       </div>
-                    )}
-                    {order.type === 'resell_listing' && (() => {
-                      // Determine the actual status
-                      const itemStatus = order.items[0]?.status;
-                      const payStatus = order.paymentStatus;
-                      const isDeleted = payStatus === 'deleted' || itemStatus === 'deleted';
-                      const isExpired = payStatus === 'expired' || itemStatus === 'expired';
-                      
-                      return (
-                        <div style={{ 
-                          fontSize: '0.75rem', 
-                          marginTop: 4,
-                          color: isDeleted ? '#ef4444' : isExpired ? '#f59e0b' : '#22c55e',
-                          fontWeight: 500
-                        }}>
-                          {isDeleted ? '🗑️ Deleted' : isExpired ? '⏱️ Expired' : '✓ Active'}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  <div className="order-items">
-                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                    <details style={{ marginTop: 4 }}>
-                      <summary style={{ cursor: 'pointer', fontSize: 12, color: 'var(--muted)' }}>View Details</summary>
-                      <ul style={{ marginTop: 8, paddingLeft: 16, fontSize: 12, listStyle: 'none' }}>
-                        {order.items.map((item, i) => (
-                          <li key={i} style={{ marginBottom: 6 }}>
-                            <strong>{item.name || item.title}</strong>
-                            {item.variant && <span> ({item.variant})</span>}
-                            {item.condition && <span> - {item.condition}</span>}
-                            {item.year && <span> ({item.year})</span>}
-                            <br />
-                            {order.type === 'resell_listing' ? (
-                              <span style={{ color: 'var(--muted)' }}>
-                                {item.priceRange && `Price: ${item.priceRange}`}
-                                {item.description && (
-                                  <>
-                                    <br />
-                                    {item.description.substring(0, 100)}{item.description.length > 100 ? '...' : ''}
-                                  </>
-                                )}
-                                {item.pictures && item.pictures.length > 0 && (
-                                  <>
-                                    <br />
-                                    {item.pictures.length} image{item.pictures.length !== 1 ? 's' : ''}
-                                  </>
-                                )}
-                              </span>
-                            ) : (
-                              <span style={{ color: 'var(--muted)' }}>
-                                Qty: {item.quantity || 1} × {formatPrice(item.price || 0)} = {formatPrice((item.price || 0) * (item.quantity || 1))}
-                              </span>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  </div>
-                  <div className="order-total">
+                      <div className="order-email-text">{order.email || 'No email'}</div>
+                    </div>
+                    <div className="order-usn">{order.usn && order.usn.trim() ? order.usn : '-'}</div>
+                    <div className="order-type">
+                      <span className={`type-badge type-${order.type === 'confirmed_order' ? 'order' : order.type === 'resell_listing' ? 'resell' : order.type}`}>
+                        {order.type === 'confirmed_order' ? 'Order' : order.type === 'resell_listing' ? 'Resell Listing' : order.type}
+                      </span>
+                      {order.orderNumber && <div className="order-number">{order.orderNumber}</div>}
+                      {order.type === 'resell_listing' && (() => {
+                        const itemStatus = order.items[0]?.status;
+                        const payStatus = order.paymentStatus;
+                        const isDeleted = payStatus === 'deleted' || itemStatus === 'deleted';
+                        const isExpired = payStatus === 'expired' || itemStatus === 'expired';
+                        return (
+                          <div className={`resell-status ${isDeleted ? 'deleted' : isExpired ? 'expired' : 'active'}`}>
+                            {isDeleted ? '🗑️ Deleted' : isExpired ? '⏱️ Expired' : '✓ Active'}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div className="order-items-summary">
+                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                      <span className="order-total-inline">{formatPrice(isNaN(total) ? 0 : total)}</span>
+                    </div>
+                    <div className="order-total">
                     {order.type === 'resell_listing' ? (
                       <span style={{ fontWeight: 500 }}>
                         {order.items[0]?.priceRange || 'Price TBD'}
@@ -350,20 +303,50 @@ export default function AdminOrders() {
                         <option value="failed">Failed</option>
                       </select>
                     ) : (
-                      <span style={{ color: 'var(--muted)' }}>N/A</span>
+                      <span className="order-payment-na">N/A</span>
                     )}
                   </div>
                   <div className="order-actions">
                     {order.type === 'confirmed_order' && order.paymentStatus === 'paid' && (
                       <button
-                        className="btn btn--ghost"
-                        style={{ fontSize: 12, padding: '4px 8px' }}
+                        className="btn btn--ghost btn-refund"
                         onClick={() => handleRefund(order.id, order.email)}
                       >
                         Refund
                       </button>
                     )}
                   </div>
+                  </div>
+
+                  <details className="order-details-expand">
+                    <summary>View items</summary>
+                    <div className="order-items-grid">
+                      {order.items.map((item, i) => (
+                        <div key={i} className="order-item-card">
+                          <div className="order-item-name">
+                            {item.name || item.title}
+                            {item.variant && <span className="order-item-variant"> ({item.variant})</span>}
+                            {item.condition && <span> · {item.condition}</span>}
+                            {item.year && <span> ({item.year})</span>}
+                          </div>
+                          {order.type === 'resell_listing' ? (
+                            <div className="order-item-meta">
+                              {item.priceRange && <span>{item.priceRange}</span>}
+                              {item.pictures?.length > 0 && <span>{item.pictures.length} image{item.pictures.length !== 1 ? 's' : ''}</span>}
+                            </div>
+                          ) : (
+                            <div className="order-item-meta">
+                              Qty {item.quantity || 1} × {formatPrice(item.price || 0)} = <strong>{formatPrice((item.price || 0) * (item.quantity || 1))}</strong>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="order-summary-bar">
+                      <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+                      <span className="order-summary-total">Total: {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}</span>
+                    </div>
+                  </details>
                 </div>
               );
             })}

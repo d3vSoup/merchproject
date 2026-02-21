@@ -7,7 +7,39 @@
 }
 
 .wishlist-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
   margin-bottom: 32px;
+}
+
+.wishlist-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wishlist-sort-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.wishlist-sort-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.wishlist-sort-select:focus {
+  outline: 2px solid rgba(255, 102, 0, 0.3);
+  outline-offset: 2px;
 }
 
 .wishlist-title {

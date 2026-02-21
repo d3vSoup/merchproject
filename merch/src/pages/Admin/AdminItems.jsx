@@ -602,6 +602,7 @@ export default function AdminItems() {
                 <div className="resell-admin-header">
                   <div>Seller / Email</div>
                   <div>Title</div>
+                  <div>Listed</div>
                   <div>Status</div>
                   <div>Price</div>
                   <div>Actions</div>
@@ -625,6 +626,15 @@ export default function AdminItems() {
                         <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 2 }}>
                           {item.condition}{item.year ? ` • ${item.year}` : ''}
                         </div>
+                      </div>
+                      <div className="resell-admin-listed">
+                        {item.created_at
+                          ? new Date(item.created_at).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })
+                          : '–'}
                       </div>
                       <div>
                         <span className={`resell-status-badge resell-status--${statusCls}`}>

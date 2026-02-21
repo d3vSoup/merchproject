@@ -1,0 +1,192 @@
+/* Admin Orders - improved layout */
+.order-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.order-card:hover {
+  background: #fafafa;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(255, 102, 0, 0.15);
+}
+
+.order-card.is-soldout {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.order-card .orders-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr 0.8fr 0.8fr 0.7fr;
+  gap: 12px;
+  padding: 14px 16px;
+  align-items: start;
+  word-break: break-word;
+}
+
+.order-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.order-email-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.order-usn {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.order-number {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.resell-status {
+  font-size: 0.75rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.resell-status.deleted {
+  color: #ef4444;
+}
+
+.resell-status.expired {
+  color: #f59e0b;
+}
+
+.resell-status.active {
+  color: #22c55e;
+}
+
+.order-items-summary {
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-total-inline {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.order-payment-na {
+  color: var(--muted);
+}
+
+.btn-refund {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Expandable items section */
+.order-details-expand {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.order-details-expand summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  transition: background 0.15s ease;
+}
+
+.order-details-expand summary:hover {
+  background: rgba(255, 102, 0, 0.06);
+}
+
+.order-details-expand[open] summary {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Items grid - fills space nicely */
+.order-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.order-item-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.order-item-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.order-item-variant {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.order-item-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.order-item-meta strong {
+  color: var(--text);
+}
+
+/* Summary bar - fills space below items */
+.order-summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 0.9rem;
+}
+
+.order-summary-total {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* Match header to new structure */
+.orders-table .orders-header-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr 0.8fr 0.8fr 0.7fr;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+@media (max-width: 900px) {
+  .order-card .orders-row,
+  .orders-table .orders-header-row {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .order-card .orders-row > *:nth-child(n+4) {
+    grid-column: span 1;
+  }
+
+  .order-items-grid {
+    grid-template-columns: 1fr;
+  }
+}

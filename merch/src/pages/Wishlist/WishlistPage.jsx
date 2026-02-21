@@ -9,6 +9,7 @@ import { triggerCartUpdate } from "../../hooks/useCartCount";
 import { triggerWishlistUpdate } from "../../components/WishlistHeart";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
+import { useSortPreference, SORT_OPTIONS, sortItems } from "../../hooks/useSortPreference";
 import "./WishlistPage.css";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -19,6 +20,7 @@ export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productOverrides, setProductOverrides] = useState({});
+  const [sortBy, changeSort] = useSortPreference('wishlist_sort', 'price_asc');
 
   useEffect(() => {
     if (user) {
@@ -208,15 +210,32 @@ export default function WishlistPage() {
     );
   }
 
+  const sortedWishlistItems = sortItems(wishlistItems, sortBy, (i) => i.price, (i) => i.eventLabel);
+
   return (
     <div className="wishlist-page">
       <div className="wishlist-header">
-        <h1 className="wishlist-title">Your Wishlist</h1>
-        <p className="wishlist-count">{wishlistItems.length} item{wishlistItems.length !== 1 ? 's' : ''}</p>
+        <div>
+          <h1 className="wishlist-title">Your Wishlist</h1>
+          <p className="wishlist-count">{wishlistItems.length} item{wishlistItems.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="wishlist-sort">
+          <label htmlFor="wishlist-sort-select" className="wishlist-sort-label">Sort by</label>
+          <select
+            id="wishlist-sort-select"
+            value={sortBy}
+            onChange={(e) => changeSort(e.target.value)}
+            className="wishlist-sort-select"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
       
       <div className="wishlist-grid">
-        {wishlistItems.map((item, idx) => (
+        {sortedWishlistItems.map((item, idx) => (
           <article key={idx} className="wishlist-card">
             <div
               className="wishlist-card__image"
