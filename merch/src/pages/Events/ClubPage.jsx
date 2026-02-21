@@ -111,7 +111,10 @@ export default function ClubPage() {
 
   useEffect(() => {
     let mounted = true;
-    let timeoutId = null;
+    const maxWait = 12000;
+    const fallbackTimer = setTimeout(() => {
+      if (mounted) setLoadingSoldOut(false);
+    }, maxWait);
     
     async function fetchSoldOutFromServer() {
       if (!mounted) return;
@@ -219,7 +222,7 @@ export default function ClubPage() {
     
     return () => {
       mounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(fallbackTimer);
     };
   }, []);
 

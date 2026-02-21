@@ -1076,15 +1076,10 @@ app.post('/api/resell/upload-image', authMiddleware, uploadMemory.single('image'
 });
 
 // POST /api/user/profile (auth) -> { usn, phone, pfpUrl, name, branch, sem (optional) }
+// Supabase-first: works even when MongoDB/file store was lost (e.g. Render cold start)
 app.post('/api/user/profile', authMiddleware, async (req, res) => {
   const { usn, phone, pfpUrl, name, branch, sem } = req.body || {};
   try {
-    const uid = req.auth.uid;
-    // load user
-    let user = usingMongoose ? await Users.findById(uid) : await Users.findById(uid);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    // update fields
     const patch = {};
     if (usn !== undefined) patch.usn = usn;
     if (phone !== undefined) patch.phone = phone;
@@ -1093,81 +1088,97 @@ app.post('/api/user/profile', authMiddleware, async (req, res) => {
     if (branch !== undefined) patch.branch = branch;
     if (sem !== undefined) patch.sem = sem;
 
-    if (usingMongoose) {
-      if (patch.usn !== undefined) user.usn = patch.usn;
-      if (patch.phone !== undefined) user.phone = patch.phone;
-      if (patch.pfpUrl !== undefined) user.pfpUrl = patch.pfpUrl;
-      if (patch.name !== undefined) user.name = patch.name;
-      if (patch.branch !== undefined) user.branch = patch.branch;
-      if (patch.sem !== undefined) user.sem = patch.sem;
-      user.profilePercent = computePercent(user);
-      await user.save();
-    } else {
-      const newObj = { ...user, ...patch };
-      newObj.profilePercent = computePercent(newObj);
-      await Users.findByIdAndUpdate(user._id, newObj);
-      user = newObj;
-    }
+    let user = null;
+    const uid = req.auth.uid;
 
-      // Also update in Supabase
-      if (supabaseAdmin && req.auth.supabaseId) {
-        console.log('Syncing profile to Supabase by ID:', req.auth.supabaseId);
-        console.log('  USN:', user.usn, '- Name:', user.name, '- Phone:', user.phone);
-        const { error: updateError } = await supabaseAdmin
-          .from('users')
-          .update({
-            usn: user.usn || null,
-            phone: user.phone || null,
-            pfp_url: user.pfpUrl || null,
-            name: user.name || null,
-            branch: user.branch || null,
-            sem: user.sem || null,
-            profile_percent: user.profilePercent
-          })
-          .eq('id', req.auth.supabaseId);
-        
-        if (updateError) {
-          console.error('Failed to sync profile to Supabase:', updateError);
+    // 1. Try MongoDB/file store first (for backwards compat)
+    if (Users) {
+      user = usingMongoose ? await Users.findById(uid) : await Users.findById(uid);
+      if (user) {
+        if (usingMongoose) {
+          if (patch.usn !== undefined) user.usn = patch.usn;
+          if (patch.phone !== undefined) user.phone = patch.phone;
+          if (patch.pfpUrl !== undefined) user.pfpUrl = patch.pfpUrl;
+          if (patch.name !== undefined) user.name = patch.name;
+          if (patch.branch !== undefined) user.branch = patch.branch;
+          if (patch.sem !== undefined) user.sem = patch.sem;
+          user.profilePercent = computePercent(user);
+          await user.save();
         } else {
-          console.log('  Profile synced successfully');
+          const newObj = { ...user, ...patch };
+          newObj.profilePercent = computePercent(newObj);
+          await Users.findByIdAndUpdate(user._id, newObj);
+          user = newObj;
         }
-      } else if (supabaseAdmin && req.auth.email) {
-        // Fallback: update by email if supabaseId not available
-        console.log('Syncing profile to Supabase by email:', req.auth.email);
-        console.log('  USN:', user.usn, '- Name:', user.name, '- Phone:', user.phone);
-        const { error: updateError } = await supabaseAdmin
-          .from('users')
-          .update({
-            usn: user.usn || null,
-            phone: user.phone || null,
-            pfp_url: user.pfpUrl || null,
-            name: user.name || null,
-            branch: user.branch || null,
-            sem: user.sem || null,
-            profile_percent: user.profilePercent
-          })
-          .eq('email', req.auth.email);
-        
-        if (updateError) {
-          console.error('Failed to sync profile to Supabase:', updateError);
-        } else {
-          console.log('  Profile synced successfully');
-        }
-      } else {
-        console.warn('Cannot sync to Supabase: no supabaseId or email available');
-      }
-
-    if (!req.auth.supabaseId && supabaseAdmin) {
-      const ensured = await ensureSupabaseUserRecord(req.auth.email);
-      if (ensured.id) {
-        req.auth.supabaseId = ensured.id;
       }
     }
-    if (req.auth.supabaseId) {
-      user.supabaseId = req.auth.supabaseId;
+
+    // 2. Supabase-first fallback: when MongoDB user not found (e.g. Render restart lost file store)
+    if (supabaseAdmin) {
+      let supabaseId = req.auth.supabaseId;
+      if (!supabaseId) {
+        const ensured = await ensureSupabaseUserRecord(req.auth.email, null, patch);
+        supabaseId = ensured?.id;
+      }
+
+      if (supabaseId) {
+        const { data: sbUser } = await supabaseAdmin.from('users').select('*').eq('id', supabaseId).single();
+        const updatePayload = {
+          usn: (user?.usn ?? patch.usn ?? sbUser?.usn) ?? null,
+          phone: (user?.phone ?? patch.phone ?? sbUser?.phone) ?? null,
+          pfp_url: (user?.pfpUrl ?? patch.pfpUrl ?? sbUser?.pfp_url) ?? null,
+          name: (user?.name ?? patch.name ?? sbUser?.name) ?? null,
+          branch: (user?.branch ?? patch.branch ?? sbUser?.branch) ?? null,
+          sem: (user?.sem ?? patch.sem ?? sbUser?.sem) ?? null,
+        };
+        updatePayload.profile_percent = (updatePayload.name && updatePayload.usn && updatePayload.sem) ? 100 : 50;
+
+        const { data: updated, error } = await supabaseAdmin
+          .from('users')
+          .update(updatePayload)
+          .eq('id', supabaseId)
+          .select()
+          .single();
+
+        if (!error && updated) {
+          user = {
+            _id: uid,
+            email: updated.email,
+            name: updated.name || null,
+            usn: updated.usn || null,
+            phone: updated.phone || null,
+            branch: updated.branch || null,
+            sem: updated.sem || null,
+            pfpUrl: updated.pfp_url || null,
+            profilePercent: (updated.name && updated.usn && updated.sem) ? 100 : 50,
+            supabaseId: updated.id,
+          };
+        }
+      } else if (req.auth.email) {
+        const ensured = await ensureSupabaseUserRecord(req.auth.email, null, patch);
+        if (ensured?.data) {
+          const d = ensured.data;
+          user = {
+            _id: uid,
+            email: d.email,
+            name: d.name || null,
+            usn: d.usn || null,
+            phone: d.phone || null,
+            branch: d.branch || null,
+            sem: d.sem || null,
+            pfpUrl: d.pfp_url || null,
+            profilePercent: (d.name && d.usn && d.sem) ? 100 : 50,
+            supabaseId: d.id,
+          };
+        }
+      }
     }
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     user.isAdmin = isAdmin(req.auth.email);
-
     return res.json({ user });
   } catch (err) {
     console.error('Profile update error', err);

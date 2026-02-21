@@ -28,10 +28,17 @@ export default function EventPage() {
   // Removed localStorage dependency - countdown is now fetched from backend
 
   useEffect(() => {
+    let cancelled = false;
+    const maxWait = 12000; // Show products after 12s even if API is slow (Render cold start)
+    const fallbackTimer = setTimeout(() => {
+      if (!cancelled) setLoadingSoldOut(false);
+    }, maxWait);
+
     async function fetchSoldOutFromServer() {
       setLoadingSoldOut(true);
       try {
         const res = await api.get('/api/items/soldouts', { params: { tabKey: eventKey } });
+        if (cancelled) return;
         const map = {};
         let serverStatus = null;
         
@@ -119,7 +126,7 @@ export default function EventPage() {
       } catch (err) {
         console.error('Failed to load sold-out data from server', err);
       } finally {
-        setLoadingSoldOut(false);
+        if (!cancelled) setLoadingSoldOut(false);
       }
     }
 
@@ -192,6 +199,8 @@ export default function EventPage() {
     }, 10000); // 10 seconds
     
     return () => {
+      cancelled = true;
+      clearTimeout(fallbackTimer);
       clearInterval(pollInterval);
     };
   }, [eventKey]);

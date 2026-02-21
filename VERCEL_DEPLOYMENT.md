@@ -141,6 +141,28 @@ If you still see 404 errors:
 2. ✅ Supabase credentials are correct
 3. ✅ Backend logs in Render dashboard
 
+### Merch line-up not loading (stuck on skeleton)
+
+**Cause:** Render free tier spins down after ~15 min of inactivity. First request can take 30–60 seconds to wake the backend.
+
+**Solutions:**
+1. **Wait 12–15 seconds** – The app now shows products after 12s even if the API is slow
+2. **Check Render** – In Render dashboard, confirm the service is running (not "Suspended")
+3. **Verify VITE_API_URL** – Must be `https://bmsce-merch-backend.onrender.com` in Vercel env vars
+4. **Upgrade Render** – Paid plan keeps the backend always-on (no cold starts)
+
+### "User not found" when saving profile
+
+**Cause:** Render restarts lose in-memory/file user data. Your JWT is valid but the backend can't find the user record.
+
+**Solution:** ✅ Fixed – Profile save now uses Supabase as fallback. Ensure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set in Render.
+
+### Profile sync issues (phone vs laptop)
+
+**Cause:** Different devices may have different tokens. If the backend restarted, one device's token may reference a user ID that no longer exists.
+
+**Solution:** Sign out and sign in again on both devices. The profile endpoint now uses Supabase, so data persists across backend restarts.
+
 ## 📝 Quick Checklist
 
 Before deploying:

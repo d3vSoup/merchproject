@@ -72,7 +72,11 @@ export default function GoogleSignIn({ onSuccess }) {
             onSuccess?.(user);
           } catch (err) {
             console.error("Google sign-in failed", err);
-            const errorMsg = err?.response?.data?.message || err.message || "Sign-in failed";
+            let errorMsg = err?.response?.data?.message || err.message || "Sign-in failed";
+            const isTimeout = errorMsg.includes("timeout") || err.code === "ECONNABORTED";
+            if (isTimeout) {
+              errorMsg = "The server is waking up (can take up to a minute). Please wait 30 seconds and try again.";
+            }
             
             // Check for origin_mismatch error (OAuth configuration issue)
             if (errorMsg.includes("origin_mismatch") || errorMsg.includes("OAuth 2.0 policy")) {
@@ -99,9 +103,8 @@ export default function GoogleSignIn({ onSuccess }) {
             }
             
             // Show error and allow retry
-            const shouldRetry = confirm(
-              `${errorMsg}\n\nWould you like to try signing in with a different account?`
-            );
+            const retryPrompt = isTimeout ? "Would you like to try again?" : "Would you like to try signing in with a different account?";
+            const shouldRetry = confirm(`${errorMsg}\n\n${retryPrompt}`);
             
             if (shouldRetry) {
               // Force button re-render by updating key

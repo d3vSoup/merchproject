@@ -9,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: false,
-  timeout: 30000, // 30 second timeout for Render (can be slow to wake up)
+  timeout: 60000, // 60 second timeout for Render cold start (free tier can take 50+ sec to wake)
 });
 
 // Attach token from localStorage on every request as fallback
