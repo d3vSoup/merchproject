@@ -275,6 +275,18 @@
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+.resell-modal__feedback .resell-feedback-list {
+  max-height: 240px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 600px) {
+  .resell-modal__feedback .resell-feedback-list {
+    max-height: 320px;
+  }
+}
+
 .resell-feedback-header {
   display: flex;
   flex-wrap: wrap;
@@ -349,10 +361,11 @@
   color: #f59e0b;
 }
 
+/* Clean Reddit/Instagram-inspired feedback chain - less cluttered */
 .resell-feedback-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .resell-feedback-empty {
@@ -362,57 +375,62 @@
 }
 
 .resell-feedback-item {
-  padding: 14px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 10px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   position: relative;
+}
+
+.resell-feedback-item:last-child,
+.resell-feedback-replies .resell-feedback-item:last-child {
+  border-bottom: none;
+}
+
+.resell-feedback-item__reply-to {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 2px;
 }
 
 .resell-feedback-item__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .resell-feedback-item__name {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
-.resell-feedback-item__usn {
+.resell-feedback-item__meta {
   font-size: 0.8rem;
   color: var(--muted);
 }
 
 .resell-feedback-item__rating {
-  font-size: 0.9rem;
   color: #f59e0b;
 }
 
 .resell-feedback-item__comments {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.resell-feedback-item__time {
-  font-size: 0.75rem;
-  color: var(--muted);
+  line-height: 1.45;
+  color: var(--text);
 }
 
 .resell-feedback-item__footer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .resell-feedback-reply-btn {
   background: none;
   border: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--accent);
   cursor: pointer;
   padding: 0;
@@ -422,51 +440,56 @@
   text-decoration: underline;
 }
 
-/* Reddit-style nested reply chains */
-.resell-feedback-item__reply-label {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
+/* One thin line for entire reply thread - no stacking (Reddit/Instagram) */
 .resell-feedback-item--reply {
-  padding-left: 16px;
-  border-left: 3px solid rgba(255, 102, 0, 0.45);
-  background: rgba(0, 0, 0, 0.02);
+  border-bottom: none;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
-
-.resell-feedback-item--reply[data-depth="1"] { margin-left: 0; }
-.resell-feedback-item--reply[data-depth="2"] { margin-left: 0; }
-.resell-feedback-item--reply[data-depth="3"] { margin-left: 0; }
 
 .resell-feedback-replies {
-  margin-top: 12px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border-left: 2px solid rgba(0, 0, 0, 0.1);
-  padding-left: 12px;
-  margin-left: 12px;
+  gap: 0;
+}
+
+/* Nested reply threads: no extra line - "Replying to X" gives context */
+.resell-feedback-replies .resell-feedback-replies {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+}
+
+@media (max-width: 600px) {
+  .resell-feedback-replies {
+    margin-left: 8px;
+    padding-left: 10px;
+  }
 }
 
 .resell-feedback-reply-form {
-  margin-top: 12px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .resell-feedback-reply-form textarea {
-  padding: 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   font-size: 0.9rem;
   resize: vertical;
+  min-height: 60px;
 }
 
 .resell-feedback-reply-form__hint {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 

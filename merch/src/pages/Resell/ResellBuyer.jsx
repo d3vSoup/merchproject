@@ -18,6 +18,7 @@ const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR - i);
 
 function FeedbackItem({
   fb,
+  parentName,
   replyingTo,
   setReplyingTo,
   replyForm,
@@ -33,27 +34,25 @@ function FeedbackItem({
 
   return (
     <div className={`resell-feedback-item ${isReply ? "resell-feedback-item--reply" : ""}`} data-depth={depth}>
-      {isReply && <span className="resell-feedback-item__reply-label">↳ Reply</span>}
+      {isReply && parentName && (
+        <span className="resell-feedback-item__reply-to">Replying to {parentName}</span>
+      )}
       <div className="resell-feedback-item__head">
         <span className="resell-feedback-item__name">{fb.buyer_name}</span>
-        <span className="resell-feedback-item__usn">{fb.buyer_usn}</span>
-        {fb.rating != null && (
-          <span className="resell-feedback-item__rating">★ {fb.rating}</span>
-        )}
+        <span className="resell-feedback-item__meta">
+          {fb.buyer_usn}
+          {fb.rating != null && <span className="resell-feedback-item__rating"> · ★ {fb.rating}</span>}
+          {fb.created_at && (
+            <span className="resell-feedback-item__time">
+              · {new Date(fb.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+          )}
+        </span>
       </div>
       {fb.comments && (
         <p className="resell-feedback-item__comments">{fb.comments}</p>
       )}
       <div className="resell-feedback-item__footer">
-        <time className="resell-feedback-item__time">
-          {fb.created_at
-            ? new Date(fb.created_at).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })
-            : ""}
-        </time>
         {user && (
           <button
             type="button"
@@ -88,6 +87,7 @@ function FeedbackItem({
             <FeedbackItem
               key={r.id}
               fb={r}
+              parentName={fb.buyer_name}
               replyingTo={replyingTo}
               setReplyingTo={setReplyingTo}
               replyForm={replyForm}

@@ -5,46 +5,36 @@ import { getUserIdByEmail, getUserResellItems, createResellItem, uploadResellIma
 import toast from "react-hot-toast";
 import api from "../../api";
 
-function SellerFeedbackItem({ fb, replyingTo, setReplyingTo, replyForm, setReplyForm, submitReply, submittingReply, user, depth = 0 }) {
+function SellerFeedbackItem({ fb, parentName, replyingTo, setReplyingTo, replyForm, setReplyForm, submitReply, submittingReply, user, depth = 0 }) {
   const isReply = !!fb.parent_id;
   const showReplyForm = replyingTo === fb.id;
   return (
-    <div style={{
-      padding: '12px',
-      background: isReply ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.03)',
-      borderRadius: '8px',
-      borderLeft: isReply ? '3px solid rgba(255,102,0,0.45)' : 'none',
-      paddingLeft: isReply ? '16px' : '12px',
-    }}>
-      {isReply && <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '4px' }}>↳ Reply</span>}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-        <span style={{ fontWeight: 600 }}>{fb.buyer_name}</span>
-        <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{fb.buyer_usn}</span>
-        {fb.rating != null && <span style={{ color: 'var(--accent)' }}>★ {fb.rating}</span>}
+    <div className="resell-seller-feedback-item" style={{ padding: '10px 0 12px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+      {isReply && parentName && <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '2px' }}>Replying to {parentName}</span>}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '4px', marginBottom: '4px' }}>
+        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{fb.buyer_name}</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+          {fb.buyer_usn}
+          {fb.rating != null && <span style={{ color: 'var(--accent)' }}> · ★ {fb.rating}</span>}
+          {fb.created_at && <span> · {new Date(fb.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+        </span>
       </div>
-      {fb.comments && <p style={{ margin: '4px 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>{fb.comments}</p>}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
-        {fb.created_at && (
-          <time style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-            {new Date(fb.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </time>
-        )}
-        {user && (
-          <button type="button" onClick={() => setReplyingTo(showReplyForm ? null : fb.id)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem' }}>
-            {showReplyForm ? 'Cancel' : 'Reply'}
-          </button>
-        )}
-      </div>
+      {fb.comments && <p style={{ margin: '0 0 6px', fontSize: '0.9rem', lineHeight: 1.45 }}>{fb.comments}</p>}
+      {user && (
+        <button type="button" onClick={() => setReplyingTo(showReplyForm ? null : fb.id)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.8rem', padding: 0 }}>
+          {showReplyForm ? 'Cancel' : 'Reply'}
+        </button>
+      )}
       {showReplyForm && user && (
-        <form onSubmit={submitReply} style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <textarea value={replyForm.comments} onChange={(e) => setReplyForm({ comments: e.target.value })} placeholder="Write a reply..." rows={2} maxLength={500} required style={{ padding: '10px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '0.9rem' }} />
+        <form onSubmit={submitReply} style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <textarea value={replyForm.comments} onChange={(e) => setReplyForm({ comments: e.target.value })} placeholder="Write a reply..." rows={2} maxLength={500} required style={{ padding: '10px 12px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '0.9rem' }} />
           <button type="submit" className="btn btn--primary btn--sm" disabled={submittingReply}>{submittingReply ? 'Posting...' : 'Post reply'}</button>
         </form>
       )}
       {fb.replies?.length > 0 && (
-        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: '2px solid rgba(0,0,0,0.1)', paddingLeft: '12px', marginLeft: '12px' }}>
+        <div className="resell-seller-feedback-replies" style={{ marginTop: '4px', marginLeft: '12px', paddingLeft: '12px', borderLeft: '2px solid rgba(0,0,0,0.08)' }}>
           {fb.replies.map((r) => (
-            <SellerFeedbackItem key={r.id} fb={r} replyingTo={replyingTo} setReplyingTo={setReplyingTo} replyForm={replyForm} setReplyForm={setReplyForm} submitReply={submitReply} submittingReply={submittingReply} user={user} depth={depth + 1} />
+            <SellerFeedbackItem key={r.id} fb={r} parentName={fb.buyer_name} replyingTo={replyingTo} setReplyingTo={setReplyingTo} replyForm={replyForm} setReplyForm={setReplyForm} submitReply={submitReply} submittingReply={submittingReply} user={user} depth={depth + 1} />
           ))}
         </div>
       )}
