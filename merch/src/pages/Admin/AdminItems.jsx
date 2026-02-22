@@ -615,10 +615,12 @@ export default function AdminItems() {
                 </div>
                 {resellItems.map((item) => {
                   const isHidden = !!item.admin_hidden;
-                  const status = isHidden ? 'Hidden' : (item.display_status || item.status);
-                  const statusCls = status?.toLowerCase?.() || '';
+                  const modStatus = item.moderation_status || 'approved';
+                  const isPending = modStatus === 'pending';
+                  const status = isHidden ? 'Hidden' : isPending ? 'Pending review' : (item.display_status || item.status);
+                  const statusCls = status?.toLowerCase?.().replace(/\s/g, '-') || '';
                   return (
-                    <div key={item.id} className={`resell-admin-row ${isHidden ? 'is-hidden' : ''}`}>
+                    <div key={item.id} className={`resell-admin-row ${isHidden ? 'is-hidden' : ''} ${isPending ? 'is-pending' : ''}`}>
                       <div className="resell-admin-seller">
                         <div style={{ fontWeight: 600, marginBottom: 2 }}>
                           {item.user?.name || (item.user?.email || 'Unknown').split('@')[0]}
@@ -645,6 +647,7 @@ export default function AdminItems() {
                       <div>
                         <span className={`resell-status-badge resell-status--${statusCls}`}>
                           {statusCls === 'active' && '✓ '}
+                          {statusCls === 'pending-review' && '⏳ '}
                           {statusCls === 'expired' && '⏱ '}
                           {statusCls === 'deleted' && '🗑 '}
                           {statusCls === 'hidden' && '👁 '}
@@ -655,6 +658,42 @@ export default function AdminItems() {
                         {item.price_range || 'TBD'}
                       </div>
                       <div className="resell-admin-actions">
+                        {isPending && (
+                          <>
+                            <button
+                              className="btn btn--ghost btn--sm"
+                              style={{ color: '#16a34a' }}
+                              onClick={async () => {
+                                try {
+                                  await api.post(`/api/admin/resell/items/${item.id}/approve`);
+                                  toast.success('Listing approved');
+                                  loadResellItems();
+                                } catch (err) {
+                                  toast.error('Failed to approve');
+                                }
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="btn btn--ghost btn--sm"
+                              style={{ color: '#dc2626' }}
+                              onClick={async () => {
+                                if (window.confirm(`Reject "${item.title}"? It will not be visible to buyers.`)) {
+                                  try {
+                                    await api.post(`/api/admin/resell/items/${item.id}/reject`);
+                                    toast.success('Listing rejected');
+                                    loadResellItems();
+                                  } catch (err) {
+                                    toast.error('Failed to reject');
+                                  }
+                                }
+                              }}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
                         {isHidden ? (
                           <button
                             className="btn btn--ghost btn--sm"

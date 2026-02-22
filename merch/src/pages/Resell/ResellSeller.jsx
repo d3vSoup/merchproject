@@ -178,7 +178,7 @@ export default function ResellSeller() {
       });
 
       if (res.data?.item) {
-        toast.success("Item listed successfully!");
+        toast.success("Listing created! It will appear after admin approval.");
         setFormData({
           title: "",
           condition: "new",
@@ -337,13 +337,18 @@ export default function ResellSeller() {
           items.length === 0 ? (
             <p>No active listings yet. Create your first listing!</p>
           ) : (
-            items.map((item) => (
+            items.map((item) => {
+              const isPending = (item.moderation_status || 'approved') === 'pending';
+              return (
               <div 
                 key={item.id} 
-                className="listing-card"
+                className={`listing-card ${isPending ? 'listing-card--pending' : ''}`}
                 onClick={() => setSelectedItem(item)}
                 style={{ cursor: 'pointer', position: 'relative' }}
               >
+                {isPending && (
+                  <div className="listing-card__pending-badge">Pending review</div>
+                )}
                 <div className="listing-images">
                   {item.pictures && item.pictures.length > 0 && item.pictures.slice(0, 3).map((url, idx) => (
                     <img key={idx} src={url} alt={`${item.title} ${idx + 1}`} loading="lazy" />
@@ -371,7 +376,8 @@ export default function ResellSeller() {
                   Delete
                 </button>
               </div>
-            ))
+            );
+            })
           )
         ) : (
           pastItems.length === 0 ? (

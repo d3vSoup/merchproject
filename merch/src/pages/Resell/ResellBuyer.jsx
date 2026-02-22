@@ -1,9 +1,13 @@
-// src/pages/Resell/ResellBuyer.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import toast from "react-hot-toast";
 import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
+import "./ResellBuyer.css";
+
+const CONDITIONS = ["all", "new", "like new", "like-new", "good", "fair", "used"];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR - i);
 
 export default function ResellBuyer() {
   const { user } = useAuth();
@@ -13,43 +17,84 @@ export default function ResellBuyer() {
   const [sellerInfo, setSellerInfo] = useState(null);
   const [showSellerModal, setShowSellerModal] = useState(false);
   const [loadingSellerInfo, setLoadingSellerInfo] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [filterCondition, setFilterCondition] = useState("all");
+  const [filterMinYear, setFilterMinYear] = useState("");
+  const [filterMaxYear, setFilterMaxYear] = useState("");
+  const [feedback, setFeedback] = useState({});
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [feedbackForm, setFeedbackForm] = useState({
+    buyerName: user?.name || "",
+    buyerUsn: user?.usn || "",
+    rating: null,
+    comments: "",
+  });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      loadItems();
-    }
-  }, [user]);
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-  async function loadItems() {
+  const loadItems = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Use backend endpoint to get all active items except user's own
-      const res = await api.get('/api/resell/items/available');
+      const params = {};
+      if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
+      if (filterCondition !== "all") params.condition = filterCondition;
+      if (filterMinYear) params.minYear = filterMinYear;
+      if (filterMaxYear) params.maxYear = filterMaxYear;
+      const res = await api.get("/api/resell/items/available", { params });
       setItems(res.data?.items || []);
     } catch (err) {
-      console.error('Failed to load available items:', err);
-      toast.error('Failed to load items');
+      console.error("Failed to load available items:", err);
+      toast.error("Failed to load items");
     } finally {
       setLoading(false);
     }
+  }, [user, debouncedSearch, filterCondition, filterMinYear, filterMaxYear]);
+
+  useEffect(() => {
+    if (user) loadItems();
+  }, [user, loadItems]);
+
+  useEffect(() => {
+    setFeedbackForm((f) => ({
+      ...f,
+      buyerName: user?.name || f.buyerName,
+      buyerUsn: user?.usn || f.buyerUsn,
+    }));
+  }, [user?.name, user?.usn]);
+
+  async function loadFeedback(itemId) {
+    if (!itemId) return;
+    try {
+      const res = await api.get(`/api/resell/items/${itemId}/feedback`);
+      setFeedback((prev) => ({ ...prev, [itemId]: res.data?.feedback || [] }));
+    } catch {
+      setFeedback((prev) => ({ ...prev, [itemId]: [] }));
+    }
   }
+
+  useEffect(() => {
+    if (selectedItem) loadFeedback(selectedItem.id);
+  }, [selectedItem?.id]);
 
   async function handleContactSeller(item) {
     if (!user?.email) {
       toast.error("Please sign in to contact seller");
       return;
     }
-
     setLoadingSellerInfo(true);
     try {
-      // Fetch seller info from backend
       const res = await api.get(`/api/resell/seller-info/${item.user_id}`);
       setSellerInfo(res.data?.seller || null);
       setShowSellerModal(true);
     } catch (err) {
-      console.error('Failed to get seller info:', err);
-      toast.error('Failed to get seller information');
+      console.error("Failed to get seller info:", err);
+      toast.error("Failed to get seller information");
     } finally {
       setLoadingSellerInfo(false);
     }
@@ -57,10 +102,18 @@ export default function ResellBuyer() {
 
   function handleItemClick(item) {
     setSelectedItem(item);
+    setShowFeedbackForm(false);
+    setFeedbackForm({
+      buyerName: user?.name || "",
+      buyerUsn: user?.usn || "",
+      rating: null,
+      comments: "",
+    });
   }
 
   function closeDetailView() {
     setSelectedItem(null);
+    setShowFeedbackForm(false);
   }
 
   function closeSellerModal() {
@@ -68,306 +121,381 @@ export default function ResellBuyer() {
     setSellerInfo(null);
   }
 
-  if (loading) {
-    return <div style={{ padding: "24px 16px" }}><SkeletonGrid count={4} /></div>;
+  async function submitFeedback(e) {
+    e.preventDefault();
+    if (!selectedItem) return;
+    if (!feedbackForm.buyerName?.trim() || !feedbackForm.buyerUsn?.trim()) {
+      toast.error("Name and USN are required");
+      return;
+    }
+    if (!/^[A-Za-z0-9]+$/.test(feedbackForm.buyerUsn.trim())) {
+      toast.error("USN must be alphanumeric only");
+      return;
+    }
+    setSubmittingFeedback(true);
+    try {
+      await api.post(`/api/resell/items/${selectedItem.id}/feedback`, {
+        buyerName: feedbackForm.buyerName.trim(),
+        buyerUsn: feedbackForm.buyerUsn.trim(),
+        rating: feedbackForm.rating || null,
+        comments: feedbackForm.comments?.trim() || null,
+      });
+      toast.success("Feedback submitted! Thank you.");
+      setShowFeedbackForm(false);
+      loadFeedback(selectedItem.id);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit feedback");
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  }
+
+  const itemFeedback = selectedItem ? feedback[selectedItem.id] || [] : [];
+  const ratingsWithValue = itemFeedback.filter((f) => f.rating != null);
+  const avgRating =
+    ratingsWithValue.length > 0
+      ? (
+          ratingsWithValue.reduce((s, f) => s + f.rating, 0) / ratingsWithValue.length
+        ).toFixed(1)
+      : null;
+
+  if (loading && items.length === 0) {
+    return (
+      <div className="resell-buyer">
+        <div className="resell-buyer__skeleton">
+          <SkeletonGrid count={6} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="resell-buyer">
-      <h2>Available Items</h2>
+      <div className="resell-buyer__header">
+        <h2 className="resell-buyer__title">Available Items</h2>
+      </div>
+
+      <div className="resell-buyer__filters">
+        <div className="resell-search">
+          <input
+            type="search"
+            placeholder="Search by title, description, price..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="resell-search__input"
+            aria-label="Search items"
+          />
+        </div>
+        <div className="resell-filters-row">
+          <select
+            value={filterCondition}
+            onChange={(e) => setFilterCondition(e.target.value)}
+            className="resell-filter-select"
+            aria-label="Filter by condition"
+          >
+            {CONDITIONS.map((c) => (
+              <option key={c} value={c}>
+                {c === "all" ? "All conditions" : c}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMinYear}
+            onChange={(e) => setFilterMinYear(e.target.value)}
+            className="resell-filter-select"
+            aria-label="Min year"
+          >
+            <option value="">Min year</option>
+            {YEARS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMaxYear}
+            onChange={(e) => setFilterMaxYear(e.target.value)}
+            className="resell-filter-select"
+            aria-label="Max year"
+          >
+            <option value="">Max year</option>
+            {YEARS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {items.length === 0 ? (
-        <p>No items available at the moment.</p>
+        <div className="resell-buyer__empty">
+          <p>No items match your search. Try adjusting filters or check back later.</p>
+        </div>
       ) : (
-        <div className="buyer-items-grid">
+        <div className="resell-buyer__grid">
           {items.map((item) => (
-            <div 
-              key={item.id} 
-              className="buyer-item-card"
+            <article
+              key={item.id}
+              className="resell-item-card"
               onClick={() => handleItemClick(item)}
-              style={{ cursor: 'pointer' }}
             >
-              <div className="item-images">
-                {item.pictures && item.pictures.length > 0 && item.pictures.slice(0, 1).map((url, idx) => (
-                  <img key={idx} src={url} alt={item.title} loading="lazy" />
-                ))}
+              <div className="resell-item-card__image">
+                {item.pictures?.[0] ? (
+                  <img src={item.pictures[0]} alt={item.title} loading="lazy" />
+                ) : (
+                  <div className="resell-item-card__placeholder">No image</div>
+                )}
               </div>
-              <div className="item-info">
-                <h3>{item.title}</h3>
-                <p>Condition: {item.condition}</p>
-                {item.year && <p>Year: {item.year}</p>}
-                {item.price_range && <p className="price-range">{item.price_range}</p>}
+              <div className="resell-item-card__body">
+                <h3 className="resell-item-card__title">{item.title}</h3>
+                <p className="resell-item-card__meta">
+                  {item.condition}
+                  {item.year ? ` • ${item.year}` : ""}
+                </p>
+                {item.price_range && (
+                  <p className="resell-item-card__price">{item.price_range}</p>
+                )}
                 {item.description && (
-                  <p className="item-description">
-                    {item.description.length > 100 
-                      ? `${item.description.substring(0, 100)}...` 
+                  <p className="resell-item-card__desc">
+                    {item.description.length > 80
+                      ? `${item.description.slice(0, 80)}...`
                       : item.description}
                   </p>
                 )}
                 <button
-                  className="btn btn--primary"
+                  className="btn btn--primary resell-item-card__btn"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleContactSeller(item);
                   }}
                   disabled={loadingSellerInfo}
                 >
-                  {loadingSellerInfo ? 'Loading...' : 'Contact Seller'}
+                  Contact Seller
                 </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Detail View Modal */}
+      {/* Detail Modal */}
       {selectedItem && (
-        <div 
-          className="modal-overlay"
-          onClick={closeDetailView}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(5px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div 
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'var(--bg)',
-              borderRadius: '12px',
-              padding: '24px',
-              maxWidth: '600px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              position: 'relative'
-            }}
-          >
+        <div className="resell-modal-overlay" onClick={closeDetailView} role="dialog" aria-modal="true" aria-labelledby="item-detail-title">
+          <div className="resell-modal" onClick={(e) => e.stopPropagation()}>
             <button
+              className="resell-modal__close"
               onClick={closeDetailView}
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: 'var(--text)',
-                padding: '4px 8px'
-              }}
+              aria-label="Close"
             >
               ×
             </button>
-            
-            <h2 style={{ marginTop: 0, marginBottom: '16px' }}>{selectedItem.title}</h2>
-            
-            <div style={{ marginBottom: '16px' }}>
-              <strong>Condition:</strong> {selectedItem.condition}
+            <h2 id="item-detail-title" className="resell-modal__title">
+              {selectedItem.title}
+            </h2>
+
+            <div className="resell-modal__gallery">
+              {selectedItem.pictures?.length > 0 ? (
+                selectedItem.pictures.map((url, idx) => (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`${selectedItem.title} ${idx + 1}`}
+                    loading="lazy"
+                  />
+                ))
+              ) : (
+                <div className="resell-modal__no-image">No images</div>
+              )}
             </div>
-            
-            {selectedItem.year && (
-              <div style={{ marginBottom: '16px' }}>
-                <strong>Year of Purchase:</strong> {selectedItem.year}
-              </div>
-            )}
-            
-            {selectedItem.price_range && (
-              <div style={{ marginBottom: '16px' }}>
-                <strong>Price Range:</strong> <span className="price-range">{selectedItem.price_range}</span>
-              </div>
-            )}
-            
+
+            <div className="resell-modal__meta">
+              <span>Condition: {selectedItem.condition}</span>
+              {selectedItem.year && <span>Year: {selectedItem.year}</span>}
+              {selectedItem.price_range && (
+                <span className="resell-modal__price">{selectedItem.price_range}</span>
+              )}
+            </div>
+
             {selectedItem.description && (
-              <div style={{ marginBottom: '16px' }}>
-                <strong>Description:</strong>
-                <p style={{ marginTop: '8px', lineHeight: '1.6' }}>{selectedItem.description}</p>
+              <div className="resell-modal__desc">
+                <strong>Description</strong>
+                <p>{selectedItem.description}</p>
               </div>
             )}
-            
-            {selectedItem.pictures && selectedItem.pictures.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <strong>Images ({selectedItem.pictures.length}):</strong>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                  gap: '12px',
-                  marginTop: '12px'
-                }}>
-                  {selectedItem.pictures.map((url, idx) => (
-                    <img 
-                      key={idx} 
-                      src={url} 
-                      alt={`${selectedItem.title} - Image ${idx + 1}`}
-                      loading="lazy"
-                      style={{
-                        width: '100%',
-                        height: '120px',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => window.open(url, '_blank')}
+
+            {/* Feedback section */}
+            <div className="resell-modal__feedback">
+              <div className="resell-feedback-header">
+                <h4>Reviews</h4>
+                {avgRating && (
+                  <span className="resell-feedback-avg">
+                    ★ {avgRating} ({itemFeedback.length})
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setShowFeedbackForm(!showFeedbackForm)}
+                >
+                  {showFeedbackForm ? "Cancel" : "Leave feedback"}
+                </button>
+              </div>
+
+              {showFeedbackForm && (
+                <form onSubmit={submitFeedback} className="resell-feedback-form">
+                  <label>
+                    Name <span className="required">*</span>
+                    <input
+                      type="text"
+                      value={feedbackForm.buyerName}
+                      onChange={(e) =>
+                        setFeedbackForm((f) => ({ ...f, buyerName: e.target.value }))
+                      }
+                      required
+                      placeholder="Your name"
+                      maxLength={100}
                     />
-                  ))}
-                </div>
+                  </label>
+                  <label>
+                    USN <span className="required">*</span>
+                    <input
+                      type="text"
+                      value={feedbackForm.buyerUsn}
+                      onChange={(e) =>
+                        setFeedbackForm((f) => ({ ...f, buyerUsn: e.target.value }))
+                      }
+                      required
+                      placeholder="e.g. 1BM20CS001"
+                      maxLength={20}
+                      pattern="[A-Za-z0-9]+"
+                    />
+                  </label>
+                  <label>
+                    Rating (optional)
+                    <div className="resell-feedback-stars">
+                      {[1, 2, 3, 4, 5].map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          className={`resell-star-btn ${feedbackForm.rating >= r ? "is-active" : ""}`}
+                          onClick={() =>
+                            setFeedbackForm((f) => ({
+                              ...f,
+                              rating: f.rating === r ? null : r,
+                            }))
+                          }
+                          aria-label={`${r} star${r > 1 ? "s" : ""}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </label>
+                  <label>
+                    Comments (optional)
+                    <textarea
+                      value={feedbackForm.comments}
+                      onChange={(e) =>
+                        setFeedbackForm((f) => ({ ...f, comments: e.target.value }))
+                      }
+                      placeholder="Share your experience..."
+                      rows={3}
+                      maxLength={500}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="btn btn--primary"
+                    disabled={submittingFeedback}
+                  >
+                    {submittingFeedback ? "Submitting..." : "Submit feedback"}
+                  </button>
+                </form>
+              )}
+
+              <div className="resell-feedback-list">
+                {itemFeedback.length === 0 && !showFeedbackForm ? (
+                  <p className="resell-feedback-empty">No reviews yet. Be the first!</p>
+                ) : (
+                  itemFeedback.map((fb) => (
+                    <div key={fb.id} className="resell-feedback-item">
+                      <div className="resell-feedback-item__head">
+                        <span className="resell-feedback-item__name">{fb.buyer_name}</span>
+                        <span className="resell-feedback-item__usn">{fb.buyer_usn}</span>
+                        {fb.rating && (
+                          <span className="resell-feedback-item__rating">★ {fb.rating}</span>
+                        )}
+                      </div>
+                      {fb.comments && (
+                        <p className="resell-feedback-item__comments">{fb.comments}</p>
+                      )}
+                      <time className="resell-feedback-item__time">
+                        {fb.created_at
+                          ? new Date(fb.created_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : ""}
+                      </time>
+                    </div>
+                  ))
+                )}
               </div>
-            )}
-            
+            </div>
+
             <button
-              className="btn btn--primary"
+              className="btn btn--primary resell-modal__contact"
               onClick={() => {
                 closeDetailView();
                 handleContactSeller(selectedItem);
               }}
-              style={{ width: '100%', marginTop: '16px' }}
               disabled={loadingSellerInfo}
             >
-              {loadingSellerInfo ? 'Loading...' : 'Contact Seller'}
+              {loadingSellerInfo ? "Loading..." : "Contact Seller"}
             </button>
           </div>
         </div>
       )}
 
-      {/* Seller Contact Info Modal */}
+      {/* Seller Contact Modal */}
       {showSellerModal && (
-        <div 
-          className="modal-overlay"
-          onClick={closeSellerModal}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(5px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1001,
-            padding: '20px'
-          }}
-        >
-          <div 
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'var(--bg)',
-              borderRadius: '16px',
-              padding: '32px',
-              maxWidth: '400px',
-              width: '100%',
-              position: 'relative',
-              textAlign: 'center'
-            }}
-          >
+        <div className="resell-modal-overlay" onClick={closeSellerModal} role="dialog" aria-modal="true">
+          <div className="resell-seller-modal" onClick={(e) => e.stopPropagation()}>
             <button
+              className="resell-modal__close"
               onClick={closeSellerModal}
-              style={{
-                position: 'absolute',
-                top: '12px',
-                right: '12px',
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: 'var(--text)',
-                padding: '4px 8px'
-              }}
+              aria-label="Close"
             >
               ×
             </button>
-            
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              borderRadius: '50%', 
-              backgroundColor: 'var(--accent)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              margin: '0 auto 20px',
-              fontSize: '32px',
-              color: 'white'
-            }}>
-              👤
-            </div>
-            
-            <h2 style={{ marginTop: 0, marginBottom: '24px' }}>Seller Contact Info</h2>
-            
+            <div className="resell-seller-modal__icon">👤</div>
+            <h2 className="resell-seller-modal__title">Seller Contact</h2>
             {sellerInfo ? (
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ 
-                  padding: '16px', 
-                  backgroundColor: 'rgba(0,0,0,0.05)', 
-                  borderRadius: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '4px' }}>Name</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>
-                    {sellerInfo.name || 'Not provided'}
-                  </div>
+              <div className="resell-seller-modal__info">
+                <div className="resell-seller-field">
+                  <span className="resell-seller-field__label">Name</span>
+                  <span>{sellerInfo.name || "Not provided"}</span>
                 </div>
-                
-                <div style={{ 
-                  padding: '16px', 
-                  backgroundColor: 'rgba(0,0,0,0.05)', 
-                  borderRadius: '12px',
-                  marginBottom: '12px'
-                }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '4px' }}>Email</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>
-                    <a href={`mailto:${sellerInfo.email}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-                      {sellerInfo.email || 'Not provided'}
-                    </a>
-                  </div>
+                <div className="resell-seller-field">
+                  <span className="resell-seller-field__label">Email</span>
+                  <a href={`mailto:${sellerInfo.email}`}>{sellerInfo.email || "Not provided"}</a>
                 </div>
-                
                 {sellerInfo.phone && (
-                  <div style={{ 
-                    padding: '16px', 
-                    backgroundColor: 'rgba(0,0,0,0.05)', 
-                    borderRadius: '12px',
-                    marginBottom: '12px'
-                  }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '4px' }}>Phone</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>
-                      <a href={`tel:${sellerInfo.phone}`} style={{ color: 'var(--accent)', textDecoration: 'none' }}>
-                        {sellerInfo.phone}
-                      </a>
-                    </div>
+                  <div className="resell-seller-field">
+                    <span className="resell-seller-field__label">Phone</span>
+                    <a href={`tel:${sellerInfo.phone}`}>{sellerInfo.phone}</a>
                   </div>
                 )}
-                
-                <p style={{ 
-                  marginTop: '20px', 
-                  fontSize: '0.9rem', 
-                  color: 'var(--muted)',
-                  textAlign: 'center'
-                }}>
-                  Contact the seller directly to discuss the item and arrange the transaction.
+                <p className="resell-seller-modal__note">
+                  Contact the seller directly to discuss the item.
                 </p>
               </div>
             ) : (
-              <p style={{ color: 'var(--muted)' }}>Seller information not available</p>
+              <p className="resell-seller-modal__empty">Seller information not available</p>
             )}
-            
-            <button
-              className="btn btn--ghost"
-              onClick={closeSellerModal}
-              style={{ width: '100%', marginTop: '20px' }}
-            >
+            <button className="btn btn--ghost" onClick={closeSellerModal}>
               Close
             </button>
           </div>

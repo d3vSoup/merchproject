@@ -718,56 +718,150 @@ app.get('/api/resell/items', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/resell/items/available - Get all active resell items except current user's own items (for buyers)
+// GET /api/resell/items/available - Get approved resell items with search/filter
 app.get('/api/resell/items/available', authMiddleware, async (req, res) => {
   try {
     if (!supabaseAdmin) {
       return res.status(500).json({ message: 'Supabase not configured on server' });
     }
 
-    // Get user's Supabase ID
     let supabaseId = req.auth.supabaseId;
     if (!supabaseId) {
       const ensured = await ensureSupabaseUserRecord(req.auth.email);
-      if (!ensured.id) {
-        return res.status(500).json({ message: 'Failed to get user ID' });
-      }
+      if (!ensured.id) return res.status(500).json({ message: 'Failed to get user ID' });
       supabaseId = ensured.id;
     }
 
-    // Get all active, non-expired, non-deleted items except current user's own items
+    const { q, condition, minYear, maxYear } = req.query;
     const now = new Date().toISOString();
-    const { data: allItems, error: fetchError } = await supabaseAdmin
+
+    let query = supabaseAdmin
       .from('resell_items')
       .select('*')
       .eq('status', 'active')
-      .neq('user_id', supabaseId) // Exclude current user's own listings
-      .is('deleted_at', null) // Not deleted
+      .neq('user_id', supabaseId)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
+
+    if (condition && condition !== 'all') {
+      query = query.eq('condition', condition);
+    }
+    if (minYear) {
+      query = query.gte('year', parseInt(minYear, 10));
+    }
+    if (maxYear) {
+      query = query.lte('year', parseInt(maxYear, 10));
+    }
+
+    const { data: allItems, error: fetchError } = await query;
 
     if (fetchError) {
       console.error('Error fetching available resell items:', fetchError);
       return res.status(500).json({ message: 'Failed to fetch items', error: fetchError.message });
     }
 
-    // Filter out expired and admin-hidden items in JavaScript
-    const data = (allItems || []).filter(item => {
+    let data = (allItems || []).filter(item => {
       if (item.admin_hidden) return false;
+      const mod = item.moderation_status;
+      if (mod === 'rejected') return false;
+      if (mod === 'pending') return false;
       if (!item.expires_at) return true;
       return new Date(item.expires_at) > new Date(now);
     });
 
-    const error = null; // No error after filtering
-
-    if (error) {
-      console.error('Error fetching available resell items:', error);
-      return res.status(500).json({ message: 'Failed to fetch items', error: error.message });
+    if (q && typeof q === 'string' && q.trim()) {
+      const searchLower = q.trim().toLowerCase();
+      data = data.filter(item => {
+        const title = (item.title || '').toLowerCase();
+        const desc = (item.description || '').toLowerCase();
+        const price = (item.price_range || '').toLowerCase();
+        return title.includes(searchLower) || desc.includes(searchLower) || price.includes(searchLower);
+      });
     }
 
-    return res.json({ items: data || [] });
+    return res.json({ items: data });
   } catch (err) {
     console.error('Resell available items fetch error', err);
     return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/resell/items/:id/feedback - Get feedback for an item
+app.get('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from('resell_feedback')
+      .select('id, buyer_name, buyer_usn, rating, comments, created_at')
+      .eq('item_id', id)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Feedback fetch error:', error);
+      return res.status(500).json({ message: 'Failed to fetch feedback' });
+    }
+    return res.json({ feedback: data || [] });
+  } catch (err) {
+    console.error('Resell feedback fetch error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/resell/items/:id/feedback - Submit feedback (interested buyer)
+app.post('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+    const { id: itemId } = req.params;
+    const { buyerName, buyerUsn, rating, comments } = req.body || {};
+
+    if (!buyerName || !buyerUsn) {
+      return res.status(400).json({ message: 'Name and USN are required' });
+    }
+    const usnTrimmed = String(buyerUsn || '').trim();
+    if (!/^[A-Za-z0-9]+$/.test(usnTrimmed)) {
+      return res.status(400).json({ message: 'USN must be alphanumeric only' });
+    }
+    if (rating != null && (rating < 1 || rating > 5)) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    let supabaseId = req.auth.supabaseId;
+    if (!supabaseId) {
+      const ensured = await ensureSupabaseUserRecord(req.auth.email);
+      supabaseId = ensured?.id || null;
+    }
+
+    const { data: item } = await supabaseAdmin
+      .from('resell_items')
+      .select('user_id')
+      .eq('id', itemId)
+      .single();
+
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+
+    const { data: fb, error } = await supabaseAdmin
+      .from('resell_feedback')
+      .insert({
+        item_id: itemId,
+        seller_id: item.user_id,
+        buyer_user_id: supabaseId,
+        buyer_name: String(buyerName).trim().slice(0, 100),
+        buyer_usn: usnTrimmed.slice(0, 20),
+        buyer_email: req.auth.email || null,
+        rating: rating != null ? parseInt(rating, 10) : null,
+        comments: comments ? String(comments).trim().slice(0, 500) : null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Feedback insert error:', error);
+      return res.status(500).json({ message: 'Failed to save feedback' });
+    }
+    return res.json({ feedback: fb });
+  } catch (err) {
+    console.error('Resell feedback submit error', err);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -805,7 +899,7 @@ app.post('/api/resell/create-item', authMiddleware, async (req, res) => {
     const { data, error } = await supabaseAdmin
       .from('resell_items')
       .insert([{
-        user_id: supabaseId, // Use sbUser.id from the check above
+        user_id: supabaseId,
         title,
         condition: condition || 'new',
         year: year || null,
@@ -813,6 +907,7 @@ app.post('/api/resell/create-item', authMiddleware, async (req, res) => {
         price_range: priceRange || null,
         pictures: pictures || [],
         status: 'active',
+        moderation_status: 'pending',
       }])
       .select()
       .single();
@@ -982,7 +1077,8 @@ app.post('/api/resell/items/:id/relist', authMiddleware, async (req, res) => {
     const updateObj = { 
       deleted_at: null,
       expires_at: newExpiresAt.toISOString(),
-      status: 'active'
+      status: 'active',
+      moderation_status: 'approved'
     };
 
     const { data, error } = await supabaseAdmin
@@ -1041,7 +1137,7 @@ app.post("/api/resell/items/list", authMiddleware, async (req, res) => {
       var supabaseId = sbUser.id;
     }
 
-    // Insert resell item
+    // Insert resell item (moderation_status: pending - admin must approve)
     const { data: item, error } = await supabaseAdmin
       .from("resell_items")
       .insert([
@@ -1054,6 +1150,7 @@ app.post("/api/resell/items/list", authMiddleware, async (req, res) => {
           year: year || null,
           pictures: pictures || [],
           status: "active",
+          moderation_status: "pending",
         }
       ])
       .select()
@@ -2396,6 +2493,52 @@ app.post('/api/admin/resell/items/:id/hide', authMiddleware, async (req, res) =>
     return res.json({ success: true });
   } catch (err) {
     console.error('Admin hide resell item error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/admin/resell/items/:id/approve - Approve pending listing
+app.post('/api/admin/resell/items/:id/approve', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .update({ moderation_status: 'approved' })
+      .eq('id', id);
+    if (error) {
+      console.error('Approve resell item error:', error);
+      return res.status(500).json({ message: 'Failed to approve item' });
+    }
+    const { logAudit } = require('./utils/audit');
+    await logAudit(req.auth.email, 'approve_resell_item', 'resell_item', id, { moderation_status: 'pending' }, { moderation_status: 'approved' });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Admin approve resell item error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /api/admin/resell/items/:id/reject - Reject pending listing
+app.post('/api/admin/resell/items/:id/reject', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .update({ moderation_status: 'rejected' })
+      .eq('id', id);
+    if (error) {
+      console.error('Reject resell item error:', error);
+      return res.status(500).json({ message: 'Failed to reject item' });
+    }
+    const { logAudit } = require('./utils/audit');
+    await logAudit(req.auth.email, 'reject_resell_item', 'resell_item', id, { moderation_status: 'pending' }, { moderation_status: 'rejected' });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Admin reject resell item error', err);
     return res.status(500).json({ message: 'Server error' });
   }
 });
