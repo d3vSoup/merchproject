@@ -10,6 +10,7 @@ import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 import api from "../../api";
 import { useSortPreference, SORT_OPTIONS, sortItems } from "../../hooks/useSortPreference";
+import { Analytics } from "../../api/analytics";
 import "./CartPage.css";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -201,6 +202,8 @@ export default function CartPage() {
     }
 
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    Analytics.checkoutStart(cartItems.length, total);
+
     const orderItems = cartItems.map(item => ({
       tabKey: item.tabKey,
       productId: item.productId,
@@ -213,6 +216,7 @@ export default function CartPage() {
     try {
       const order = await createOrder(orderItems, total);
       if (order) {
+        Analytics.orderPlaced(order?.id || order?.order_number, total);
         toast.success("Order placed successfully!");
         await loadCart(); // Cart is cleared on backend
         navigate("/");

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
+import { Analytics } from '../api/analytics';
 import toast from 'react-hot-toast';
 
 const WISHLIST_UPDATE_EVENT = 'wishlist-update';
@@ -10,7 +11,7 @@ export function triggerWishlistUpdate() {
   window.dispatchEvent(new CustomEvent(WISHLIST_UPDATE_EVENT));
 }
 
-export default function WishlistHeart({ tabKey, productId, variant, onWishlistChange }) {
+export default function WishlistHeart({ tabKey, productId, variant, productName, onWishlistChange }) {
   const { user } = useAuth();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,7 @@ export default function WishlistHeart({ tabKey, productId, variant, onWishlistCh
       setIsWishlisted(res.data.added);
       triggerWishlistUpdate();
       onWishlistChange?.(res.data.added);
+      if (res.data.added) Analytics.wishlistAdd(tabKey, productId, productName || '');
       toast.success(res.data.added ? "Added to wishlist" : "Removed from wishlist");
     } catch (err) {
       toast.error(err.message || "Failed to update wishlist");

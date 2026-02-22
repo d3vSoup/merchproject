@@ -1,4 +1,20 @@
 /* Admin Orders - improved layout */
+.admin-orders-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-export-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.btn--sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
 .order-card {
   background: #fff;
   border-radius: 14px;

@@ -1,5 +1,6 @@
 // src/pages/Admin/AdminOrders.jsx
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api";
 import toast from "react-hot-toast";
 import { SkeletonList } from "../../components/Skeleton";
@@ -144,6 +145,33 @@ export default function AdminOrders() {
     setLoading(false);
   }
 
+  async function exportOrdersCsv(dateFilter = null) {
+    try {
+      const params = dateFilter ? { date: dateFilter } : {};
+      const res = await api.get('/api/admin/orders/export', {
+        params,
+        responseType: 'blob',
+      });
+      const contentType = res.headers?.['content-type'] || '';
+      if (contentType.includes('application/json')) {
+        const text = await res.data.text();
+        const json = JSON.parse(text);
+        throw new Error(json.message || 'Export failed');
+      }
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `orders${dateFilter ? `-${dateFilter}` : ''}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('CSV exported');
+    } catch (err) {
+      console.error('Export failed:', err);
+      toast.error(err.message || err.response?.data?.message || 'Failed to export');
+    }
+  }
+
   async function updatePaymentStatus(orderId, status) {
     try {
       await api.post('/api/admin/orders/update-status', { orderId, status });
@@ -181,12 +209,26 @@ export default function AdminOrders() {
 
   return (
     <section className="admin-section">
-      <div className="section-heading">Order Management</div>
+      <div className="section-heading">
+        Order Management
+        <Link to="/admin/dashboard" className="btn btn--ghost btn--sm">
+          ← Dashboard
+        </Link>
+      </div>
       <div className="admin-panel">
         <div className="admin-orders-header">
           <button className="btn" onClick={loadAllOrders} disabled={loading}>
             {loading ? "Loading..." : "Refresh Orders"}
           </button>
+          <div className="admin-orders-export">
+            <span className="admin-export-label">Export CSV:</span>
+            <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv(new Date().toISOString().slice(0, 10))}>
+              Today
+            </button>
+            <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv()}>
+              All
+            </button>
+          </div>
           <div className="admin-orders-tabs">
             <button 
               className={`btn ${activeTab === 'all' ? '' : 'btn--ghost'}`}

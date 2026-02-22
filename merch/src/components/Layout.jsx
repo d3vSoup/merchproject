@@ -478,6 +478,13 @@ export default function Layout({ children, cartCount = 0 }) {
                           <div className="admin-panel-label">Admin Panel</div>
                           <div className="admin-panel-buttons">
                             <Link
+                              to="/admin/dashboard"
+                              className="btn btn--ghost btn--admin"
+                              onClick={() => setAccountOpen(false)}
+                            >
+                              📊 Dashboard
+                            </Link>
+                            <Link
                               to="/admin/orders"
                               className="btn btn--ghost btn--admin"
                               onClick={() => setAccountOpen(false)}

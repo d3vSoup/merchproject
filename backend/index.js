@@ -26,6 +26,10 @@ app.use(cors({
 app.set('trust proxy', 1);
 app.use(express.json());
 
+const { requestIdMiddleware, logRequest } = require('./utils/requestId');
+app.use(requestIdMiddleware);
+app.use(logRequest);
+
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -78,6 +82,8 @@ if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && SUPABASE_SERVICE_ROLE_KEY !== '
   supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
+  const { setSupabase } = require('./utils/audit');
+  setSupabase(supabaseAdmin);
   console.log('Supabase Admin client initialized');
 } else {
   console.warn('⚠️  Supabase not properly configured!');
@@ -350,14 +356,62 @@ app.use('/uploads', express.static(uploadDir));
 // test
 app.get('/', (req, res) => res.json({ ok: true, now: new Date().toISOString() }));
 
-// Diagnostic endpoint
+// Health check for uptime monitoring
 app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
     supabaseConfigured: !!(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && SUPABASE_SERVICE_ROLE_KEY !== 'your_service_role_key'),
-    supabaseUrl: SUPABASE_URL ? 'Set' : 'Missing',
-    supabaseKey: SUPABASE_SERVICE_ROLE_KEY ? (SUPABASE_SERVICE_ROLE_KEY === 'your_service_role_key' ? 'PLACEHOLDER - NEEDS REAL KEY' : 'Set') : 'Missing'
   });
+});
+
+// Analytics: POST /api/analytics/track - track events (page_view, cart_add, checkout_start, order_placed, product_view)
+const analyticsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many analytics requests' }
+});
+app.post('/api/analytics/track', analyticsLimiter, async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.status(503).json({ message: 'Analytics unavailable' });
+    const { eventType, payload = {}, sessionId } = req.body || {};
+    if (!eventType || typeof eventType !== 'string') {
+      return res.status(400).json({ message: 'eventType required' });
+    }
+    const validTypes = ['page_view', 'product_view', 'cart_add', 'checkout_start', 'order_placed', 'wishlist_add'];
+    if (!validTypes.includes(eventType)) {
+      return res.status(400).json({ message: 'Invalid eventType' });
+    }
+    let userId = null;
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const payloadJwt = jwt.verify(token, JWT_SECRET);
+        if (payloadJwt.email && supabaseAdmin) {
+          const { data: u } = await supabaseAdmin.from('users').select('id').eq('email', payloadJwt.email).maybeSingle();
+          if (u?.id) userId = u.id;
+        }
+      } catch (_) { /* anonymous */ }
+    }
+    const { error } = await supabaseAdmin.from('analytics_events').insert({
+      event_type: eventType,
+      payload: typeof payload === 'object' ? payload : {},
+      user_id: userId,
+      session_id: sessionId || null,
+    });
+    if (error) {
+      console.error('Analytics insert error:', error);
+      return res.status(500).json({ message: 'Failed to track' });
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Analytics track error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // POST /api/auth/google
@@ -2113,6 +2167,148 @@ app.post('/api/admin/orders/update-status', authMiddleware, async (req, res) => 
   }
 });
 
+// GET /api/admin/orders/export - CSV export (admin only, optional date filter)
+app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+
+    const { date } = req.query; // YYYY-MM-DD for single day
+    let query = supabaseAdmin
+      .from('confirmed_orders')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_name, user_email, user_usn, user_phone')
+      .order('created_at', { ascending: false });
+
+    if (date) {
+      const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    }
+
+    const { data: orders, error } = await query;
+    if (error) {
+      console.error('Export orders error:', error);
+      return res.status(500).json({ message: 'Failed to export' });
+    }
+
+    const rows = (orders || []).map(o => {
+      const itemsStr = Array.isArray(o.items) ? o.items.map(i => `${i.name || i.productId} x${i.quantity || 1}`).join('; ') : '';
+      return {
+        order_number: o.order_number,
+        date: o.created_at ? new Date(o.created_at).toLocaleString('en-IN') : '',
+        name: o.user_name || '',
+        email: o.user_email || '',
+        usn: o.user_usn || '',
+        phone: o.user_phone || '',
+        items: itemsStr,
+        total: o.total_amount,
+        status: o.payment_status || 'pending',
+      };
+    });
+
+    const csvHeader = 'Order Number,Date,Name,Email,USN,Phone,Items,Total (₹),Status\n';
+    const csvRows = rows.map(r =>
+      [r.order_number, r.date, `"${(r.name || '').replace(/"/g, '""')}"`, r.email, r.usn, r.phone, `"${(r.items || '').replace(/"/g, '""')}"`, r.total, r.status].join(',')
+    ).join('\n');
+    const csv = csvHeader + csvRows;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="orders${date ? `-${date}` : ''}.csv"`);
+    return res.send(csv);
+  } catch (err) {
+    console.error('Export orders error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/admin/analytics - Site analytics (admin only)
+app.get('/api/admin/analytics', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+
+    const { days = 7 } = req.query;
+    const daysNum = Math.min(Math.max(parseInt(days, 10) || 7, 1), 90);
+    const since = new Date();
+    since.setDate(since.getDate() - daysNum);
+    since.setHours(0, 0, 0, 0);
+
+    const { data: events, error } = await supabaseAdmin
+      .from('analytics_events')
+      .select('event_type, created_at, payload')
+      .gte('created_at', since.toISOString());
+
+    if (error) {
+      console.error('Analytics fetch error:', error);
+      return res.status(500).json({ message: 'Failed to fetch analytics' });
+    }
+
+    const list = events || [];
+    const metrics = {
+      pageViews: list.filter(e => e.event_type === 'page_view').length,
+      productViews: list.filter(e => e.event_type === 'product_view').length,
+      cartAdds: list.filter(e => e.event_type === 'cart_add').length,
+      checkoutStarts: list.filter(e => e.event_type === 'checkout_start').length,
+      ordersPlaced: list.filter(e => e.event_type === 'order_placed').length,
+      wishlistAdds: list.filter(e => e.event_type === 'wishlist_add').length,
+    };
+
+    const { count: ordersCount } = await supabaseAdmin
+      .from('confirmed_orders')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', since.toISOString());
+    const { data: revenueRows } = await supabaseAdmin
+      .from('confirmed_orders')
+      .select('total_amount')
+      .gte('created_at', since.toISOString())
+      .eq('payment_status', 'paid');
+
+    const revenue = (revenueRows || []).reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
+    const ordersInPeriod = ordersCount ?? 0;
+
+    return res.json({
+      period: { days: daysNum, since: since.toISOString() },
+      metrics: {
+        ...metrics,
+        ordersPlaced: ordersInPeriod,
+        revenue: Math.round(revenue * 100) / 100,
+      },
+    });
+  } catch (err) {
+    console.error('Admin analytics error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/admin/audit - Audit log (admin only)
+app.get('/api/admin/audit', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+
+    const { limit = 50 } = req.query;
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+
+    const { data: logs, error } = await supabaseAdmin
+      .from('audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limitNum);
+
+    if (error) {
+      console.error('Audit fetch error:', error);
+      return res.status(500).json({ message: 'Failed to fetch audit log' });
+    }
+
+    return res.json({ logs: logs || [] });
+  } catch (err) {
+    console.error('Admin audit error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ========== ADMIN RESELL ROUTES ==========
 
 // GET /api/admin/resell/items - Get all resell items for admin
@@ -2195,6 +2391,8 @@ app.post('/api/admin/resell/items/:id/hide', authMiddleware, async (req, res) =>
       console.error('Hide resell item error:', error);
       return res.status(500).json({ message: 'Failed to hide item' });
     }
+    const { logAudit } = require('./utils/audit');
+    await logAudit(req.auth.email, 'hide_resell_item', 'resell_item', id, null, { admin_hidden: true });
     return res.json({ success: true });
   } catch (err) {
     console.error('Admin hide resell item error', err);
@@ -2220,6 +2418,8 @@ app.post('/api/admin/resell/items/:id/restore', authMiddleware, async (req, res)
       console.error('Restore resell item error:', error);
       return res.status(500).json({ message: 'Failed to restore item' });
     }
+    const { logAudit } = require('./utils/audit');
+    await logAudit(req.auth.email, 'restore_resell_item', 'resell_item', id, { admin_hidden: true }, { admin_hidden: false });
     return res.json({ success: true });
   } catch (err) {
     console.error('Admin restore resell item error', err);
@@ -2290,6 +2490,14 @@ app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
     if (!tabKey || !productId) {
       return res.status(400).json({ message: 'tabKey and productId are required' });
     }
+
+    const { data: existing } = await supabaseAdmin
+      .from('product_overrides')
+      .select('*')
+      .eq('tab_key', tabKey)
+      .eq('product_id', productId)
+      .maybeSingle();
+
     const payload = {
       tab_key: tabKey,
       product_id: productId,
@@ -2310,6 +2518,14 @@ app.post('/api/admin/items/catalog', authMiddleware, async (req, res) => {
       console.error('Save catalog override error:', error);
       return res.status(500).json({ message: 'Failed to save override' });
     }
+
+    const { logAudit } = require('./utils/audit');
+    const entityId = `${tabKey}:${productId}`;
+    const action = existing ? 'update_product' : 'create_product';
+    const newVal = { name: payload.name, price: payload.price, hidden: payload.hidden };
+    const oldVal = existing ? { name: existing.name, price: existing.price, hidden: existing.hidden } : null;
+    await logAudit(req.auth.email, action, 'product_override', entityId, oldVal, newVal);
+
     return res.json({ success: true, override: data });
   } catch (err) {
     console.error('Save catalog override error', err);
@@ -2330,6 +2546,14 @@ app.delete('/api/admin/items/catalog', authMiddleware, async (req, res) => {
     if (!tabKey || !productId) {
       return res.status(400).json({ message: 'tabKey and productId are required' });
     }
+
+    const { data: existing } = await supabaseAdmin
+      .from('product_overrides')
+      .select('*')
+      .eq('tab_key', tabKey)
+      .eq('product_id', productId)
+      .maybeSingle();
+
     const { error } = await supabaseAdmin
       .from('product_overrides')
       .delete()
@@ -2339,6 +2563,10 @@ app.delete('/api/admin/items/catalog', authMiddleware, async (req, res) => {
       console.error('Delete catalog override error:', error);
       return res.status(500).json({ message: 'Failed to delete override' });
     }
+
+    const { logAudit } = require('./utils/audit');
+    await logAudit(req.auth.email, 'delete_product', 'product_override', `${tabKey}:${productId}`, existing ? { name: existing.name, price: existing.price } : null, null);
+
     return res.json({ success: true });
   } catch (err) {
     console.error('Delete catalog override error', err);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { getCart, updateCartItem } from '../api/cart';
 import { triggerCartUpdate } from '../hooks/useCartCount';
+import { Analytics } from '../api/analytics';
 import toast from 'react-hot-toast';
 import './ProductModal.css';
 
@@ -22,6 +23,10 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
   }
   const images = allImages.length > 0 ? allImages : [];
   const hasMultipleImages = images.length > 1;
+
+  useEffect(() => {
+    if (product && tabKey) Analytics.productView(tabKey, product.id, product.name);
+  }, [product?.id, tabKey]);
 
   // Load cart quantity on mount and when variant changes
   useEffect(() => {
@@ -69,6 +74,7 @@ export default function ProductModal({ product, tabKey, onClose, isProductSoldOu
       setQuantity(newQuantity);
       triggerCartUpdate();
       if (delta > 0) {
+        Analytics.cartAdd(tabKey, product.id, product.name, newQuantity);
         toast.success("Added to cart");
       } else if (newQuantity === 0) {
         toast.success("Removed from cart");

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
+import { Analytics } from "../../api/analytics";
 import { SkeletonGrid } from "../../components/Skeleton";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import toast from "react-hot-toast";
@@ -298,6 +299,7 @@ export default function EventPage() {
       await loadCart();
       triggerCartUpdate(); // Trigger cart count refresh
       if (delta > 0) {
+        Analytics.cartAdd(tabKey, product.id, product.name, newQuantity);
         toast.success("Added to cart");
       } else if (newQuantity === 0) {
         toast.success("Removed from cart");
@@ -401,6 +403,7 @@ export default function EventPage() {
                   tabKey={eventKey}
                   productId={product.id}
                   variant={variant}
+                  productName={product.name}
                 />
               </div>
               <div className="product-card__meta">

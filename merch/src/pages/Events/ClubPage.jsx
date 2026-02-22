@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
+import { Analytics } from "../../api/analytics";
 import { SkeletonGrid } from "../../components/Skeleton";
 import { triggerCartUpdate } from "../../hooks/useCartCount";
 import toast from "react-hot-toast";
@@ -334,6 +335,7 @@ export default function ClubPage() {
       const normalizedVariant = variant || null;
       // Pass the current club/dept as the 5th parameter
       await updateCartItem("club", product.id, normalizedVariant, newQuantity, currentCategory);
+      if (delta > 0) Analytics.cartAdd("club", product.id, product.name, newQuantity);
       await loadCart();
       triggerCartUpdate(); // Trigger cart count refresh
       if (delta > 0) {
@@ -533,6 +535,7 @@ export default function ClubPage() {
                       tabKey="club"
                       productId={product.id}
                       variant={selectedVariant}
+                      productName={product.name}
                     />
                   </div>
                   <div className="product-card__meta">

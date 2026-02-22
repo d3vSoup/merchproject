@@ -1,5 +1,6 @@
 // src/pages/Admin/AdminItems.jsx
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
 import { SkeletonGrid, SkeletonList } from "../../components/Skeleton";
@@ -354,7 +355,12 @@ export default function AdminItems() {
 
   return (
     <section className="admin-section">
-      <div className="section-heading">Item Management</div>
+      <div className="section-heading">
+        Item Management
+        <Link to="/admin/dashboard" className="btn btn--ghost btn--sm">
+          ← Dashboard
+        </Link>
+      </div>
       <div className="admin-panel">
         <div className="admin-tabs-row">
           {TABS.map(tab => (

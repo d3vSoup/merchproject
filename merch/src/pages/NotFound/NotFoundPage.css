@@ -1,0 +1,40 @@
+.not-found {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.not-found__content {
+  max-width: 420px;
+  text-align: center;
+}
+
+.not-found__code {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 0 0 8px;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.not-found__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+  letter-spacing: -0.5px;
+}
+
+.not-found__message {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.not-found__cta {
+  display: inline-block;
+}
