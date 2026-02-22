@@ -5,6 +5,52 @@ import { getUserIdByEmail, getUserResellItems, createResellItem, uploadResellIma
 import toast from "react-hot-toast";
 import api from "../../api";
 
+function SellerFeedbackItem({ fb, replyingTo, setReplyingTo, replyForm, setReplyForm, submitReply, submittingReply, user, depth = 0 }) {
+  const isReply = !!fb.parent_id;
+  const showReplyForm = replyingTo === fb.id;
+  return (
+    <div style={{
+      padding: '12px',
+      background: 'rgba(0,0,0,0.03)',
+      borderRadius: '8px',
+      marginLeft: isReply ? Math.min(depth * 20, 40) : 0,
+      borderLeft: isReply ? '3px solid rgba(255,102,0,0.3)' : 'none',
+    }}>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+        <span style={{ fontWeight: 600 }}>{fb.buyer_name}</span>
+        <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{fb.buyer_usn}</span>
+        {fb.rating != null && <span style={{ color: 'var(--accent)' }}>★ {fb.rating}</span>}
+      </div>
+      {fb.comments && <p style={{ margin: '4px 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>{fb.comments}</p>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+        {fb.created_at && (
+          <time style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+            {new Date(fb.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </time>
+        )}
+        {user && (
+          <button type="button" onClick={() => setReplyingTo(showReplyForm ? null : fb.id)} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem' }}>
+            {showReplyForm ? 'Cancel' : 'Reply'}
+          </button>
+        )}
+      </div>
+      {showReplyForm && user && (
+        <form onSubmit={submitReply} style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <textarea value={replyForm.comments} onChange={(e) => setReplyForm({ comments: e.target.value })} placeholder="Write a reply..." rows={2} maxLength={500} required style={{ padding: '10px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '8px', fontSize: '0.9rem' }} />
+          <button type="submit" className="btn btn--primary btn--sm" disabled={submittingReply}>{submittingReply ? 'Posting...' : 'Post reply'}</button>
+        </form>
+      )}
+      {fb.replies?.length > 0 && (
+        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {fb.replies.map((r) => (
+            <SellerFeedbackItem key={r.id} fb={r} replyingTo={replyingTo} setReplyingTo={setReplyingTo} replyForm={replyForm} setReplyForm={setReplyForm} submitReply={submitReply} submittingReply={submittingReply} user={user} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ResellSeller() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -24,6 +70,9 @@ export default function ResellSeller() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [itemFeedback, setItemFeedback] = useState([]);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyForm, setReplyForm] = useState({ comments: '' });
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   function canEdit(item) {
     if (!item?.created_at || item.deleted_at) return false;
@@ -49,9 +98,55 @@ export default function ResellSeller() {
   }
 
   useEffect(() => {
-    if (selectedItem) loadFeedback(selectedItem.id);
-    else setItemFeedback([]);
+    if (selectedItem) {
+      loadFeedback(selectedItem.id);
+      setReplyingTo(null);
+    } else {
+      setItemFeedback([]);
+      setReplyingTo(null);
+    }
   }, [selectedItem?.id]);
+
+  function buildFeedbackTree(list) {
+    const byId = {};
+    const roots = [];
+    (list || []).forEach((f) => { byId[f.id] = { ...f, replies: [] }; });
+    (list || []).forEach((f) => {
+      const node = byId[f.id];
+      if (f.parent_id && byId[f.parent_id]) byId[f.parent_id].replies.push(node);
+      else roots.push(node);
+    });
+    roots.forEach((r) => r.replies.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+    return roots.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  }
+
+  async function submitReply(e) {
+    e.preventDefault();
+    if (!selectedItem || !replyingTo || !replyForm.comments?.trim()) return;
+    const name = (user?.name || user?.email?.split('@')[0] || 'Seller').trim();
+    const usn = (user?.usn || 'seller').replace(/[^A-Za-z0-9]/g, '') || 'seller';
+    if (!name) {
+      toast.error('Please add your name in profile to reply');
+      return;
+    }
+    setSubmittingReply(true);
+    try {
+      await api.post(`/api/resell/items/${selectedItem.id}/feedback`, {
+        buyerName: name,
+        buyerUsn: usn,
+        comments: replyForm.comments.trim(),
+        parentId: replyingTo,
+      });
+      toast.success('Reply posted!');
+      setReplyingTo(null);
+      setReplyForm({ comments: '' });
+      loadFeedback(selectedItem.id);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to post reply');
+    } finally {
+      setSubmittingReply(false);
+    }
+  }
 
   useEffect(() => {
     setUserSupabaseId(user?.supabaseId || null);
@@ -636,22 +731,20 @@ export default function ResellSeller() {
 
             <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
               <strong>Reviews</strong>
-              {itemFeedback.length > 0 ? (
+              {buildFeedbackTree(itemFeedback).length > 0 ? (
                 <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {itemFeedback.map((fb) => (
-                    <div key={fb.id} style={{ padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 600 }}>{fb.buyer_name}</span>
-                        <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{fb.buyer_usn}</span>
-                        {fb.rating && <span style={{ color: 'var(--accent)' }}>★ {fb.rating}</span>}
-                      </div>
-                      {fb.comments && <p style={{ margin: '4px 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>{fb.comments}</p>}
-                      {fb.created_at && (
-                        <time style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '4px', display: 'block' }}>
-                          {new Date(fb.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </time>
-                      )}
-                    </div>
+                  {buildFeedbackTree(itemFeedback).map((fb) => (
+                    <SellerFeedbackItem
+                      key={fb.id}
+                      fb={fb}
+                      replyingTo={replyingTo}
+                      setReplyingTo={setReplyingTo}
+                      replyForm={replyForm}
+                      setReplyForm={setReplyForm}
+                      submitReply={submitReply}
+                      submittingReply={submittingReply}
+                      user={user}
+                    />
                   ))}
                 </div>
               ) : (

@@ -401,6 +401,58 @@
   color: var(--muted);
 }
 
+.resell-feedback-item__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.resell-feedback-reply-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.resell-feedback-reply-btn:hover {
+  text-decoration: underline;
+}
+
+.resell-feedback-item--reply {
+  border-left: 3px solid rgba(255, 102, 0, 0.3);
+  padding-left: 12px;
+}
+
+.resell-feedback-replies {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resell-feedback-reply-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resell-feedback-reply-form textarea {
+  padding: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.resell-feedback-reply-form__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .resell-modal__contact {
   width: 100%;
 }

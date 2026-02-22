@@ -2,11 +2,10 @@
 
 ## Setup
 
-Run the migration in Supabase SQL Editor:
+Run the migrations in Supabase SQL Editor (in order):
 
-```
-supabase/sql/resell_moderation_feedback.sql
-```
+1. `supabase/sql/resell_moderation_feedback.sql`
+2. `supabase/sql/resell_feedback_replies.sql` (adds reply/comment chains)
 
 This adds:
 - **moderation_status** to `resell_items` (pending, approved, rejected)
@@ -25,6 +24,7 @@ This adds:
 - **Form:** Name (required), USN (required, alphanumeric), Rating (optional 1–5), Comments (optional)
 - **Storage:** Persisted in Supabase; survives refresh
 - **Display:** Shown in item detail modal with average rating
+- **Replies:** Buyers and sellers can reply to feedback, forming comment chains
 
 ## Search & Filter
 
@@ -34,8 +34,8 @@ This adds:
 ## API Endpoints
 
 - `GET /api/resell/items/available?q=&condition=&minYear=&maxYear=` – Search/filter
-- `GET /api/resell/items/:id/feedback` – Get feedback for an item
-- `POST /api/resell/items/:id/feedback` – Submit feedback (body: buyerName, buyerUsn, rating?, comments?)
+- `GET /api/resell/items/:id/feedback` – Get feedback for an item (includes replies via parent_id)
+- `POST /api/resell/items/:id/feedback` – Submit feedback or reply (body: buyerName, buyerUsn, rating?, comments?, parentId? for replies)
 - `POST /api/admin/resell/items/:id/approve` – Approve pending listing
 - `POST /api/admin/resell/items/:id/reject` – Reject pending listing
 

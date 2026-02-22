@@ -786,16 +786,16 @@ app.get('/api/resell/items/available', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/resell/items/:id/feedback - Get feedback for an item
+// GET /api/resell/items/:id/feedback - Get feedback for an item (flat list with parent_id for replies)
 app.get('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
   try {
     if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
     const { id } = req.params;
     const { data, error } = await supabaseAdmin
       .from('resell_feedback')
-      .select('id, buyer_name, buyer_usn, rating, comments, created_at')
+      .select('id, parent_id, buyer_name, buyer_usn, rating, comments, created_at')
       .eq('item_id', id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
     if (error) {
       console.error('Feedback fetch error:', error);
       return res.status(500).json({ message: 'Failed to fetch feedback' });
@@ -807,12 +807,14 @@ app.get('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/resell/items/:id/feedback - Submit feedback (interested buyer)
+// POST /api/resell/items/:id/feedback - Submit feedback or reply (interested buyer / any user)
 app.post('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
   try {
     if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
     const { id: itemId } = req.params;
-    const { buyerName, buyerUsn, rating, comments } = req.body || {};
+    const { buyerName, buyerUsn, rating, comments, parentId } = req.body || {};
+
+    const isReply = !!parentId;
 
     if (!buyerName || !buyerUsn) {
       return res.status(400).json({ message: 'Name and USN are required' });
@@ -821,8 +823,11 @@ app.post('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
     if (!/^[A-Za-z0-9]+$/.test(usnTrimmed)) {
       return res.status(400).json({ message: 'USN must be alphanumeric only' });
     }
-    if (rating != null && (rating < 1 || rating > 5)) {
+    if (!isReply && rating != null && (rating < 1 || rating > 5)) {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+    if (isReply && !comments?.trim()) {
+      return res.status(400).json({ message: 'Reply text is required' });
     }
 
     let supabaseId = req.auth.supabaseId;
@@ -839,18 +844,31 @@ app.post('/api/resell/items/:id/feedback', authMiddleware, async (req, res) => {
 
     if (!item) return res.status(404).json({ message: 'Item not found' });
 
+    if (isReply) {
+      const { data: parent } = await supabaseAdmin
+        .from('resell_feedback')
+        .select('id')
+        .eq('id', parentId)
+        .eq('item_id', itemId)
+        .single();
+      if (!parent) return res.status(404).json({ message: 'Parent feedback not found' });
+    }
+
+    const insertPayload = {
+      item_id: itemId,
+      seller_id: item.user_id,
+      buyer_user_id: supabaseId,
+      buyer_name: String(buyerName).trim().slice(0, 100),
+      buyer_usn: usnTrimmed.slice(0, 20),
+      buyer_email: req.auth.email || null,
+      rating: isReply ? null : (rating != null ? parseInt(rating, 10) : null),
+      comments: comments ? String(comments).trim().slice(0, 500) : null,
+    };
+    if (isReply) insertPayload.parent_id = parentId;
+
     const { data: fb, error } = await supabaseAdmin
       .from('resell_feedback')
-      .insert({
-        item_id: itemId,
-        seller_id: item.user_id,
-        buyer_user_id: supabaseId,
-        buyer_name: String(buyerName).trim().slice(0, 100),
-        buyer_usn: usnTrimmed.slice(0, 20),
-        buyer_email: req.auth.email || null,
-        rating: rating != null ? parseInt(rating, 10) : null,
-        comments: comments ? String(comments).trim().slice(0, 500) : null,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 

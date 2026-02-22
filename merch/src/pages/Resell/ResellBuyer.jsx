@@ -16,6 +16,94 @@ const CONDITIONS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR - i);
 
+function FeedbackItem({
+  fb,
+  replyingTo,
+  setReplyingTo,
+  replyForm,
+  setReplyForm,
+  submitReply,
+  submittingReply,
+  feedbackForm,
+  user,
+  depth = 0,
+}) {
+  const isReply = !!fb.parent_id;
+  const showReplyForm = replyingTo === fb.id;
+
+  return (
+    <div className={`resell-feedback-item ${isReply ? "resell-feedback-item--reply" : ""}`} style={isReply ? { marginLeft: Math.min(depth * 20, 40) } : {}}>
+      <div className="resell-feedback-item__head">
+        <span className="resell-feedback-item__name">{fb.buyer_name}</span>
+        <span className="resell-feedback-item__usn">{fb.buyer_usn}</span>
+        {fb.rating != null && (
+          <span className="resell-feedback-item__rating">★ {fb.rating}</span>
+        )}
+      </div>
+      {fb.comments && (
+        <p className="resell-feedback-item__comments">{fb.comments}</p>
+      )}
+      <div className="resell-feedback-item__footer">
+        <time className="resell-feedback-item__time">
+          {fb.created_at
+            ? new Date(fb.created_at).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : ""}
+        </time>
+        {user && (
+          <button
+            type="button"
+            className="resell-feedback-reply-btn"
+            onClick={() => setReplyingTo(showReplyForm ? null : fb.id)}
+          >
+            {showReplyForm ? "Cancel" : "Reply"}
+          </button>
+        )}
+      </div>
+      {showReplyForm && user && (
+        <form onSubmit={submitReply} className="resell-feedback-reply-form">
+          <textarea
+            value={replyForm.comments}
+            onChange={(e) => setReplyForm({ comments: e.target.value })}
+            placeholder="Write a reply..."
+            rows={2}
+            maxLength={500}
+            required
+          />
+          <div className="resell-feedback-reply-form__hint">
+            Posting as {feedbackForm.buyerName || user?.name || "you"} ({feedbackForm.buyerUsn || user?.usn || "—"})
+          </div>
+          <button type="submit" className="btn btn--primary btn--sm" disabled={submittingReply}>
+            {submittingReply ? "Posting..." : "Post reply"}
+          </button>
+        </form>
+      )}
+      {fb.replies && fb.replies.length > 0 && (
+        <div className="resell-feedback-replies">
+          {fb.replies.map((r) => (
+            <FeedbackItem
+              key={r.id}
+              fb={r}
+              replyingTo={replyingTo}
+              setReplyingTo={setReplyingTo}
+              replyForm={replyForm}
+              setReplyForm={setReplyForm}
+              submitReply={submitReply}
+              submittingReply={submittingReply}
+              feedbackForm={feedbackForm}
+              user={user}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ResellBuyer() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -31,13 +119,16 @@ export default function ResellBuyer() {
   const [filterMaxYear, setFilterMaxYear] = useState("");
   const [feedback, setFeedback] = useState({});
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [feedbackForm, setFeedbackForm] = useState({
     buyerName: user?.name || "",
     buyerUsn: user?.usn || "",
     rating: null,
     comments: "",
   });
+  const [replyForm, setReplyForm] = useState({ comments: "" });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 350);
@@ -110,17 +201,46 @@ export default function ResellBuyer() {
   function handleItemClick(item) {
     setSelectedItem(item);
     setShowFeedbackForm(false);
+    setReplyingTo(null);
     setFeedbackForm({
       buyerName: user?.name || "",
       buyerUsn: user?.usn || "",
       rating: null,
       comments: "",
     });
+    setReplyForm({ comments: "" });
   }
 
   function closeDetailView() {
     setSelectedItem(null);
     setShowFeedbackForm(false);
+    setReplyingTo(null);
+  }
+
+  async function submitReply(e) {
+    e.preventDefault();
+    if (!selectedItem || !replyingTo || !replyForm.comments?.trim()) return;
+    if (!feedbackForm.buyerName?.trim() || !feedbackForm.buyerUsn?.trim()) {
+      toast.error("Name and USN are required to reply");
+      return;
+    }
+    setSubmittingReply(true);
+    try {
+      await api.post(`/api/resell/items/${selectedItem.id}/feedback`, {
+        buyerName: feedbackForm.buyerName.trim(),
+        buyerUsn: feedbackForm.buyerUsn.trim(),
+        comments: replyForm.comments.trim(),
+        parentId: replyingTo,
+      });
+      toast.success("Reply posted!");
+      setReplyingTo(null);
+      setReplyForm({ comments: "" });
+      loadFeedback(selectedItem.id);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to post reply");
+    } finally {
+      setSubmittingReply(false);
+    }
   }
 
   function closeSellerModal() {
@@ -157,14 +277,35 @@ export default function ResellBuyer() {
     }
   }
 
-  const itemFeedback = selectedItem ? feedback[selectedItem.id] || [] : [];
-  const ratingsWithValue = itemFeedback.filter((f) => f.rating != null);
+  const flatFeedback = selectedItem ? feedback[selectedItem.id] || [] : [];
+  const topLevelFeedback = flatFeedback.filter((f) => !f.parent_id);
+  const ratingsWithValue = topLevelFeedback.filter((f) => f.rating != null);
   const avgRating =
     ratingsWithValue.length > 0
       ? (
           ratingsWithValue.reduce((s, f) => s + f.rating, 0) / ratingsWithValue.length
         ).toFixed(1)
       : null;
+
+  function buildFeedbackTree(list) {
+    const byId = {};
+    const roots = [];
+    list.forEach((f) => {
+      byId[f.id] = { ...f, replies: [] };
+    });
+    list.forEach((f) => {
+      const node = byId[f.id];
+      if (f.parent_id && byId[f.parent_id]) {
+        byId[f.parent_id].replies.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+    roots.forEach((r) => r.replies.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+    return roots.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  }
+
+  const feedbackTree = buildFeedbackTree(flatFeedback);
 
   if (loading && items.length === 0) {
     return (
@@ -337,7 +478,7 @@ export default function ResellBuyer() {
                 <h4>Reviews</h4>
                 {avgRating && (
                   <span className="resell-feedback-avg">
-                    ★ {avgRating} ({itemFeedback.length})
+                    ★ {avgRating} ({topLevelFeedback.length})
                   </span>
                 )}
                 <button
@@ -422,31 +563,22 @@ export default function ResellBuyer() {
               )}
 
               <div className="resell-feedback-list">
-                {itemFeedback.length === 0 && !showFeedbackForm ? (
+                {feedbackTree.length === 0 && !showFeedbackForm ? (
                   <p className="resell-feedback-empty">No reviews yet. Be the first!</p>
                 ) : (
-                  itemFeedback.map((fb) => (
-                    <div key={fb.id} className="resell-feedback-item">
-                      <div className="resell-feedback-item__head">
-                        <span className="resell-feedback-item__name">{fb.buyer_name}</span>
-                        <span className="resell-feedback-item__usn">{fb.buyer_usn}</span>
-                        {fb.rating && (
-                          <span className="resell-feedback-item__rating">★ {fb.rating}</span>
-                        )}
-                      </div>
-                      {fb.comments && (
-                        <p className="resell-feedback-item__comments">{fb.comments}</p>
-                      )}
-                      <time className="resell-feedback-item__time">
-                        {fb.created_at
-                          ? new Date(fb.created_at).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : ""}
-                      </time>
-                    </div>
+                  feedbackTree.map((fb) => (
+                    <FeedbackItem
+                      key={fb.id}
+                      fb={fb}
+                      replyingTo={replyingTo}
+                      setReplyingTo={setReplyingTo}
+                      replyForm={replyForm}
+                      setReplyForm={setReplyForm}
+                      submitReply={submitReply}
+                      submittingReply={submittingReply}
+                      feedbackForm={feedbackForm}
+                      user={user}
+                    />
                   ))
                 )}
               </div>
