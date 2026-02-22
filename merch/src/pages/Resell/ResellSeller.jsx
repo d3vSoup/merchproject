@@ -23,6 +23,7 @@ export default function ResellSeller() {
   const [userSupabaseId, setUserSupabaseId] = useState(user?.supabaseId || null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
+  const [itemFeedback, setItemFeedback] = useState([]);
 
   function canEdit(item) {
     if (!item?.created_at || item.deleted_at) return false;
@@ -36,6 +37,21 @@ export default function ResellSeller() {
       loadItems();
     }
   }, [user?.email]);
+
+  async function loadFeedback(itemId) {
+    if (!itemId) return;
+    try {
+      const res = await api.get(`/api/resell/items/${itemId}/feedback`);
+      setItemFeedback(res.data?.feedback || []);
+    } catch {
+      setItemFeedback([]);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedItem) loadFeedback(selectedItem.id);
+    else setItemFeedback([]);
+  }, [selectedItem?.id]);
 
   useEffect(() => {
     setUserSupabaseId(user?.supabaseId || null);
@@ -412,26 +428,26 @@ export default function ResellSeller() {
                     </p>
                   )}
                 </div>
-                <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                <div className="listing-card-actions">
                   {canEdit(item) && (
                     <button
-                      className="btn btn--ghost"
+                      type="button"
+                      className="listing-card-action listing-card-action--edit"
                       onClick={(e) => {
                         e.stopPropagation();
                         startEdit(item);
                       }}
-                      style={{ padding: '4px 8px', fontSize: '0.85rem', color: 'var(--accent)' }}
                     >
                       Edit
                     </button>
                   )}
                   <button
-                    className="btn btn--ghost"
+                    type="button"
+                    className="listing-card-action listing-card-action--delete"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDelete(item.id);
                     }}
-                    style={{ padding: '4px 8px', fontSize: '0.85rem' }}
                   >
                     Delete
                   </button>
@@ -544,12 +560,13 @@ export default function ResellSeller() {
                 color: 'var(--text)',
                 padding: '4px 8px'
               }}
+              aria-label="Close"
             >
               ×
             </button>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0, flex: 1 }}>{selectedItem.title}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', paddingRight: '36px', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0 }}>{selectedItem.title}</h2>
               {canEdit(selectedItem) && (
                 <button
                   className="btn btn--primary"
@@ -616,6 +633,31 @@ export default function ResellSeller() {
                 </div>
               </div>
             )}
+
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+              <strong>Reviews</strong>
+              {itemFeedback.length > 0 ? (
+                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {itemFeedback.map((fb) => (
+                    <div key={fb.id} style={{ padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                        <span style={{ fontWeight: 600 }}>{fb.buyer_name}</span>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{fb.buyer_usn}</span>
+                        {fb.rating && <span style={{ color: 'var(--accent)' }}>★ {fb.rating}</span>}
+                      </div>
+                      {fb.comments && <p style={{ margin: '4px 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>{fb.comments}</p>}
+                      {fb.created_at && (
+                        <time style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: '4px', display: 'block' }}>
+                          {new Date(fb.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </time>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ marginTop: '8px', fontSize: '0.9rem', color: 'var(--muted)' }}>No reviews yet.</p>
+              )}
+            </div>
           </div>
         </div>
       )}

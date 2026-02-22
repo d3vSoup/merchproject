@@ -390,6 +390,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .listing-card__pending-badge{position:absolute;top:8px;left:8px;z-index:2;background:rgba(245,158,11,0.95);color:#fff;font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:0.5px}
 .listing-images{display:flex;gap:4px;height:120px}
 .listing-images img{flex:1;object-fit:cover}
+.listing-card-actions{position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2}
+.listing-card-action{padding:6px 12px;font-size:0.85rem;font-weight:600;border:none;border-radius:8px;cursor:pointer;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.listing-card-action--edit{background:rgba(255,102,0,0.95)}
+.listing-card-action--edit:hover{background:#ea580c}
+.listing-card-action--delete{background:rgba(220,38,38,0.95)}
+.listing-card-action--delete:hover{background:#dc2626}
 .listing-info{padding:16px}
 .listing-info h3{margin:0 0 8px;font-size:1.1rem}
 .listing-info p{margin:4px 0;font-size:0.9rem;color:var(--muted)}
