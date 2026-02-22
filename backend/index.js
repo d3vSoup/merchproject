@@ -924,6 +924,91 @@ app.post('/api/resell/create-item', authMiddleware, async (req, res) => {
   }
 });
 
+// PATCH /api/resell/items/:id - Update resell listing (within 24h of creation; approved items go back to pending)
+app.patch('/api/resell/items/:id', authMiddleware, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured on server' });
+    }
+
+    const itemId = req.params.id;
+    const { title, condition, year, description, priceRange, pictures } = req.body;
+
+    if (!itemId) {
+      return res.status(400).json({ message: 'Item ID is required' });
+    }
+
+    if (!title || !description || !pictures || pictures.length < 6) {
+      return res.status(400).json({ message: 'Title, description, and at least 6 pictures are required' });
+    }
+
+    let supabaseId = req.auth.supabaseId;
+    if (!supabaseId) {
+      const ensured = await ensureSupabaseUserRecord(req.auth.email);
+      if (!ensured.id) {
+        return res.status(500).json({ message: 'Failed to get user ID' });
+      }
+      supabaseId = ensured.id;
+    }
+
+    const { data: item, error: fetchError } = await supabaseAdmin
+      .from('resell_items')
+      .select('user_id, created_at, moderation_status, deleted_at')
+      .eq('id', itemId)
+      .single();
+
+    if (fetchError || !item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    if (item.user_id !== supabaseId) {
+      return res.status(403).json({ message: 'You can only edit your own listings' });
+    }
+
+    if (item.deleted_at) {
+      return res.status(400).json({ message: 'Cannot edit a deleted listing' });
+    }
+
+    const created = new Date(item.created_at);
+    const now = new Date();
+    const hoursSinceCreation = (now - created) / (1000 * 60 * 60);
+    if (hoursSinceCreation > 24) {
+      return res.status(400).json({ message: 'Listings can only be edited within 24 hours of creation' });
+    }
+
+    const updatePayload = {
+      title,
+      condition: condition || 'new',
+      year: year || null,
+      description,
+      price_range: priceRange || null,
+      pictures: pictures || [],
+    };
+
+    // If item was approved, set back to pending so admin must re-review
+    if ((item.moderation_status || 'approved') === 'approved') {
+      updatePayload.moderation_status = 'pending';
+    }
+
+    const { data: updated, error } = await supabaseAdmin
+      .from('resell_items')
+      .update(updatePayload)
+      .eq('id', itemId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating resell item:', error);
+      return res.status(500).json({ message: 'Failed to update listing', error: error.message });
+    }
+
+    return res.json({ item: updated });
+  } catch (err) {
+    console.error('Resell item update error', err);
+    return res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // DELETE /api/resell/items/:id - Soft delete a resell listing
 app.delete('/api/resell/items/:id', authMiddleware, async (req, res) => {
   try {

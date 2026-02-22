@@ -77,6 +77,8 @@ export default function AdminItems() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [addingProduct, setAddingProduct] = useState(false);
   const [resellItems, setResellItems] = useState([]);
+  const [resellSortByDate, setResellSortByDate] = useState('desc');
+  const [viewingResellItem, setViewingResellItem] = useState(null);
   const [loadingResell, setLoadingResell] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -608,12 +610,25 @@ export default function AdminItems() {
                 <div className="resell-admin-header">
                   <div>Seller / Email</div>
                   <div>Title</div>
-                  <div>Listed</div>
+                  <button
+                    type="button"
+                    className="resell-admin-header__sort"
+                    onClick={() => setResellSortByDate((s) => (s === 'desc' ? 'asc' : 'desc'))}
+                    title={resellSortByDate === 'desc' ? 'Newest first (click to sort oldest first)' : 'Oldest first (click to sort newest first)'}
+                  >
+                    Listed {resellSortByDate === 'desc' ? '↓' : '↑'}
+                  </button>
                   <div>Status</div>
                   <div>Price</div>
                   <div>Actions</div>
                 </div>
-                {resellItems.map((item) => {
+                {[...resellItems]
+                  .sort((a, b) => {
+                    const da = new Date(a.created_at || 0).getTime();
+                    const db = new Date(b.created_at || 0).getTime();
+                    return resellSortByDate === 'desc' ? db - da : da - db;
+                  })
+                  .map((item) => {
                   const isHidden = !!item.admin_hidden;
                   const modStatus = item.moderation_status || 'approved';
                   const isPending = modStatus === 'pending';
@@ -658,6 +673,14 @@ export default function AdminItems() {
                         {item.price_range || 'TBD'}
                       </div>
                       <div className="resell-admin-actions">
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => setViewingResellItem(item)}
+                          title="View full details"
+                        >
+                          View
+                        </button>
                         {isPending && (
                           <>
                             <button
@@ -750,6 +773,121 @@ export default function AdminItems() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Resell item detail modal */}
+            {viewingResellItem && (
+              <div
+                className="admin-resell-detail-overlay"
+                onClick={() => setViewingResellItem(null)}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="resell-detail-title"
+              >
+                <div className="admin-resell-detail-modal" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="admin-resell-detail-close"
+                    onClick={() => setViewingResellItem(null)}
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                  <h2 id="resell-detail-title" className="admin-resell-detail-title">
+                    {viewingResellItem.title}
+                  </h2>
+
+                  <div className="admin-resell-detail-gallery">
+                    {viewingResellItem.pictures?.length > 0 ? (
+                      viewingResellItem.pictures.map((url, idx) => (
+                        <img
+                          key={idx}
+                          src={url}
+                          alt={`${viewingResellItem.title} ${idx + 1}`}
+                          loading="lazy"
+                          onClick={() => window.open(url, '_blank')}
+                        />
+                      ))
+                    ) : (
+                      <div className="admin-resell-detail-no-image">No images</div>
+                    )}
+                  </div>
+
+                  <div className="admin-resell-detail-meta">
+                    <div><strong>Condition:</strong> {viewingResellItem.condition}</div>
+                    {viewingResellItem.year && <div><strong>Year:</strong> {viewingResellItem.year}</div>}
+                    {viewingResellItem.price_range && (
+                      <div><strong>Price:</strong> <span className="admin-resell-detail-price">{viewingResellItem.price_range}</span></div>
+                    )}
+                    <div><strong>Listed:</strong> {viewingResellItem.created_at ? new Date(viewingResellItem.created_at).toLocaleString('en-IN') : '–'}</div>
+                  </div>
+
+                  <div className="admin-resell-detail-seller">
+                    <strong>Seller</strong>
+                    <div>{viewingResellItem.user?.name || 'Unknown'}</div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>
+                      {viewingResellItem.user?.email || '–'}
+                    </div>
+                  </div>
+
+                  {viewingResellItem.description && (
+                    <div className="admin-resell-detail-desc">
+                      <strong>Description</strong>
+                      <p>{viewingResellItem.description}</p>
+                    </div>
+                  )}
+
+                  <div className="admin-resell-detail-actions">
+                    {(viewingResellItem.moderation_status || 'approved') === 'pending' && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn--primary"
+                          style={{ background: '#16a34a' }}
+                          onClick={async () => {
+                            try {
+                              await api.post(`/api/admin/resell/items/${viewingResellItem.id}/approve`);
+                              toast.success('Listing approved');
+                              setViewingResellItem(null);
+                              loadResellItems();
+                            } catch (err) {
+                              toast.error('Failed to approve');
+                            }
+                          }}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost"
+                          style={{ color: '#dc2626' }}
+                          onClick={async () => {
+                            if (window.confirm(`Reject "${viewingResellItem.title}"?`)) {
+                              try {
+                                await api.post(`/api/admin/resell/items/${viewingResellItem.id}/reject`);
+                                toast.success('Listing rejected');
+                                setViewingResellItem(null);
+                                loadResellItems();
+                              } catch (err) {
+                                toast.error('Failed to reject');
+                              }
+                            }
+                          }}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn--secondary"
+                      onClick={() => setViewingResellItem(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

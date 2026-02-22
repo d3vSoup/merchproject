@@ -6,6 +6,31 @@ import "./AdminDashboard.css";
 
 const formatPrice = (amount) => `₹${Number(amount || 0).toLocaleString("en-IN")}`;
 
+function formatAuditAction(action) {
+  if (!action) return 'Action';
+  const labels = {
+    approve_resell_item: 'Approved resell listing',
+    reject_resell_item: 'Rejected resell listing',
+    hide_resell_item: 'Hidden resell item',
+    restore_resell_item: 'Restored resell item',
+    update_product: 'Updated product',
+    create_product: 'Created product',
+    delete_product: 'Deleted product',
+  };
+  return labels[action] || action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatAuditValue(obj) {
+  if (!obj || typeof obj !== 'object') return '-';
+  const parts = Object.entries(obj).map(([k, v]) => {
+    const key = k.replace(/_/g, ' ');
+    if (v === null || v === undefined) return null;
+    if (typeof v === 'boolean') return `${key}: ${v ? 'yes' : 'no'}`;
+    return `${key}: ${v}`;
+  }).filter(Boolean);
+  return parts.join(' · ') || '-';
+}
+
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState(null);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -112,28 +137,44 @@ export default function AdminDashboard() {
           {auditLogs.length === 0 ? (
             <p className="admin-audit-empty">No audit entries yet</p>
           ) : (
-            auditLogs.map((log) => (
-              <div key={log.id} className="admin-audit-item">
-                <span className="admin-audit__time">
-                  {log.created_at ? new Date(log.created_at).toLocaleString() : ""}
-                </span>
-                <span className="admin-audit__action">{log.action}</span>
-                <span className="admin-audit__entity">
-                  {log.entity_type}: {log.entity_id || "-"}
-                </span>
-                {log.old_value && Object.keys(log.old_value).length > 0 && (
-                  <span className="admin-audit__detail">
-                    Before: {JSON.stringify(log.old_value)}
-                  </span>
-                )}
-                {log.new_value && Object.keys(log.new_value).length > 0 && (
-                  <span className="admin-audit__detail">
-                    After: {JSON.stringify(log.new_value)}
-                  </span>
-                )}
-                <span className="admin-audit__admin">{log.admin_email}</span>
-              </div>
-            ))
+            auditLogs.map((log) => {
+              const actionLabel = formatAuditAction(log.action);
+              const isPositive = /approve|restore|create/.test(log.action);
+              const isNegative = /reject|delete|hide/.test(log.action);
+              return (
+                <div key={log.id} className={`admin-audit-card ${isPositive ? 'admin-audit-card--success' : ''} ${isNegative ? 'admin-audit-card--danger' : ''}`}>
+                  <div className="admin-audit-card__header">
+                    <span className="admin-audit-card__action">{actionLabel}</span>
+                    <time className="admin-audit-card__time">
+                      {log.created_at ? new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+                    </time>
+                  </div>
+                  <div className="admin-audit-card__body">
+                    <div className="admin-audit-card__meta">
+                      <span className="admin-audit-card__entity">{log.entity_type}</span>
+                      {log.entity_id && <span className="admin-audit-card__id">{log.entity_id}</span>}
+                    </div>
+                    {(log.old_value || log.new_value) && Object.keys(log.old_value || log.new_value || {}).length > 0 && (
+                      <div className="admin-audit-card__changes">
+                        {log.old_value && Object.keys(log.old_value).length > 0 && (
+                          <div className="admin-audit-card__change">
+                            <span className="admin-audit-card__change-label">Before</span>
+                            <span className="admin-audit-card__change-value">{formatAuditValue(log.old_value)}</span>
+                          </div>
+                        )}
+                        {log.new_value && Object.keys(log.new_value).length > 0 && (
+                          <div className="admin-audit-card__change">
+                            <span className="admin-audit-card__change-label">After</span>
+                            <span className="admin-audit-card__change-value">{formatAuditValue(log.new_value)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <div className="admin-audit-card__actor">{log.admin_email}</div>
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

@@ -5,7 +5,14 @@ import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
 import "./ResellBuyer.css";
 
-const CONDITIONS = ["all", "new", "like new", "like-new", "good", "fair", "used"];
+const CONDITIONS = [
+  { value: "all", label: "All conditions" },
+  { value: "new", label: "New" },
+  { value: "like-new", label: "Like new" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "used", label: "Used" },
+];
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 8 }, (_, i) => CURRENT_YEAR - i);
 
@@ -43,7 +50,7 @@ export default function ResellBuyer() {
     try {
       const params = {};
       if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
-      if (filterCondition !== "all") params.condition = filterCondition;
+      if (filterCondition && filterCondition !== "all") params.condition = filterCondition;
       if (filterMinYear) params.minYear = filterMinYear;
       if (filterMaxYear) params.maxYear = filterMaxYear;
       const res = await api.get("/api/resell/items/available", { params });
@@ -194,8 +201,8 @@ export default function ResellBuyer() {
             aria-label="Filter by condition"
           >
             {CONDITIONS.map((c) => (
-              <option key={c} value={c}>
-                {c === "all" ? "All conditions" : c}
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>

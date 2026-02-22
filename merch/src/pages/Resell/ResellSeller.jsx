@@ -22,6 +22,14 @@ export default function ResellSeller() {
   const [uploading, setUploading] = useState(false);
   const [userSupabaseId, setUserSupabaseId] = useState(user?.supabaseId || null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+
+  function canEdit(item) {
+    if (!item?.created_at || item.deleted_at) return false;
+    const created = new Date(item.created_at);
+    const hoursSinceCreation = (Date.now() - created.getTime()) / (1000 * 60 * 60);
+    return hoursSinceCreation <= 24;
+  }
 
   useEffect(() => {
     if (user?.email) {
@@ -143,6 +151,33 @@ export default function ResellSeller() {
     setUploading(false);
   }
 
+  function startEdit(item) {
+    setEditingItem(item);
+    setFormData({
+      title: item.title || "",
+      condition: item.condition || "new",
+      year: item.year || "",
+      description: item.description || "",
+      priceRange: item.price_range || "",
+      pictures: Array.isArray(item.pictures) ? [...item.pictures] : [],
+    });
+    setShowForm(true);
+    setSelectedItem(null);
+  }
+
+  function cancelForm() {
+    setShowForm(false);
+    setEditingItem(null);
+    setFormData({
+      title: "",
+      condition: "new",
+      year: "",
+      description: "",
+      priceRange: "",
+      pictures: [],
+    });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!user?.email) {
@@ -165,36 +200,41 @@ export default function ResellSeller() {
       return;
     }
 
-    // Use backend endpoint instead of direct Supabase client
-    // Backend will handle user ID resolution
-    try {
-      const res = await api.post('/api/resell/create-item', {
-        title: formData.title,
-        condition: formData.condition,
-        year: formData.year,
-        description: formData.description,
-        priceRange: formData.priceRange,
-        pictures: formData.pictures,
-      });
+    const payload = {
+      title: formData.title,
+      condition: formData.condition,
+      year: formData.year,
+      description: formData.description,
+      priceRange: formData.priceRange,
+      pictures: formData.pictures,
+    };
 
-      if (res.data?.item) {
-        toast.success("Listing created! It will appear after admin approval.");
-        setFormData({
-          title: "",
-          condition: "new",
-          year: "",
-          description: "",
-          priceRange: "",
-          pictures: [],
-        });
-        setShowForm(false);
-        await loadItems();
+    try {
+      if (editingItem) {
+        const res = await api.patch(`/api/resell/items/${editingItem.id}`, payload);
+        if (res.data?.item) {
+          const wasApproved = (editingItem.moderation_status || 'approved') === 'approved';
+          toast.success(wasApproved
+            ? "Listing updated! It will go back to pending approval."
+            : "Listing updated successfully.");
+          cancelForm();
+          await loadItems();
+        } else {
+          toast.error("Failed to update listing");
+        }
       } else {
-        toast.error("Failed to create listing");
+        const res = await api.post('/api/resell/create-item', payload);
+        if (res.data?.item) {
+          toast.success("Listing created! It will appear after admin approval.");
+          cancelForm();
+          await loadItems();
+        } else {
+          toast.error("Failed to create listing");
+        }
       }
     } catch (err) {
-      console.error('Failed to create resell item:', err);
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to create listing';
+      console.error(editingItem ? 'Failed to update resell item' : 'Failed to create resell item', err);
+      const errorMsg = err.response?.data?.message || err.message || (editingItem ? 'Failed to update listing' : 'Failed to create listing');
       toast.error(errorMsg);
     }
   }
@@ -203,7 +243,7 @@ export default function ResellSeller() {
     <div className="resell-seller">
       <div className="seller-header">
         <h2>My Listings</h2>
-        <button className="btn btn--primary" onClick={() => setShowForm(!showForm)}>
+        <button className="btn btn--primary" onClick={() => showForm ? cancelForm() : (setEditingItem(null), setFormData({ title: "", condition: "new", year: "", description: "", priceRange: "", pictures: [] }), setShowForm(true))}>
           {showForm ? "Cancel" : "+ New Listing"}
         </button>
       </div>
@@ -228,6 +268,13 @@ export default function ResellSeller() {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="listing-form">
+          {editingItem && (
+            <p className="help-text" style={{ background: 'rgba(245,158,11,0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px' }}>
+              {(editingItem.moderation_status || 'approved') === 'approved'
+                ? 'Editing an approved listing will send it back for admin review.'
+                : 'You can edit within 24 hours of listing.'}
+            </p>
+          )}
           <label>
             Title *
             <input
@@ -327,7 +374,7 @@ export default function ResellSeller() {
             <p className="help-text">{formData.pictures.length}/10 images</p>
           </label>
           <button type="submit" className="btn btn--primary" disabled={uploading}>
-            Create Listing
+            {editingItem ? "Update Listing" : "Create Listing"}
           </button>
         </form>
       )}
@@ -365,16 +412,30 @@ export default function ResellSeller() {
                     </p>
                   )}
                 </div>
-                <button
-                  className="btn btn--ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(item.id);
-                  }}
-                  style={{ position: 'absolute', top: '8px', right: '8px', padding: '4px 8px', fontSize: '0.85rem' }}
-                >
-                  Delete
-                </button>
+                <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '6px' }}>
+                  {canEdit(item) && (
+                    <button
+                      className="btn btn--ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEdit(item);
+                      }}
+                      style={{ padding: '4px 8px', fontSize: '0.85rem', color: 'var(--accent)' }}
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    className="btn btn--ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(item.id);
+                    }}
+                    style={{ padding: '4px 8px', fontSize: '0.85rem' }}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             );
             })
@@ -487,7 +548,18 @@ export default function ResellSeller() {
               ×
             </button>
             
-            <h2 style={{ marginTop: 0, marginBottom: '16px' }}>{selectedItem.title}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0, flex: 1 }}>{selectedItem.title}</h2>
+              {canEdit(selectedItem) && (
+                <button
+                  className="btn btn--primary"
+                  onClick={() => startEdit(selectedItem)}
+                  style={{ flexShrink: 0 }}
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             
             <div style={{ marginBottom: '16px' }}>
               <strong>Status:</strong> {selectedItem.status}
