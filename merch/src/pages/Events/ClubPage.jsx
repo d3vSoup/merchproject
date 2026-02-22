@@ -84,7 +84,7 @@ const DEPARTMENTS = [
   "CSE",
   "CS ALLIED",
   "AIML",
-  "AIML ALLIED",
+  "AI-DS",
   "ECE",
   "EEE",
   "AEROSPACE",
@@ -92,6 +92,7 @@ const DEPARTMENTS = [
   "CIVIL",
   "BIOTECHNOLOGY",
   "CHEMICAL",
+  "IEM",
 ];
 
 export default function ClubPage() {
@@ -277,7 +278,7 @@ export default function ClubPage() {
     }
   }, [productOverrides]);
 
-  const currentCategory = selectedClub || selectedDept || (ieeeSubclub ? `IEEE - ${ieeeSubclub}` : null);
+  const currentCategory = (ieeeSubclub ? `IEEE - ${ieeeSubclub}` : null) || selectedClub || selectedDept;
   const displayProducts = currentCategory && Array.isArray(baseProducts) ? baseProducts : [];
 
   useEffect(() => {
@@ -389,70 +390,57 @@ export default function ClubPage() {
         </div>
 
         {activeTab === "clubs" && (
-          <div className="club-selection">
-            <div className="club-list">
-              {CLUBS.map((club) => (
-                <div key={club} className="club-item-wrapper">
-                  {club === "IEEE" ? (
-                    <div className="ieee-dropdown">
-                      <button
-                        className={`club-item ${selectedClub === club ? "is-active" : ""}`}
-                        onClick={() => {
-                          if (selectedClub === club) {
-                            setSelectedClub(null);
-                            setIeeeSubclub(null);
-                          } else {
-                            setSelectedClub(club);
-                            setIeeeSubclub(null);
-                          }
-                        }}
-                      >
-                        {club} {selectedClub === club ? "▼" : "▶"}
-                      </button>
-                      {selectedClub === club && (
-                        <div className="ieee-subclubs">
-                          {IEEE_SUBCLUBS.map((subclub) => (
-                            <button
-                              key={subclub}
-                              className={`club-item subclub ${ieeeSubclub === subclub ? "is-active" : ""}`}
-                              onClick={() => setIeeeSubclub(subclub)}
-                            >
-                              {subclub}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      className={`club-item ${selectedClub === club ? "is-active" : ""}`}
-                      onClick={() => {
-                        setSelectedClub(selectedClub === club ? null : club);
-                        setIeeeSubclub(null);
-                      }}
-                    >
-                      {club}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+          <div className="club-selection club-selection--dropdown">
+            <label className="club-dropdown-label">
+              <span>Select Club</span>
+              <select
+                className="club-dropdown"
+                value={selectedClub || ""}
+                onChange={(e) => {
+                  const v = e.target.value || null;
+                  setSelectedClub(v);
+                  setIeeeSubclub(null);
+                }}
+              >
+                <option value="">-- Select a club --</option>
+                {CLUBS.map((club) => (
+                  <option key={club} value={club}>{club}</option>
+                ))}
+              </select>
+            </label>
+            {selectedClub === "IEEE" && (
+              <label className="club-dropdown-label">
+                <span>IEEE Subclub</span>
+                <select
+                  className="club-dropdown"
+                  value={ieeeSubclub || ""}
+                  onChange={(e) => setIeeeSubclub(e.target.value || null)}
+                >
+                  <option value="">-- Select IEEE subclub --</option>
+                  {IEEE_SUBCLUBS.map((subclub) => (
+                    <option key={subclub} value={subclub}>{subclub}</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
         )}
 
         {activeTab === "departments" && (
-          <div className="department-selection">
-            <div className="department-list">
-              {DEPARTMENTS.map((dept) => (
-                <button
-                  key={dept}
-                  className={`department-item ${selectedDept === dept ? "is-active" : ""}`}
-                  onClick={() => setSelectedDept(selectedDept === dept ? null : dept)}
-                >
-                  {dept}
-                </button>
-              ))}
-            </div>
+          <div className="department-selection department-selection--dropdown">
+            <label className="club-dropdown-label">
+              <span>Select Department</span>
+              <select
+                className="club-dropdown"
+                value={selectedDept || ""}
+                onChange={(e) => setSelectedDept(e.target.value || null)}
+              >
+                <option value="">-- Select a department --</option>
+                {DEPARTMENTS.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </label>
           </div>
         )}
       </div>

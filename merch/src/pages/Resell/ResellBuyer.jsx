@@ -32,7 +32,8 @@ function FeedbackItem({
   const showReplyForm = replyingTo === fb.id;
 
   return (
-    <div className={`resell-feedback-item ${isReply ? "resell-feedback-item--reply" : ""}`} style={isReply ? { marginLeft: Math.min(depth * 20, 40) } : {}}>
+    <div className={`resell-feedback-item ${isReply ? "resell-feedback-item--reply" : ""}`} data-depth={depth}>
+      {isReply && <span className="resell-feedback-item__reply-label">↳ Reply</span>}
       <div className="resell-feedback-item__head">
         <span className="resell-feedback-item__name">{fb.buyer_name}</span>
         <span className="resell-feedback-item__usn">{fb.buyer_usn}</span>

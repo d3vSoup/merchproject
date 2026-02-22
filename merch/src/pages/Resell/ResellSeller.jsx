@@ -11,11 +11,12 @@ function SellerFeedbackItem({ fb, replyingTo, setReplyingTo, replyForm, setReply
   return (
     <div style={{
       padding: '12px',
-      background: 'rgba(0,0,0,0.03)',
+      background: isReply ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.03)',
       borderRadius: '8px',
-      marginLeft: isReply ? Math.min(depth * 20, 40) : 0,
-      borderLeft: isReply ? '3px solid rgba(255,102,0,0.3)' : 'none',
+      borderLeft: isReply ? '3px solid rgba(255,102,0,0.45)' : 'none',
+      paddingLeft: isReply ? '16px' : '12px',
     }}>
+      {isReply && <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '4px' }}>↳ Reply</span>}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
         <span style={{ fontWeight: 600 }}>{fb.buyer_name}</span>
         <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>{fb.buyer_usn}</span>
@@ -41,7 +42,7 @@ function SellerFeedbackItem({ fb, replyingTo, setReplyingTo, replyForm, setReply
         </form>
       )}
       {fb.replies?.length > 0 && (
-        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', borderLeft: '2px solid rgba(0,0,0,0.1)', paddingLeft: '12px', marginLeft: '12px' }}>
           {fb.replies.map((r) => (
             <SellerFeedbackItem key={r.id} fb={r} replyingTo={replyingTo} setReplyingTo={setReplyingTo} replyForm={replyForm} setReplyForm={setReplyForm} submitReply={submitReply} submittingReply={submittingReply} user={user} depth={depth + 1} />
           ))}
