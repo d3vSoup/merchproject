@@ -80,5 +80,7 @@ Thumbs.db
 /tmp/backend_debug.log
 backend_debug.log
 
-# Integration guides (optional; keep local / internal)
-docs/CASHFREE_INTEGRATION.md
+# Markdown docs (keep local; exclude README.md)
+*.md
+!README.md
+!merch/README.md
