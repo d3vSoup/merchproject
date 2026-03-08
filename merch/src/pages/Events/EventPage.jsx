@@ -13,16 +13,19 @@ import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
 import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
-import Antigravity from "../../components/ui/Antigravity";
+import RotatingText from "../../components/ui/RotatingText";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
-const EVENT_ANTIGRAVITY_COLORS = {
-  utsav: "#c0392b",
-  phaseshift: "#1e3a5f",
-  farouche: "#410c68",
-  club: "#0f5132",
-};
+const MERCH_HEADING_TEXTS = [
+  "Merch Line-up",
+  "Limited Drops",
+  "Campus Drip",
+  "Fresh Fits",
+  "New Arrivals",
+  "Event Exclusives",
+  "Student Essentials",
+];
 
 export default function EventPage() {
   const { eventKey } = useParams();
@@ -353,63 +356,44 @@ export default function EventPage() {
     return false;
   };
 
-  const antigravityColor = EVENT_ANTIGRAVITY_COLORS[eventKey] || EVENT_ANTIGRAVITY_COLORS.utsav;
-
   // Don't render until data is loaded to avoid flash
   if (loadingSoldOut) {
     return (
-      <div className="event-page-with-bg">
-        <div className="antigravity-bg" aria-hidden="true">
-          <Antigravity
-            count={600}
-            magnetRadius={18}
-            ringRadius={2}
-            waveSpeed={0.4}
-            waveAmplitude={0.5}
-            particleSize={0.35}
-            lerpSpeed={0.08}
-            color={antigravityColor}
-            autoAnimate={false}
-            particleVariance={0.2}
-            rotationSpeed={0}
-            depthFactor={1}
-            pulseSpeed={1}
-            particleShape="capsule"
-            fieldStrength={10}
+      <section className="product-section">
+        <div className="section-heading">
+          <RotatingText
+            texts={MERCH_HEADING_TEXTS}
+            mainClassName="section-heading__rotate"
+            staggerFrom="last"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "-120%" }}
+            staggerDuration={0.025}
+            splitLevelClassName="section-heading__rotate-split"
+            transition={{ type: "spring", damping: 30, stiffness: 400 }}
+            rotationInterval={2500}
           />
         </div>
-        <section className="product-section">
-          <div className="section-heading">Merch line-up</div>
-          <SkeletonGrid />
-        </section>
-      </div>
+        <SkeletonGrid />
+      </section>
     );
   }
 
   return (
-    <div className="event-page-with-bg">
-      <div className="antigravity-bg" aria-hidden="true">
-        <Antigravity
-          count={600}
-          magnetRadius={18}
-          ringRadius={2}
-          waveSpeed={0.4}
-          waveAmplitude={0.5}
-          particleSize={0.35}
-          lerpSpeed={0.08}
-          color={antigravityColor}
-          autoAnimate={false}
-          particleVariance={0.2}
-          rotationSpeed={0}
-          depthFactor={1}
-          pulseSpeed={1}
-          particleShape="capsule"
-          fieldStrength={10}
-        />
-      </div>
-      <section className="product-section">
+    <section className="product-section">
       <div className="section-heading">
-        Merch line-up
+        <RotatingText
+          texts={MERCH_HEADING_TEXTS}
+          mainClassName="section-heading__rotate"
+          staggerFrom="last"
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "-120%" }}
+          staggerDuration={0.025}
+          splitLevelClassName="section-heading__rotate-split"
+          transition={{ type: "spring", damping: 30, stiffness: 400 }}
+          rotationInterval={2500}
+        />
         {eventStatus.type === "soldout" && (
           <span className="event-soldout" style={{ marginLeft: "16px", fontSize: "0.85rem", color: "#ef4444", fontWeight: 600 }}>
             SOLD OUT
@@ -532,8 +516,7 @@ export default function EventPage() {
           isProductSoldOut={isSoldOut(`${eventKey}:${selectedProduct.id}:${productSelections[`${eventKey}:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || 'standard'}`)}
         />
       )}
-      </section>
-    </div>
+    </section>
   );
 }
 

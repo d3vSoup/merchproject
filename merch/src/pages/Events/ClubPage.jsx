@@ -11,11 +11,8 @@ import ProductModal from "../../components/ProductModal";
 import WishlistHeart from "../../components/WishlistHeart";
 import api from "../../api";
 import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
-import Antigravity from "../../components/ui/Antigravity";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
-
-const CLUB_ANTIGRAVITY_COLOR = "#0f5132";
 
 const CLUBS = [
   "IEEE",
@@ -368,56 +365,15 @@ export default function ClubPage() {
 
   if (loadingSoldOut) {
     return (
-      <div className="event-page-with-bg">
-        <div className="antigravity-bg" aria-hidden="true">
-          <Antigravity
-            count={600}
-            magnetRadius={18}
-            ringRadius={2}
-            waveSpeed={0.4}
-            waveAmplitude={0.5}
-            particleSize={0.35}
-            lerpSpeed={0.08}
-            color={CLUB_ANTIGRAVITY_COLOR}
-            autoAnimate={false}
-            particleVariance={0.2}
-            rotationSpeed={0}
-            depthFactor={1}
-            pulseSpeed={1}
-            particleShape="capsule"
-            fieldStrength={10}
-          />
-        </div>
-        <section className="product-section">
-          <div className="section-heading">Club & Dept Merchandise</div>
-          <SkeletonGrid />
-        </section>
-      </div>
+      <section className="product-section">
+        <div className="section-heading">Club & Dept Merchandise</div>
+        <SkeletonGrid />
+      </section>
     );
   }
 
   return (
-    <div className="event-page-with-bg">
-      <div className="antigravity-bg" aria-hidden="true">
-        <Antigravity
-          count={600}
-          magnetRadius={18}
-          ringRadius={2}
-          waveSpeed={0.4}
-          waveAmplitude={0.5}
-          particleSize={0.35}
-          lerpSpeed={0.08}
-          color={CLUB_ANTIGRAVITY_COLOR}
-          autoAnimate={false}
-          particleVariance={0.2}
-          rotationSpeed={0}
-          depthFactor={1}
-          pulseSpeed={1}
-          particleShape="capsule"
-          fieldStrength={10}
-        />
-      </div>
-      <section className="product-section">
+    <section className="product-section">
       <div className="club-tabs-container">
         <div className="club-main-tabs">
           <button
@@ -668,8 +624,7 @@ export default function ClubPage() {
           />
         );
       })()}
-      </section>
-    </div>
+    </section>
   );
 }
 
