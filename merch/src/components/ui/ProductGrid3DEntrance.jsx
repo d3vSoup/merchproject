@@ -1,9 +1,10 @@
+// merch/src/components/ui/ProductGrid3DEntrance.jsx
 import React, { useRef, useEffect, useState, Children, useMemo } from "react";
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 
-const STAGGER_MS = 20;
+const STAGGER_MS = 30;
 
-function useReducedMotion() {
+function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -19,18 +20,17 @@ function useReducedMotion() {
   return reduced;
 }
 
-function AnimatedCard({ children, index, scrollProgress, disabled }) {
-  const delay = index * STAGGER_MS / 1000;
+function AnimatedCard({ children, index, progress, disabled }) {
+  const delay = (index * STAGGER_MS) / 1000;
 
-  const rotateX = useTransform(scrollProgress, [0, 0.2], [60, 0]);
-  const translateY = useTransform(scrollProgress, [0, 0.2], [120, 0]);
-  const scale = useTransform(scrollProgress, [0, 0.2], [0.92, 1]);
-  const opacity = useTransform(scrollProgress, [0, 0.15], [0.6, 1]);
-  const shadow = useTransform(
-    scrollProgress,
-    [0, 0.2],
-    ["0 40px 60px rgba(0,0,0,0.25)", "0 12px 34px rgba(15,23,42,0.05)"]
-  );
+  const rotateX = useTransform(progress, [0, 1], [60, 0]);
+  const translateY = useTransform(progress, [0, 1], [120, 0]);
+  const scale = useTransform(progress, [0, 1], [0.92, 1]);
+  const opacity = useTransform(progress, [0, 1], [0.6, 1]);
+  const shadow = useTransform(progress, [0, 1], [
+    "0 40px 60px rgba(0,0,0,0.25)",
+    "0 12px 34px rgba(15,23,42,0.05)",
+  ]);
 
   if (disabled) return children;
 
@@ -44,8 +44,9 @@ function AnimatedCard({ children, index, scrollProgress, disabled }) {
         boxShadow: shadow,
         willChange: "transform, opacity",
         transformOrigin: "center bottom",
+        transformStyle: "preserve-3d",
       }}
-      transition={{ delay }}
+      transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1], delay }}
     >
       {children}
     </motion.div>
@@ -53,20 +54,24 @@ function AnimatedCard({ children, index, scrollProgress, disabled }) {
 }
 
 export default function ProductGrid3DEntrance({ children, className = "product-grid" }) {
-  const reduced = useReducedMotion();
   const containerRef = useRef(null);
+  const reduced = usePrefersReducedMotion();
   const [hasPlayed, setHasPlayed] = useState(false);
+  const items = useMemo(() => Children.toArray(children), [children]);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "start 0.6"],
+    offset: ["start end", "start 0.18"],
   });
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    if (v >= 0.2 && !hasPlayed) setHasPlayed(true);
+  const progress = useTransform(scrollYProgress, [0, 0.18], [0, 1], { clamp: true });
+
+  useMotionValueEvent(progress, "change", (v) => {
+    // Debug: uncomment to verify progress fires
+    // console.log("ProductGrid3DEntrance progress:", v?.toFixed?.(3) ?? v);
+    if (v >= 0.98 && !hasPlayed) setHasPlayed(true);
   });
 
-  const items = useMemo(() => Children.toArray(children), [children]);
   const disabled = reduced || hasPlayed;
 
   return (
@@ -74,15 +79,16 @@ export default function ProductGrid3DEntrance({ children, className = "product-g
       ref={containerRef}
       className={className}
       style={{
-        perspective: disabled ? undefined : "1200px",
+        perspective: disabled ? undefined : 1200,
         transformStyle: disabled ? undefined : "preserve-3d",
+        overflow: "visible",
       }}
     >
       {items.map((child, i) => (
         <AnimatedCard
           key={child.key ?? i}
           index={i}
-          scrollProgress={scrollYProgress}
+          progress={progress}
           disabled={disabled}
         >
           {child}
