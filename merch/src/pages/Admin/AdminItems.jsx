@@ -82,6 +82,9 @@ export default function AdminItems() {
   const [loadingResell, setLoadingResell] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [busyItems, setBusyItems] = useState({});
+  const [eventDetails, setEventDetails] = useState(null);
+  const [eventDetailsDraft, setEventDetailsDraft] = useState({});
+  const [savingEventDetails, setSavingEventDetails] = useState(false);
 
   // Persist to localStorage whenever changes are made
   useEffect(() => {
@@ -154,6 +157,39 @@ export default function AdminItems() {
       loadSoldOutStatus();
     }
   }, [selectedTab, user]);
+
+  // Load event details for event tabs (utsav, phaseshift, farouche)
+  const EVENT_TAB_KEYS = ['utsav', 'phaseshift', 'farouche'];
+  useEffect(() => {
+    if (!EVENT_TAB_KEYS.includes(selectedTab)) {
+      setEventDetails(null);
+      setEventDetailsDraft({});
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get('/api/event-details', { params: { tabKey: selectedTab } });
+        if (cancelled) return;
+        const d = res.data?.eventDetails || null;
+        setEventDetails(d);
+        setEventDetailsDraft({
+          eventDate: d?.event_date || '',
+          eventTime: d?.event_time || '',
+          eventLocation: d?.event_location || '',
+          eventGmapsUrl: d?.event_gmaps_url || '',
+          entryPolicy: d?.entry_policy || '',
+          merchPopup: d?.merch_popup || '',
+        });
+      } catch (err) {
+        if (!cancelled) {
+          setEventDetails(null);
+          setEventDetailsDraft({});
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selectedTab]);
 
   // Save sold-out status to backend
   async function saveSoldOutStatus(tabKey, productId, variant, soldOut, clubOrDept = null, eventStatusOverride = null) {
@@ -484,6 +520,96 @@ export default function AdminItems() {
             )}
           </div>
         </div>
+
+        {EVENT_TAB_KEYS.includes(selectedTab) && (
+          <div className="admin-event-details">
+            <h4>Event Details (Date, Time, Location)</h4>
+            <p className="admin-event-details-note">These appear in the &quot;Festival Grounds&quot; section on the event page. Add a Google Maps link for location.</p>
+            <div className="admin-event-details-fields">
+              <label>
+                <span>Date</span>
+                <input
+                  type="text"
+                  placeholder="e.g. October 24-26, 2024"
+                  value={eventDetailsDraft.eventDate || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, eventDate: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span>Time</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Starts at 10:00 AM Daily"
+                  value={eventDetailsDraft.eventTime || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, eventTime: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span>Location</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Indoor Stadium Lounge"
+                  value={eventDetailsDraft.eventLocation || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, eventLocation: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span>Google Maps URL</span>
+                <input
+                  type="url"
+                  placeholder="https://maps.google.com/..."
+                  value={eventDetailsDraft.eventGmapsUrl || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, eventGmapsUrl: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span>Merch Pop-up Info</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Exclusive stall at Indoor Stadium. Online pickups available."
+                  value={eventDetailsDraft.merchPopup || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, merchPopup: e.target.value }))}
+                />
+              </label>
+              <label>
+                <span>Entry Policy</span>
+                <input
+                  type="text"
+                  placeholder="e.g. ID cards mandatory. Wear merch for priority access."
+                  value={eventDetailsDraft.entryPolicy || ''}
+                  onChange={(e) => setEventDetailsDraft(prev => ({ ...prev, entryPolicy: e.target.value }))}
+                />
+              </label>
+            </div>
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={savingEventDetails}
+              onClick={async () => {
+                setSavingEventDetails(true);
+                try {
+                  await api.put('/api/admin/event-details', {
+                    tabKey: selectedTab,
+                    eventDate: eventDetailsDraft.eventDate || null,
+                    eventTime: eventDetailsDraft.eventTime || null,
+                    eventLocation: eventDetailsDraft.eventLocation || null,
+                    eventGmapsUrl: eventDetailsDraft.eventGmapsUrl || null,
+                    entryPolicy: eventDetailsDraft.entryPolicy || null,
+                    merchPopup: eventDetailsDraft.merchPopup || null,
+                  });
+                  toast.success('Event details saved');
+                  setEventDetails(eventDetailsDraft);
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Failed to save event details');
+                } finally {
+                  setSavingEventDetails(false);
+                }
+              }}
+            >
+              {savingEventDetails ? 'Saving...' : 'Save Event Details'}
+            </button>
+          </div>
+        )}
 
         {selectedTab !== 'listed' && selectedTab === "club" && (
           <div className="club-tabs-container">

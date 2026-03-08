@@ -2994,6 +2994,71 @@ app.get('/api/admin/items/soldouts', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/event-details - Get event details (date, time, location, gmaps) for a tab
+app.get('/api/event-details', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.json({ eventDetails: null });
+    }
+    const { tabKey } = req.query;
+    if (!tabKey) {
+      return res.json({ eventDetails: null });
+    }
+    const { data, error } = await supabaseAdmin
+      .from('event_details')
+      .select('*')
+      .eq('tab_key', tabKey)
+      .maybeSingle();
+    if (error) {
+      console.error('Get event-details error:', error);
+      return res.json({ eventDetails: null });
+    }
+    return res.json({ eventDetails: data });
+  } catch (err) {
+    console.error('Get event-details error:', err);
+    return res.json({ eventDetails: null });
+  }
+});
+
+// PUT /api/admin/event-details - Update event details (admin only)
+app.put('/api/admin/event-details', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+    const { tabKey, eventDate, eventTime, eventLocation, eventGmapsUrl, entryPolicy, merchPopup } = req.body;
+    if (!tabKey) {
+      return res.status(400).json({ message: 'Missing tabKey' });
+    }
+    const updateData = {
+      tab_key: tabKey,
+      event_date: eventDate || null,
+      event_time: eventTime || null,
+      event_location: eventLocation || null,
+      event_gmaps_url: eventGmapsUrl || null,
+      entry_policy: entryPolicy || null,
+      merch_popup: merchPopup || null,
+      updated_at: new Date().toISOString()
+    };
+    const { data, error } = await supabaseAdmin
+      .from('event_details')
+      .upsert([updateData], { onConflict: 'tab_key' })
+      .select()
+      .single();
+    if (error) {
+      console.error('Update event-details error:', error);
+      return res.status(500).json({ message: 'Failed to update event details', error: error.message });
+    }
+    return res.json({ success: true, data });
+  } catch (err) {
+    console.error('Update event-details error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // POST /api/admin/items/soldout - Update sold-out status
 app.post('/api/admin/items/soldout', authMiddleware, async (req, res) => {
   try {

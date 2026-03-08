@@ -10,7 +10,7 @@ import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import ProductModal from "../../components/ProductModal";
 import WishlistHeart from "../../components/WishlistHeart";
 import api from "../../api";
-import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
+import FadeInSection from "../../components/ui/FadeInSection";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -465,7 +465,7 @@ export default function ClubPage() {
             </div>
           ) : (
           <div className="product-grid-wrapper">
-            <ProductGrid3DEntrance>
+            <div className="product-grid">
             {displayProducts.map((product) => {
               const defaultVariant = product.sleeveOptions?.[0] || null;
               const productKey = `club:${product.id}`;
@@ -505,8 +505,8 @@ export default function ClubPage() {
               const quantity = cartItem?.quantity || 0;
 
               return (
+                <FadeInSection key={productKey} as="div" className="product-grid__card">
                 <article 
-                  key={productKey} 
                   className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
                   style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
                 >
@@ -599,9 +599,10 @@ export default function ClubPage() {
                     </button>
                   </div>
                 </article>
+                </FadeInSection>
               );
             })}
-            </ProductGrid3DEntrance>
+            </div>
           </div>
           )}
         </>

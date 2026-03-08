@@ -542,17 +542,6 @@ export default function Layout({ children, cartCount = 0 }) {
           </div>
       </header>
 
-      {["utsav", "phaseshift", "farouche", "club"].includes(activeTab) && (
-        <div className="event-subnav">
-          <div className="event-subnav-inner">
-            <Link to="/event/utsav" className={`event-subnav-tab ${activeTab === "utsav" ? "is-active" : ""}`}>Utsav</Link>
-            <Link to="/event/phaseshift" className={`event-subnav-tab ${activeTab === "phaseshift" ? "is-active" : ""}`}>Phaseshift</Link>
-            <Link to="/event/farouche" className={`event-subnav-tab ${activeTab === "farouche" ? "is-active" : ""}`}>Farouche</Link>
-            <Link to="/event/club" className={`event-subnav-tab ${activeTab === "club" ? "is-active" : ""}`}>Club & Dept</Link>
-          </div>
-        </div>
-      )}
-
       <main className="main-content">
         {children}
       </main>

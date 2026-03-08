@@ -12,8 +12,9 @@ import ProductModal from "../../components/ProductModal";
 import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
-import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
+import FadeInSection from "../../components/ui/FadeInSection";
 import RotatingText from "../../components/ui/RotatingText";
+import EventDetailsSection from "../../components/EventDetailsSection";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -37,6 +38,7 @@ export default function EventPage() {
   const [productOverrides, setProductOverrides] = useState({});
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [eventDetails, setEventDetails] = useState(null);
 
   // Removed localStorage dependency - countdown is now fetched from backend
 
@@ -158,6 +160,16 @@ export default function EventPage() {
 
     fetchSoldOutFromServer();
     fetchOverrides();
+
+    async function fetchEventDetails() {
+      try {
+        const res = await api.get('/api/event-details', { params: { tabKey: eventKey } });
+        if (!cancelled) setEventDetails(res.data?.eventDetails || null);
+      } catch (err) {
+        if (!cancelled) setEventDetails(null);
+      }
+    }
+    fetchEventDetails();
     
     // Lightweight function to only fetch event status (for countdown updates)
     // This doesn't trigger loading state to avoid page refresh glitch
@@ -387,24 +399,57 @@ export default function EventPage() {
   const eventTitle = eventTitles[eventKey] || currentTabLabel;
   const showCountdown = eventStatus.type === "countdown" && eventStatus.countdown;
 
+  const mainStageHeadlines = [
+    "MADE FOR THE MAIN STAGE",
+    "LIMITED EDITION DROPS",
+    "WEAR THE ENERGY",
+    "EXCLUSIVE EVENT MERCH",
+  ];
+
   return (
     <section className="product-section event-page">
       {showCountdown && (
-        <div className="event-hero-banner">
-          <span className="event-hero-badge">
-            <span className="event-hero-badge-dot" />
-            Limited Edition Drop
-          </span>
-          <h2 className="event-hero-title">
-            {eventTitle.toUpperCase()} <span className="event-hero-year">2025</span>
-          </h2>
-          <p className="event-hero-subtitle">
-            Exclusive apparel designed for the culture. Premium fabrics. Unmatched spirit.
-          </p>
-          <div className="event-hero-countdown">
-            <FlipClock targetDate={eventStatus.countdown} />
+        <>
+          <div className="made-for-main-stage">
+            <div className="made-for-main-stage__content">
+              <div className="made-for-main-stage__text">
+                <h2 className="made-for-main-stage__headline">
+                  <RotatingText
+                    texts={mainStageHeadlines}
+                    mainClassName="made-for-main-stage__rotate"
+                    splitBy="words"
+                    rotationInterval={2500}
+                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                    initial={{ y: "100%", opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: "-120%", opacity: 0 }}
+                  />
+                </h2>
+                <p className="made-for-main-stage__desc">
+                  Every piece in the {eventTitle} collection is designed to survive the mosh pits and the after-parties. Don&apos;t just attend the event, wear the energy.
+                </p>
+                <div className="made-for-main-stage__social">
+                  <span className="made-for-main-stage__avatars">●●●</span>
+                  <span>+500 STUDENTS HAVE JOINED THE WAITLIST</span>
+                </div>
+              </div>
+              <div className="made-for-main-stage__visual">
+                <div className="made-for-main-stage__box made-for-main-stage__box--base" />
+                <div className="made-for-main-stage__box made-for-main-stage__box--top">
+                  {eventProducts[0]?.imageUrl && (
+                    <div
+                      className="made-for-main-stage__product-img"
+                      style={{ backgroundImage: `url(${eventProducts[0].imageUrl})` }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="event-hero-countdown made-for-main-stage__countdown">
+              <FlipClock targetDate={eventStatus.countdown} />
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {!showCountdown && (
@@ -438,7 +483,7 @@ export default function EventPage() {
       )}
 
       <div className="product-grid-wrapper">
-        <ProductGrid3DEntrance>
+        <div className="product-grid">
         {eventProducts.map((product, idx) => {
           const defaultVariant = product.sleeveOptions?.[0] || null;
           const productKey = `${eventKey}:${product.id}`;
@@ -451,8 +496,8 @@ export default function EventPage() {
           const showLimitedBadge = showCountdown && idx === 0 && !isProductSoldOut;
 
           return (
+            <FadeInSection key={productKey} as="div" className="product-grid__card">
             <article
-              key={productKey}
               className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showLimitedBadge ? "product-card--featured" : ""}`}
               data-product-key={productKey}
               style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -548,10 +593,13 @@ export default function EventPage() {
                 </button>
               </div>
             </article>
+            </FadeInSection>
           );
         })}
-        </ProductGrid3DEntrance>
+        </div>
       </div>
+
+      <EventDetailsSection eventDetails={eventDetails} eventTitle={eventTitle} />
 
       {selectedProduct && (
         <ProductModal
