@@ -408,7 +408,7 @@ export default function Layout({ children, cartCount = 0 }) {
                         <h3>Welcome</h3>
                         <p>Sign in to access your cart and orders</p>
                       </div>
-                      <GoogleSignIn onSuccess={handleGoogleSuccess} />
+                      <GoogleSignIn onSuccess={handleGoogleSuccess} onCancel={() => setAccountOpen(false)} />
                       <div className="signin-note">
                         <span>Use your College Google account:</span>
                         <ul>

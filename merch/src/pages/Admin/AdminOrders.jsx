@@ -199,6 +199,20 @@ export default function AdminOrders() {
     }
   }
 
+  async function deleteOrder(orderId, email) {
+    if (!confirm(`Permanently delete order for ${email}? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/api/admin/orders/${orderId}`);
+      setAllOrders(prev => prev.filter(o => o.id !== orderId));
+      setConfirmedOrders(prev => prev.filter(o => o.id !== orderId));
+      setCartItems(prev => prev.filter(o => o.id !== orderId));
+      toast.success('Order deleted');
+    } catch (err) {
+      console.error('Failed to delete order:', err);
+      toast.error(err.response?.data?.message || 'Failed to delete order');
+    }
+  }
+
   const resellListings = allOrders.filter(o => o.type === 'resell_listing');
   
   const displayOrders = activeTab === 'all' ? allOrders 
@@ -357,6 +371,14 @@ export default function AdminOrders() {
                         Refund
                       </button>
                     )}
+                    <button
+                      className="btn btn--ghost btn--sm"
+                      style={{ color: '#991b1b', fontSize: '0.8rem' }}
+                      onClick={() => deleteOrder(order.id, order.email)}
+                      title="Delete this order"
+                    >
+                      Delete
+                    </button>
                   </div>
                   </div>
 

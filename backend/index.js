@@ -2367,6 +2367,39 @@ app.post('/api/admin/orders/update-status', authMiddleware, async (req, res) => 
   }
 });
 
+// DELETE /api/admin/orders/:id - Delete an order (admin only)
+app.delete('/api/admin/orders/:id', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+
+    const { id } = req.params;
+
+    // Try deleting from confirmed_orders first
+    const { error: orderErr } = await supabaseAdmin
+      .from('confirmed_orders')
+      .delete()
+      .eq('id', id);
+
+    if (orderErr) {
+      console.error('Error deleting order:', orderErr);
+      return res.status(500).json({ message: 'Failed to delete order', error: orderErr.message });
+    }
+
+    // Also try deleting from carts (in case it's a cart entry)
+    await supabaseAdmin.from('carts').delete().eq('id', id).catch(() => {});
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Delete order error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/admin/orders/export - CSV export (admin only, optional date filter)
 app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
   try {

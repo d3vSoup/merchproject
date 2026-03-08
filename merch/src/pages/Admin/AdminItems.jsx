@@ -81,6 +81,7 @@ export default function AdminItems() {
   const [viewingResellItem, setViewingResellItem] = useState(null);
   const [loadingResell, setLoadingResell] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [busyItems, setBusyItems] = useState({});
 
   // Persist to localStorage whenever changes are made
   useEffect(() => {
@@ -167,23 +168,16 @@ export default function AdminItems() {
         clubOrDept
       };
       
-      // Only set eventStatus if explicitly provided (for event-level changes)
-      // When toggling individual items, don't override eventStatus
       if (eventStatusOverride !== null) {
         payload.eventStatus = eventStatusOverride;
       }
       
-      console.log('Saving soldout status:', payload);
-      const res = await api.post('/api/admin/items/soldout', payload);
-      console.log('Saved successfully:', res.data);
+      await api.post('/api/admin/items/soldout', payload);
       toast.success(`Item ${soldOut ? 'marked unavailable' : 'marked available'}`);
-      
-      // Reload to ensure UI matches database
-      setTimeout(() => loadSoldOutStatus(), 200);
     } catch (err) {
       console.error('Failed to save sold-out status:', err);
       toast.error('Failed to save to database');
-      throw err; // Rethrow so the caller can revert
+      throw err;
     }
   }
 
@@ -922,41 +916,41 @@ export default function AdminItems() {
                         <input
                           type="checkbox"
                           checked={!finalSoldOut}
-                          disabled={isHidden}
+                          disabled={isHidden || busyItems[product.id]}
                           onChange={async (e) => {
+                            if (busyItems[product.id]) return;
+                            setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                            
                             const newSoldOut = !e.target.checked;
                             const keyToUpdate = currentCategory ? categoryKey : productKey;
-                            const variantKey = `${selectedTab}:${product.id}:standard`;
+                            const vKey = `${selectedTab}:${product.id}:standard`;
                             
-                            // Optimistically update UI
                             setSoldOutItems(prev => {
                               const updated = { ...prev };
                               updated[keyToUpdate] = newSoldOut;
                               if (!currentCategory) {
-                                updated[variantKey] = newSoldOut;
+                                updated[vKey] = newSoldOut;
                               }
                               return updated;
                             });
                             
-                            // Save to backend
                             try {
                               await saveSoldOutStatus(selectedTab, product.id, null, newSoldOut, currentCategory, null);
-                              // Don't show toast here as loadSoldOutStatus will be called after save
                             } catch (err) {
-                              // Revert on error
                               setSoldOutItems(prev => {
                                 const reverted = { ...prev };
                                 reverted[keyToUpdate] = !newSoldOut;
                                 if (!currentCategory) {
-                                  reverted[variantKey] = !newSoldOut;
+                                  reverted[vKey] = !newSoldOut;
                                 }
                                 return reverted;
                               });
-                              toast.error('Failed to update availability');
+                            } finally {
+                              setBusyItems(prev => ({ ...prev, [product.id]: false }));
                             }
                           }}
                         />
-                        Available
+                        {busyItems[product.id] ? 'Saving...' : 'Available'}
                       </label>
                     </div>
                     {currentCategory && (
@@ -968,6 +962,7 @@ export default function AdminItems() {
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button
                       className="btn btn--ghost"
+                      disabled={busyItems[product.id]}
                       onClick={() => setEditingProduct({ ...product, tabKey: selectedTab, productKey })}
                     >
                       Edit
@@ -976,21 +971,36 @@ export default function AdminItems() {
                       <button
                         className="btn btn--ghost"
                         style={{ color: 'var(--accent)' }}
-                        onClick={() => restoreProduct(selectedTab, product.id)}
+                        disabled={busyItems[product.id]}
+                        onClick={async () => {
+                          if (busyItems[product.id]) return;
+                          setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                          try {
+                            await restoreProduct(selectedTab, product.id);
+                          } finally {
+                            setBusyItems(prev => ({ ...prev, [product.id]: false }));
+                          }
+                        }}
                       >
-                        Restore
+                        {busyItems[product.id] ? 'Restoring...' : 'Restore'}
                       </button>
                     ) : (
                       <button
                         className="btn btn--ghost"
                         style={{ color: '#dc2626' }}
-                        onClick={() => {
-                          if (window.confirm(`Remove "${product.name}" from this event? It will no longer appear in the merch lineup.`)) {
-                            hideOrDeleteProduct(selectedTab, product.id);
+                        disabled={busyItems[product.id]}
+                        onClick={async () => {
+                          if (busyItems[product.id]) return;
+                          if (!window.confirm(`Remove "${product.name}" from this event? It will no longer appear in the merch lineup.`)) return;
+                          setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                          try {
+                            await hideOrDeleteProduct(selectedTab, product.id);
+                          } finally {
+                            setBusyItems(prev => ({ ...prev, [product.id]: false }));
                           }
                         }}
                       >
-                        Delete
+                        {busyItems[product.id] ? 'Deleting...' : 'Delete'}
                       </button>
                     )}
                   </div>
