@@ -410,7 +410,7 @@ export default function EventPage() {
     <section className="product-section event-page">
       {showCountdown && (
         <>
-          <div className="made-for-main-stage">
+          <div className={`made-for-main-stage made-for-main-stage--${eventKey}`}>
             <div className="made-for-main-stage__content">
               <div className="made-for-main-stage__text">
                 <h2 className="made-for-main-stage__headline">
