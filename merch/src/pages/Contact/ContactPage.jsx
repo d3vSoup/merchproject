@@ -22,9 +22,9 @@ export default function ContactPage() {
           </div>
 
           <div className="contact-note">
-            <h4>Resell Ban Issues</h4>
+            <h4>Revault Ban Issues</h4>
             <p>
-              If you believe your resell account was banned incorrectly, or if you have concerns about
+              If you believe your Revault account was banned incorrectly, or if you have concerns about
               a transaction, please contact us using the information above. We'll review your case and
               respond as soon as possible.
             </p>
@@ -33,16 +33,16 @@ export default function ContactPage() {
           <div className="contact-faq">
             <h4>Frequently Asked Questions</h4>
             <details>
-              <summary>How do I unlock the Resell feature?</summary>
+              <summary>How do I unlock the Revault feature?</summary>
               <p>
-                Complete your profile (upload PFP, fill in all details) to unlock the Resell feature.
+                Complete your profile (upload PFP, fill in all details) to unlock the Revault feature.
                 You'll need to fill out the resell onboarding form with your name, branch, and semester.
               </p>
             </details>
             <details>
-              <summary>What happens if I get banned from Resell?</summary>
+              <summary>What happens if I get banned from Revault?</summary>
               <p>
-                If you receive 3 strikes for unacceptable behavior, your resell account will be banned.
+                If you receive 3 strikes for unacceptable behavior, your Revault account will be banned.
                 Contact us if you believe this was done in error.
               </p>
             </details>

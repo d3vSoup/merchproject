@@ -15,7 +15,7 @@ const FEATURES = [
   },
   {
     icon: "🔄",
-    title: "Resell Marketplace",
+    title: "Revault Marketplace",
     desc: "Missed a drop? Browse verified student listings to grab past-event merch in a safe, moderated marketplace.",
   },
   {

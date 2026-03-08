@@ -51,7 +51,7 @@ export default function ResellPage() {
     return (
       <div className="resell-locked">
         <h2>Sign In Required</h2>
-        <p>Please sign in to access the Resell platform.</p>
+        <p>Please sign in to access the Revault platform.</p>
       </div>
     );
   }
@@ -67,13 +67,15 @@ export default function ResellPage() {
           className={`resell-tab ${activeTab === "buyer" ? "is-active" : ""}`}
           onClick={() => setActiveTab("buyer")}
         >
-          Buyer
+          <span className="resell-tab__icon">🛍️</span>
+          Browse
         </button>
         <button
           className={`resell-tab ${activeTab === "seller" ? "is-active" : ""}`}
           onClick={() => setActiveTab("seller")}
         >
-          Seller
+          <span className="resell-tab__icon">📦</span>
+          My Listings
         </button>
       </div>
       <div className="resell-content">
@@ -82,4 +84,3 @@ export default function ResellPage() {
     </div>
   );
 }
-

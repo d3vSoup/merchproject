@@ -19,7 +19,7 @@ const TABS = [
   { key: "phaseshift", label: "Phaseshift", catalogKey: "phaseshift", path: "/event/phaseshift" },
   { key: "farouche", label: "Farouche", catalogKey: "farouche", path: "/event/farouche" },
   { key: "club", label: "Club & Dept Merch", catalogKey: "club", path: "/event/club" },
-  { key: "resell", label: "Resell", catalogKey: null, path: "/resell" },
+  { key: "resell", label: "Revault", catalogKey: null, path: "/resell" },
 ];
 
 const overrideCache = {};
@@ -527,10 +527,10 @@ export default function Layout({ children, cartCount = 0 }) {
 
                       <div className="profile-status">
                         {profilePercent >= 100 ? (
-                          <span className="status-enabled">✓ Resell enabled</span>
+                          <span className="status-enabled">✓ Revault enabled</span>
                         ) : (
                           <span className="status-info">
-                            Complete your profile (USN, Name, Semester) to use Resell.
+                            Complete your profile (USN, Name, Semester) to use Revault.
                           </span>
                         )}
                       </div>

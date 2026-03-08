@@ -35,7 +35,7 @@ export default function ResellOnboarding({ onComplete }) {
 
     const profile = await createResellProfile(userId, formData);
     if (profile) {
-      toast.success("Resell unlocked!");
+      toast.success("Revault unlocked!");
       onComplete();
     } else {
       toast.error("Failed to create profile");
@@ -46,8 +46,8 @@ export default function ResellOnboarding({ onComplete }) {
   return (
     <div className="resell-onboarding">
       <div className="onboarding-content">
-        <h2>Unlock Resell</h2>
-        <p>Complete your resell profile to start buying and selling merchandise.</p>
+        <h2>Unlock Revault</h2>
+        <p>Complete your profile to start buying and selling merchandise on Revault.</p>
         <form onSubmit={handleSubmit} className="onboarding-form">
           <label>
             Full Name
@@ -80,7 +80,7 @@ export default function ResellOnboarding({ onComplete }) {
             />
           </label>
           <button type="submit" className="btn btn--primary" disabled={loading}>
-            {loading ? "Processing..." : "Unlock Resell"}
+            {loading ? "Processing..." : "Unlock Revault"}
           </button>
         </form>
       </div>

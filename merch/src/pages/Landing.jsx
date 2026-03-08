@@ -185,7 +185,7 @@ export default function Landing() {
         </div>
         <div className="landing-actions">
           <Link to="/resell" className="btn">
-            Browse Resell
+            Browse Revault
           </Link>
           <Link to="/about" className="btn btn--ghost">
             About Us
