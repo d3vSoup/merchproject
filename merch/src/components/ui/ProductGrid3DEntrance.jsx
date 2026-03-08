@@ -65,10 +65,10 @@ export default function ProductGrid3DEntrance({ children, className = "product-g
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: ["start 0.95", "start 0.2"],
   });
 
-  const progress = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], [0, 0.15, 0.9, 1], { clamp: true });
+  const progress = useTransform(scrollYProgress, [0, 0.03, 0.12, 1], [0, 0.15, 0.95, 1], { clamp: true });
 
   useMotionValueEvent(progress, "change", (v) => {
     // Debug: uncomment to verify progress fires
