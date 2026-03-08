@@ -1,4 +1,5 @@
 import React from "react";
+import ScrollReveal from "../../components/ui/ScrollReveal";
 import "./AboutPage.css";
 
 const FEATURES = [
@@ -59,6 +60,19 @@ export default function AboutPage() {
           The official merchandise platform for BMS College of Engineering.
           Exclusive, limited-edition drops for every major college event — designed by students, for students.
         </p>
+      </section>
+
+      <section className="about-quote">
+        <ScrollReveal
+          baseOpacity={0.1}
+          enableBlur
+          baseRotation={3}
+          blurStrength={4}
+        >
+          When does a man die? When he is hit by a bullet? No! When he suffers a disease?
+          No! When he ate a soup made out of a poisonous mushroom?
+          No! A man dies when he is forgotten!
+        </ScrollReveal>
       </section>
 
       <section className="about-features">

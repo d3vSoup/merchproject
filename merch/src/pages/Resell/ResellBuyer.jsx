@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/AuthContext";
 import toast from "react-hot-toast";
 import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
+import GradientText from "../../components/ui/GradientText";
 import "./ResellBuyer.css";
 
 const CONDITIONS = [
@@ -321,7 +322,11 @@ export default function ResellBuyer() {
   return (
     <div className="resell-buyer">
       <div className="resell-buyer__header">
-        <h2 className="resell-buyer__title">Available Items</h2>
+        <h2 className="resell-buyer__title">
+          <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false}>
+            Merch Items
+          </GradientText>
+        </h2>
       </div>
 
       <div className="resell-buyer__filters">

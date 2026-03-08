@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import GoogleSignIn from "./GoogleSignIn";
+import GradientText from "./ui/GradientText";
 import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
 import GlassToggle from "./GlassToggle";
@@ -308,7 +309,13 @@ export default function Layout({ children, cartCount = 0 }) {
                   setMobileMenuOpen(false);
                 }}
               >
-                {tab.label}
+                {(tab.catalogKey || tab.key === "resell") ? (
+                  <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
+                    {tab.label}
+                  </GradientText>
+                ) : (
+                  tab.label
+                )}
               </Link>
             ))}
             <div className="mobile-menu-divider" />
@@ -335,7 +342,13 @@ export default function Layout({ children, cartCount = 0 }) {
                 to={tab.path}
                 className={`tab ${activeTab === tab.key ? "tab--active" : ""}`}
               >
-                {tab.label}
+                {(tab.catalogKey || tab.key === "resell") ? (
+                  <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
+                    {tab.label}
+                  </GradientText>
+                ) : (
+                  tab.label
+                )}
               </Link>
               {tab.catalogKey && hoveredTab === tab.key && (
                 <div className="tab-preview">
