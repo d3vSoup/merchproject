@@ -1,3 +1,4 @@
+/* Light mode: multiply so aurora is visible on white/light backgrounds */
 .aurora-container {
   position: absolute;
   inset: 0;
@@ -6,7 +7,13 @@
   pointer-events: none;
   z-index: 0;
   will-change: transform;
-  mix-blend-mode: screen;
+  mix-blend-mode: var(--aurora-blend-mode, multiply);
+}
+
+/* Dark mode: screen for bright aurora on dark backgrounds */
+.dark .aurora-container,
+.app-root.dark .aurora-container {
+  mix-blend-mode: var(--aurora-blend-mode-dark, screen);
 }
 
 .aurora-container canvas {

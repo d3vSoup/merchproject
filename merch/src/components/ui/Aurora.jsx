@@ -87,29 +87,23 @@ float fbm(vec3 p) {
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uResolution.xy;
-  vec2 p = uv * 2.0 - 1.0;
-  p.x *= uResolution.x / uResolution.y;
-
   float t = uTime * 0.15;
-  vec3 q = vec3(p * 2.5, t * 0.5);
+  vec3 q = vec3(uv * 2.5, t * 0.5);
   float n = fbm(q);
-  float ramp = smoothstep(0.2, 0.8, uv.y + n * uAmplitude * 0.3);
-  ramp *= smoothstep(0.0, 0.4, uv.y);
-  ramp *= smoothstep(1.0, 0.6, uv.y);
 
-  float blend = clamp(uBlend, 0.0, 1.0);
-  vec3 col = mix(uColor1, uColor2, ramp * 0.5 + 0.2);
-  col = mix(col, uColor3, ramp * 0.3 + n * 0.2);
-  col *= ramp * blend;
+  float ramp = smoothstep(0.0, 1.0, uv.y + n * uAmplitude);
 
-  gl_FragColor = vec4(col, ramp * blend);
+  vec3 col = mix(uColor1, uColor2, ramp);
+  col = mix(col, uColor3, n);
+
+  gl_FragColor = vec4(col, uBlend);
 }
 `;
 
 export default function Aurora({
   colorStops = ["#5227FF", "#7cff67", "#5227FF"],
   amplitude = 1.0,
-  blend = 0.5,
+  blend = 0.75,
   speed = 1.0,
   className = "",
   height = 420,

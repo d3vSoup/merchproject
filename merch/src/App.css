@@ -138,12 +138,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .checkout-btn{padding:10px 24px}
 
 .product-section{width:100%;display:flex;flex-direction:column;gap:18px}
-.product-grid-wrapper{position:relative;z-index:1;margin-top:120px;margin-bottom:200px}
-.product-grid-wrapper > .aurora-container{z-index:0}
-.product-grid-wrapper .aurora-content-wrapper{z-index:1}
-/* Aurora overlay for legibility - UX can tune via CSS variables */
-.aurora-overlay{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(var(--aurora-overlay-direction,180deg),var(--aurora-overlay-light,rgba(255,255,255,0.06)),var(--aurora-overlay-light-end,rgba(255,255,255,0)));mix-blend-mode:normal}
-.dark .aurora-overlay,.app-root.dark .aurora-overlay{background:linear-gradient(var(--aurora-overlay-direction,180deg),var(--aurora-overlay-dark,rgba(0,0,0,0.38)),var(--aurora-overlay-dark-end,rgba(0,0,0,0.12)))}
+.product-grid-wrapper{position:relative;z-index:1;margin-top:120px;margin-bottom:200px;background:transparent}
+.product-grid-wrapper > .aurora-container{z-index:0;pointer-events:none}
+.product-grid-wrapper .aurora-content-wrapper{z-index:1;position:relative;pointer-events:auto;background:transparent}
+/* Aurora overlay: transparent-to-semi-transparent so WebGL effect shows through (no white flattening) */
+.aurora-overlay{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(var(--aurora-overlay-direction,180deg),transparent 0%,var(--aurora-overlay-light,rgba(0,0,0,0.02)) 100%);mix-blend-mode:normal}
+.dark .aurora-overlay,.app-root.dark .aurora-overlay{background:linear-gradient(var(--aurora-overlay-direction,180deg),var(--aurora-overlay-dark,rgba(0,0,0,0.25)),var(--aurora-overlay-dark-end,rgba(0,0,0,0.08)))}
 .section-heading{font-size:var(--text-section,1.5rem);font-weight:700;margin:0;letter-spacing:0.04em;color:var(--c-text,#111827);display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-family:var(--font-display,'Space Grotesk',sans-serif)}
 .product-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;width:100%}
 .product-card{background:var(--c-surface,#fff);border-radius:var(--r-lg,16px);padding:18px;box-shadow:var(--g-card-rest,0 12px 34px rgba(16,24,40,0.05));display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;transition:transform var(--dur-short,180ms) var(--ease-standard,ease),box-shadow var(--dur-short,180ms) var(--ease-standard,ease);min-height:420px}

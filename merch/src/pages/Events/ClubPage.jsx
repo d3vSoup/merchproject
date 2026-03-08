@@ -469,7 +469,7 @@ export default function ClubPage() {
             <Aurora
               colorStops={getAuroraPalette("club")}
               amplitude={0.9}
-              blend={0.5}
+              blend={0.75}
               speed={1}
               height={480}
             />

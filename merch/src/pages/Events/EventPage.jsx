@@ -376,7 +376,7 @@ export default function EventPage() {
         <Aurora
           colorStops={getAuroraPalette(eventKey)}
           amplitude={0.9}
-          blend={0.5}
+          blend={0.75}
           speed={1}
           height={480}
         />
