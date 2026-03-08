@@ -5,7 +5,7 @@ import { useAuth } from "../auth/AuthContext";
 import GoogleSignIn from "./GoogleSignIn";
 import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
-import DarkModeToggle from "./DarkModeToggle";
+import GlassToggle from "./GlassToggle";
 import { getUserIdByEmail, getCart } from "../supabase/client";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../data/products";
 import api from "../api";
@@ -360,7 +360,7 @@ export default function Layout({ children, cartCount = 0 }) {
               🔍
             </button>
 
-            <DarkModeToggle />
+            <GlassToggle />
 
             <Link
               to="/wishlist"

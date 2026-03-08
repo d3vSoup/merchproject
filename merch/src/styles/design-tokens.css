@@ -81,30 +81,6 @@
   --font: var(--font-body);
 }
 
-/* ─── Dark mode ─── */
-.dark {
-  --c-bg: #0f0f0f;
-  --c-surface: #1b1b1b;
-  --c-subtle: #1a1a1a;
-  --c-text: #f5f5f5;
-  --c-muted: #a1a1aa;
-  --c-shadow: rgba(0, 0, 0, 0.4);
-  --c-primary: #ff7a2f;
-  --c-primary-hover: #ff8f4d;
-  --c-primary-muted: rgba(255, 122, 47, 0.2);
-
-  --g-hero: linear-gradient(180deg, rgba(26, 26, 26, 1), rgba(15, 15, 15, 1));
-  --g-card-hover: 0 20px 50px rgba(0, 0, 0, 0.5);
-  --g-card-rest: 0 12px 34px rgba(0, 0, 0, 0.3);
-
-  --watermark-opacity: 0.04;
-  --focus-ring: 0 0 0 3px rgba(255, 122, 47, 0.4);
-  --accent: var(--c-primary);
-  --bg: var(--c-bg);
-  --text: var(--c-text);
-  --muted: var(--c-muted);
-}
-
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
   :root {
