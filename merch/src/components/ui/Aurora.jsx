@@ -1,102 +1,57 @@
-// merch/src/components/ui/Aurora.jsx
+// src/components/ui/Aurora.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 import "./Aurora.css";
 
-// GLSL 100 (WebGL 1) - matches ogl Post.js and works with WebGL 1 fallback
-const VERT = `
+const VERT_WEBGL2 = `#version 300 es
+in vec2 position;
+void main() { gl_Position = vec4(position, 0.0, 1.0); }
+`;
+const VERT_WEBGL1 = `
 attribute vec2 position;
-void main() {
-  gl_Position = vec4(position, 0.0, 1.0);
-}
+void main() { gl_Position = vec4(position, 0.0, 1.0); }
 `;
 
-const FRAG = `
+// Simple, robust aurora-style fragment shader (WebGL2)
+const FRAG_WEBGL2 = `#version 300 es
 precision highp float;
 uniform float uTime;
 uniform float uAmplitude;
-uniform vec3 uColor1;
-uniform vec3 uColor2;
-uniform vec3 uColor3;
+uniform vec3 uColorStops[3];
 uniform vec2 uResolution;
 uniform float uBlend;
-
-// Simplex noise for aurora flow (WebGL 1 compatible)
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-
-float snoise(vec3 v) {
-  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-  vec3 i  = floor(v + dot(v, C.yyy));
-  vec3 x0 = v - i + dot(i, C.xxx);
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min(g.xyz, l.zxy);
-  vec3 i2 = max(g.xyz, l.zxy);
-  vec3 x1 = x0 - i1 + C.xxx;
-  vec3 x2 = x0 - i2 + C.yyy;
-  vec3 x3 = x0 - D.yyy;
-  i = mod289(i);
-  vec4 p = permute(permute(permute(
-    i.z + vec4(0.0, i1.z, i2.z, 1.0))
-    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-  float n_ = 0.142857142857;
-  vec4 ns = n_ * D.wyz - D.xzx;
-  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_);
-  vec4 x = x_ *ns.x + ns.yyyy;
-  vec4 y = y_ *ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-  vec4 b0 = vec4(x.xy, y.xy);
-  vec4 b1 = vec4(x.zw, y.zw);
-  vec4 s0 = floor(b0)*2.0 + 1.0;
-  vec4 s1 = floor(b1)*2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-  vec3 p0 = vec3(a0.xy, h.x);
-  vec3 p1 = vec3(a0.zw, h.y);
-  vec3 p2 = vec3(a1.xy, h.z);
-  vec3 p3 = vec3(a1.zw, h.w);
-  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
-  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+out vec4 fragColor;
+float rand(vec2 co){ return fract(sin(dot(co.xy,vec2(12.9898,78.233)))*43758.5453); }
+void main(){
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  float t = uTime * 0.1;
+  float n = rand(uv * 100.0 + t);
+  float ramp = smoothstep(0.15, 0.8, uv.y + (n - 0.5) * uAmplitude * 0.18);
+  vec3 col = mix(uColorStops[0], uColorStops[1], ramp);
+  col = mix(col, uColorStops[2], ramp * 0.5);
+  float alpha = ramp * uBlend;
+  fragColor = vec4(col * alpha, alpha);
 }
+`;
 
-float fbm(vec3 p) {
-  float v = 0.0;
-  float a = 0.5;
-  vec3 shift = vec3(100.0);
-  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
-  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
-  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
-  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
-  v += a * snoise(p);
-  return v;
-}
-
-void main() {
-  vec2 uv = gl_FragCoord.xy / uResolution.xy;
-  float t = uTime * 0.15;
-  vec3 q = vec3(uv * 2.5, t * 0.5);
-  float n = fbm(q);
-
-  float ramp = smoothstep(0.0, 1.0, uv.y + n * uAmplitude);
-
-  vec3 col = mix(uColor1, uColor2, ramp);
-  col = mix(col, uColor3, n);
-
-  gl_FragColor = vec4(col, uBlend);
+// WebGL1-compatible version (uses gl_FragColor)
+const FRAG_WEBGL1 = `
+precision highp float;
+uniform float uTime;
+uniform float uAmplitude;
+uniform vec3 uColorStops[3];
+uniform vec2 uResolution;
+uniform float uBlend;
+float rand(vec2 co){ return fract(sin(dot(co.xy,vec2(12.9898,78.233)))*43758.5453); }
+void main(){
+  vec2 uv = gl_FragCoord.xy / uResolution;
+  float t = uTime * 0.1;
+  float n = rand(uv * 100.0 + t);
+  float ramp = smoothstep(0.15, 0.8, uv.y + (n - 0.5) * uAmplitude * 0.18);
+  vec3 col = mix(uColorStops[0], uColorStops[1], ramp);
+  col = mix(col, uColorStops[2], ramp * 0.5);
+  float alpha = ramp * uBlend;
+  gl_FragColor = vec4(col * alpha, alpha);
 }
 `;
 
@@ -105,18 +60,16 @@ export default function Aurora({
   amplitude = 1.0,
   blend = 0.75,
   speed = 1.0,
-  className = "",
   height = 420,
+  className = "",
 }) {
   const ctnRef = useRef(null);
   const programRef = useRef(null);
-  const visibleRef = useRef(true);
   const rafRef = useRef(0);
   const propsRef = useRef({ colorStops, amplitude, blend, speed });
   propsRef.current = { colorStops, amplitude, blend, speed };
-
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -125,15 +78,6 @@ export default function Aurora({
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 768px)");
-    setIsMobile(mq.matches);
-    const handler = () => setIsMobile(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  const effectiveHeight = isMobile && typeof height === "number" ? Math.min(height, 240) : height;
 
   useEffect(() => {
     const ctn = ctnRef.current;
@@ -145,32 +89,31 @@ export default function Aurora({
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
+    const isWebGL2 = typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext;
+    const vertexSrc = isWebGL2 ? VERT_WEBGL2 : VERT_WEBGL1;
+    const fragSrc = isWebGL2 ? FRAG_WEBGL2 : FRAG_WEBGL1;
+
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) delete geometry.attributes.uv;
 
-    const [c1, c2, c3] = colorStops.map((hex) => {
+    const colorStopsArray = colorStops.map((hex) => {
       const c = new Color(hex);
       return [c.r, c.g, c.b];
     });
 
     const program = new Program(gl, {
-      vertex: VERT,
-      fragment: FRAG,
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
+      vertex: vertexSrc,
+      fragment: fragSrc,
       uniforms: {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
-        uColor1: { value: c1 },
-        uColor2: { value: c2 },
-        uColor3: { value: c3 },
+        uColorStops: { value: colorStopsArray },
         uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
         uBlend: { value: blend },
       },
     });
-    programRef.current = program;
 
+    programRef.current = program;
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
@@ -189,36 +132,20 @@ export default function Aurora({
     }
     window.addEventListener("resize", resize);
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        visibleRef.current = entries.some((e) => e.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    obs.observe(ctn);
-
-    const handleVisibility = () => {
-      visibleRef.current = !document.hidden;
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-
     let time = 0;
     const loop = (t) => {
       rafRef.current = requestAnimationFrame(loop);
-      if (!visibleRef.current) return;
       const { speed: s = 1 } = propsRef.current;
       time += 0.016 * s;
-      const stops = propsRef.current.colorStops ?? colorStops;
-      const [uc1, uc2, uc3] = stops.map((hex) => {
-        const c = new Color(hex);
-        return [c.r, c.g, c.b];
-      });
-      program.uniforms.uTime.value = time;
-      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? amplitude;
-      program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
-      program.uniforms.uColor1.value = uc1;
-      program.uniforms.uColor2.value = uc2;
-      program.uniforms.uColor3.value = uc3;
+      if (program) {
+        program.uniforms.uTime.value = time;
+        program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? amplitude;
+        program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
+        program.uniforms.uColorStops.value = (propsRef.current.colorStops ?? colorStops).map((hex) => {
+          const c = new Color(hex);
+          return [c.r, c.g, c.b];
+        });
+      }
       renderer.render({ scene: mesh });
     };
 
@@ -228,22 +155,21 @@ export default function Aurora({
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      obs.disconnect();
       if (ctn && gl.canvas.parentNode === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [reducedMotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  if (reducedMotion) return null;
+
   const style = {
     position: "absolute",
     inset: 0,
-    height: typeof effectiveHeight === "number" ? `${effectiveHeight}px` : effectiveHeight,
+    height: typeof height === "number" ? `${height}px` : height,
     width: "100%",
     pointerEvents: "none",
+    zIndex: 0,
   };
 
-  if (reducedMotion) return null;
-
-  return <div className={`aurora-container ${className}`} style={style} ref={ctnRef} />;
+  return <div ref={ctnRef} className={`aurora-container ${className}`} style={style} />;
 }

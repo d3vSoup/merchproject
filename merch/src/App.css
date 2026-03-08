@@ -141,7 +141,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .product-grid-wrapper{position:relative;z-index:1;margin-top:120px;margin-bottom:200px;background:transparent}
 .product-grid-wrapper > .aurora-container{z-index:0;pointer-events:none}
 .product-grid-wrapper .aurora-content-wrapper{z-index:1;position:relative;pointer-events:auto;background:transparent}
-/* Aurora overlay: transparent-to-semi-transparent so WebGL effect shows through (no white flattening) */
+/* Aurora overlay: transparent-to-subtle so WebGL shows through */
 .aurora-overlay{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(var(--aurora-overlay-direction,180deg),transparent 0%,var(--aurora-overlay-light,rgba(0,0,0,0.02)) 100%);mix-blend-mode:normal}
 .dark .aurora-overlay,.app-root.dark .aurora-overlay{background:linear-gradient(var(--aurora-overlay-direction,180deg),var(--aurora-overlay-dark,rgba(0,0,0,0.25)),var(--aurora-overlay-dark-end,rgba(0,0,0,0.08)))}
 .section-heading{font-size:var(--text-section,1.5rem);font-weight:700;margin:0;letter-spacing:0.04em;color:var(--c-text,#111827);display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-family:var(--font-display,'Space Grotesk',sans-serif)}
