@@ -361,19 +361,19 @@ export default function EventPage() {
       <div className="event-page-with-bg">
         <div className="antigravity-bg" aria-hidden="true">
           <Antigravity
-            count={300}
-            magnetRadius={6}
-            ringRadius={7}
+            count={600}
+            magnetRadius={18}
+            ringRadius={2}
             waveSpeed={0.4}
-            waveAmplitude={1}
-            particleSize={1.5}
-            lerpSpeed={0.05}
+            waveAmplitude={0.5}
+            particleSize={0.35}
+            lerpSpeed={0.08}
             color={antigravityColor}
-            autoAnimate
-            particleVariance={1}
+            autoAnimate={false}
+            particleVariance={0.2}
             rotationSpeed={0}
             depthFactor={1}
-            pulseSpeed={3}
+            pulseSpeed={1}
             particleShape="capsule"
             fieldStrength={10}
           />
@@ -390,19 +390,19 @@ export default function EventPage() {
     <div className="event-page-with-bg">
       <div className="antigravity-bg" aria-hidden="true">
         <Antigravity
-          count={300}
-          magnetRadius={6}
-          ringRadius={7}
+          count={600}
+          magnetRadius={18}
+          ringRadius={2}
           waveSpeed={0.4}
-          waveAmplitude={1}
-          particleSize={1.5}
-          lerpSpeed={0.05}
+          waveAmplitude={0.5}
+          particleSize={0.35}
+          lerpSpeed={0.08}
           color={antigravityColor}
-          autoAnimate
-          particleVariance={1}
+          autoAnimate={false}
+          particleVariance={0.2}
           rotationSpeed={0}
           depthFactor={1}
-          pulseSpeed={3}
+          pulseSpeed={1}
           particleShape="capsule"
           fieldStrength={10}
         />
