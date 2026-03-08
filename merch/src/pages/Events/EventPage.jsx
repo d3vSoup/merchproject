@@ -370,7 +370,8 @@ export default function EventPage() {
         <FlipClock targetDate={eventStatus.countdown} />
       )}
 
-      <ProductGrid3DEntrance>
+      <div className="product-grid-wrapper">
+        <ProductGrid3DEntrance>
         {eventProducts.map((product) => {
           const defaultVariant = product.sleeveOptions?.[0] || null;
           const productKey = `${eventKey}:${product.id}`;
@@ -470,6 +471,7 @@ export default function EventPage() {
           );
         })}
       </ProductGrid3DEntrance>
+      </div>
 
       {selectedProduct && (
         <ProductModal

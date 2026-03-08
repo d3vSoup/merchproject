@@ -463,6 +463,7 @@ export default function ClubPage() {
               <p>No products available for this category yet.</p>
             </div>
           ) : (
+          <div className="product-grid-wrapper">
           <ProductGrid3DEntrance>
             {displayProducts.map((product) => {
               const defaultVariant = product.sleeveOptions?.[0] || null;
@@ -589,6 +590,7 @@ export default function ClubPage() {
               );
             })}
           </ProductGrid3DEntrance>
+          </div>
           )}
         </>
       )}
