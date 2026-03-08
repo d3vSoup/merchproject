@@ -3,23 +3,25 @@ import React, { useEffect, useRef, useState } from "react";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 import "./Aurora.css";
 
-const VERT = `#version 300 es
-in vec2 position;
+// GLSL 100 (WebGL 1) - matches ogl Post.js and works with WebGL 1 fallback
+const VERT = `
+attribute vec2 position;
 void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
 
-const FRAG = `#version 300 es
+const FRAG = `
 precision highp float;
 uniform float uTime;
 uniform float uAmplitude;
-uniform vec3 uColorStops[3];
+uniform vec3 uColor1;
+uniform vec3 uColor2;
+uniform vec3 uColor3;
 uniform vec2 uResolution;
 uniform float uBlend;
-out vec4 fragColor;
 
-// Simplex noise (simplified for aurora flow)
+// Simplex noise for aurora flow (WebGL 1 compatible)
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
@@ -71,16 +73,15 @@ float snoise(vec3 v) {
   return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
 }
 
-// Fractal brownian motion for aurora bands
 float fbm(vec3 p) {
   float v = 0.0;
   float a = 0.5;
   vec3 shift = vec3(100.0);
-  for (int i = 0; i < 5; i++) {
-    v += a * snoise(p);
-    p = p * 2.0 + shift;
-    a *= 0.5;
-  }
+  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
+  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
+  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
+  v += a * snoise(p); p = p * 2.0 + shift; a *= 0.5;
+  v += a * snoise(p);
   return v;
 }
 
@@ -97,14 +98,11 @@ void main() {
   ramp *= smoothstep(1.0, 0.6, uv.y);
 
   float blend = clamp(uBlend, 0.0, 1.0);
-  vec3 c1 = uColorStops[0];
-  vec3 c2 = uColorStops[1];
-  vec3 c3 = uColorStops[2];
-  vec3 col = mix(c1, c2, ramp * 0.5 + 0.2);
-  col = mix(col, c3, ramp * 0.3 + n * 0.2);
+  vec3 col = mix(uColor1, uColor2, ramp * 0.5 + 0.2);
+  col = mix(col, uColor3, ramp * 0.3 + n * 0.2);
   col *= ramp * blend;
 
-  fragColor = vec4(col, ramp * blend);
+  gl_FragColor = vec4(col, ramp * blend);
 }
 `;
 
@@ -156,7 +154,7 @@ export default function Aurora({
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) delete geometry.attributes.uv;
 
-    const colorStopsArray = colorStops.map((hex) => {
+    const [c1, c2, c3] = colorStops.map((hex) => {
       const c = new Color(hex);
       return [c.r, c.g, c.b];
     });
@@ -164,10 +162,15 @@ export default function Aurora({
     const program = new Program(gl, {
       vertex: VERT,
       fragment: FRAG,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
         uAmplitude: { value: amplitude },
-        uColorStops: { value: colorStopsArray },
+        uColor1: { value: c1 },
+        uColor2: { value: c2 },
+        uColor3: { value: c3 },
         uResolution: { value: [ctn.offsetWidth, ctn.offsetHeight] },
         uBlend: { value: blend },
       },
@@ -211,13 +214,17 @@ export default function Aurora({
       if (!visibleRef.current) return;
       const { speed: s = 1 } = propsRef.current;
       time += 0.016 * s;
-      program.uniforms.uTime.value = time;
-      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? amplitude;
-      program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
-      program.uniforms.uColorStops.value = (propsRef.current.colorStops ?? colorStops).map((hex) => {
+      const stops = propsRef.current.colorStops ?? colorStops;
+      const [uc1, uc2, uc3] = stops.map((hex) => {
         const c = new Color(hex);
         return [c.r, c.g, c.b];
       });
+      program.uniforms.uTime.value = time;
+      program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? amplitude;
+      program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
+      program.uniforms.uColor1.value = uc1;
+      program.uniforms.uColor2.value = uc2;
+      program.uniforms.uColor3.value = uc3;
       renderer.render({ scene: mesh });
     };
 
