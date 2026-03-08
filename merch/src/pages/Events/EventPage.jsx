@@ -13,8 +13,16 @@ import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
 import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
+import Antigravity from "../../components/ui/Antigravity";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
+
+const EVENT_ANTIGRAVITY_COLORS = {
+  utsav: "#c0392b",
+  phaseshift: "#1e3a5f",
+  farouche: "#410c68",
+  club: "#0f5132",
+};
 
 export default function EventPage() {
   const { eventKey } = useParams();
@@ -345,18 +353,61 @@ export default function EventPage() {
     return false;
   };
 
+  const antigravityColor = EVENT_ANTIGRAVITY_COLORS[eventKey] || EVENT_ANTIGRAVITY_COLORS.utsav;
+
   // Don't render until data is loaded to avoid flash
   if (loadingSoldOut) {
     return (
-      <section className="product-section">
-        <div className="section-heading">Merch line-up</div>
-        <SkeletonGrid />
-      </section>
+      <div className="event-page-with-bg">
+        <div className="antigravity-bg" aria-hidden="true">
+          <Antigravity
+            count={300}
+            magnetRadius={6}
+            ringRadius={7}
+            waveSpeed={0.4}
+            waveAmplitude={1}
+            particleSize={1.5}
+            lerpSpeed={0.05}
+            color={antigravityColor}
+            autoAnimate
+            particleVariance={1}
+            rotationSpeed={0}
+            depthFactor={1}
+            pulseSpeed={3}
+            particleShape="capsule"
+            fieldStrength={10}
+          />
+        </div>
+        <section className="product-section">
+          <div className="section-heading">Merch line-up</div>
+          <SkeletonGrid />
+        </section>
+      </div>
     );
   }
 
   return (
-    <section className="product-section">
+    <div className="event-page-with-bg">
+      <div className="antigravity-bg" aria-hidden="true">
+        <Antigravity
+          count={300}
+          magnetRadius={6}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.5}
+          lerpSpeed={0.05}
+          color={antigravityColor}
+          autoAnimate
+          particleVariance={1}
+          rotationSpeed={0}
+          depthFactor={1}
+          pulseSpeed={3}
+          particleShape="capsule"
+          fieldStrength={10}
+        />
+      </div>
+      <section className="product-section">
       <div className="section-heading">
         Merch line-up
         {eventStatus.type === "soldout" && (
@@ -481,7 +532,8 @@ export default function EventPage() {
           isProductSoldOut={isSoldOut(`${eventKey}:${selectedProduct.id}:${productSelections[`${eventKey}:${selectedProduct.id}`] || selectedProduct.sleeveOptions?.[0] || 'standard'}`)}
         />
       )}
-    </section>
+      </section>
+    </div>
   );
 }
 
