@@ -141,10 +141,17 @@ export default function Layout({ children, cartCount = 0 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const accountRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [wishlistCount, setWishlistCount] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 6);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const isAdmin = !!user?.isAdmin;
   const profilePercent = user?.profilePercent || 0;
@@ -275,7 +282,7 @@ export default function Layout({ children, cartCount = 0 }) {
 
   return (
     <div className={`app-root theme-${activeTab || "default"}`}>
-      <header className="topbar">
+      <header className={`topbar${scrolled ? ' topbar--scrolled' : ''}`}>
         {/* Mobile Hamburger Menu Button - Only visible on phones */}
         <button
           className="mobile-menu-btn"

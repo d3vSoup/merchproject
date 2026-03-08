@@ -1,5 +1,5 @@
 // src/components/WishlistHeart.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
 import { Analytics } from '../api/analytics';
@@ -15,6 +15,7 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
   const { user } = useAuth();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const btnRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -54,11 +55,48 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
         productId,
         variant
       });
-      setIsWishlisted(res.data.added);
+      const added = res.data.added;
+      setIsWishlisted(added);
       triggerWishlistUpdate();
-      onWishlistChange?.(res.data.added);
-      if (res.data.added) Analytics.wishlistAdd(tabKey, productId, productName || '');
-      toast.success(res.data.added ? "Added to wishlist" : "Removed from wishlist");
+      onWishlistChange?.(added);
+
+      // Heart pop animation
+      if (added && btnRef.current) {
+        btnRef.current.classList.remove('heart-pop');
+        void btnRef.current.offsetWidth;
+        btnRef.current.classList.add('heart-pop');
+
+        // Bump the header wishlist badge
+        const badge = document.querySelector('.wishlist-badge');
+        if (badge) {
+          badge.classList.remove('bump');
+          void badge.offsetWidth;
+          badge.classList.add('bump');
+        }
+      }
+
+      if (added) Analytics.wishlistAdd(tabKey, productId, productName || '');
+
+      toast.success(
+        (t) => (
+          <span role="status" aria-live="polite">
+            {added ? 'Added to wishlist' : 'Removed from wishlist'}
+            {added && (
+              <>
+                {' · '}
+                <a
+                  href="/wishlist"
+                  onClick={(ev) => { ev.preventDefault(); toast.dismiss(t.id); window.location.href = '/wishlist'; }}
+                  style={{ color: 'var(--c-primary, #ff6600)', fontWeight: 600 }}
+                >
+                  View wishlist
+                </a>
+              </>
+            )}
+          </span>
+        ),
+        { duration: 2500 }
+      );
     } catch (err) {
       toast.error(err.message || "Failed to update wishlist");
     } finally {
@@ -70,12 +108,15 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
 
   return (
     <button
+      ref={btnRef}
       type="button"
       className={`wishlist-btn wishlist-btn--card ${isWishlisted ? 'is-active' : ''}`}
       onClick={handleClick}
       disabled={loading}
-      aria-label={isWishlisted ? `Remove from wishlist` : `Add to wishlist`}
+      aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+      aria-pressed={isWishlisted}
     >
+      <span className="heart-burst" aria-hidden="true" />
       {isWishlisted ? '♥' : '♡'}
     </button>
   );

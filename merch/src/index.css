@@ -1,11 +1,19 @@
-:root{
---accent: #ff6600;
---bg: #ffffff;
---text: #111217;
---muted: #6b6f76;
---font: 'IBM Plex Mono', monospace;
+/* index.css — Base reset + global defaults. Tokens come from design-tokens.css */
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--c-bg, #fff);
+  color: var(--c-text, #111827);
+  font-family: var(--font-body, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  font-size: var(--text-body, 15px);
+  line-height: var(--lh-body, 1.5);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-*{box-sizing:border-box}
-html,body,#root{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}

@@ -3,6 +3,11 @@
   100% { background-position: 400px 0; }
 }
 
+@keyframes skeletonFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .skeleton-line {
   border-radius: 6px;
   background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.06) 75%);
@@ -11,13 +16,14 @@
 }
 
 .skeleton-card {
-  background: #fff;
-  border-radius: 16px;
+  background: var(--c-surface, #fff);
+  border-radius: var(--r-lg, 16px);
   padding: 18px;
   box-shadow: 0 4px 16px rgba(16,24,40,0.04);
   display: flex;
   flex-direction: column;
   gap: 14px;
+  animation: skeletonFadeIn 0.4s ease both;
 }
 
 .skeleton-card-image {
@@ -32,6 +38,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.skeleton-card-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .skeleton-grid {
@@ -50,10 +64,11 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff;
+  background: var(--c-surface, #fff);
   border-radius: 14px;
   padding: 16px 18px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  animation: skeletonFadeIn 0.4s ease both;
 }
 
 .skeleton-list-avatar {
