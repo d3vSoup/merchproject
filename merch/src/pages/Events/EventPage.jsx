@@ -13,6 +13,8 @@ import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
 import ProductGrid3DEntrance from "../../components/ui/ProductGrid3DEntrance";
+import Aurora from "../../components/ui/Aurora";
+import { getAuroraPalette } from "../../data/auroraPalettes";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -370,8 +372,17 @@ export default function EventPage() {
         <FlipClock targetDate={eventStatus.countdown} />
       )}
 
-      <div className="product-grid-wrapper">
-        <ProductGrid3DEntrance>
+      <div className="product-grid-wrapper" style={{ position: "relative" }}>
+        <Aurora
+          colorStops={getAuroraPalette(eventKey)}
+          amplitude={0.9}
+          blend={0.5}
+          speed={1}
+          height={480}
+        />
+        <div className="aurora-overlay" aria-hidden="true" />
+        <div className="aurora-content-wrapper" style={{ position: "relative", zIndex: 1 }}>
+          <ProductGrid3DEntrance>
         {eventProducts.map((product) => {
           const defaultVariant = product.sleeveOptions?.[0] || null;
           const productKey = `${eventKey}:${product.id}`;
@@ -470,7 +481,8 @@ export default function EventPage() {
             </article>
           );
         })}
-      </ProductGrid3DEntrance>
+          </ProductGrid3DEntrance>
+        </div>
       </div>
 
       {selectedProduct && (
