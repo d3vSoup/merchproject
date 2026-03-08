@@ -1,5 +1,6 @@
 // src/components/WishlistHeart.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api';
 import { Analytics } from '../api/analytics';
@@ -15,7 +16,6 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
   const { user } = useAuth();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const btnRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
@@ -60,13 +60,7 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
       triggerWishlistUpdate();
       onWishlistChange?.(added);
 
-      // Heart pop animation
-      if (added && btnRef.current) {
-        btnRef.current.classList.remove('heart-pop');
-        void btnRef.current.offsetWidth;
-        btnRef.current.classList.add('heart-pop');
-
-        // Bump the header wishlist badge
+      if (added) {
         const badge = document.querySelector('.wishlist-badge');
         if (badge) {
           badge.classList.remove('bump');
@@ -107,17 +101,18 @@ export default function WishlistHeart({ tabKey, productId, variant, productName,
   if (!user) return null;
 
   return (
-    <button
-      ref={btnRef}
+    <motion.button
       type="button"
       className={`wishlist-btn wishlist-btn--card ${isWishlisted ? 'is-active' : ''}`}
       onClick={handleClick}
       disabled={loading}
       aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
       aria-pressed={isWishlisted}
+      initial={false}
+      animate={isWishlisted ? { scale: [1, 1.2, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
+      transition={{ duration: 0.35 }}
     >
-      <span className="heart-burst" aria-hidden="true" />
       {isWishlisted ? '♥' : '♡'}
-    </button>
+    </motion.button>
   );
 }

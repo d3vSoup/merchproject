@@ -1215,6 +1215,62 @@ select:focus {
   border: 0;
 }
 
+/* ─── Product 3D entrance ─── */
+.product-grid-3d-entrance {
+  width: 100%;
+  display: block;
+  overflow: visible;
+  padding-bottom: 80px;
+}
+
+.product-grid-3d-entrance .product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  transform-style: preserve-3d;
+}
+
+.product-card-3d-wrapper {
+  display: block;
+  transform-origin: center bottom;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.product-card {
+  pointer-events: auto !important;
+}
+
+.product-card-3d-wrapper::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -22px;
+  height: 30px;
+  border-radius: 10px;
+  filter: blur(18px);
+  background: linear-gradient(180deg, rgba(255,120,40,0.06), rgba(0,0,0,0.04));
+  transform: translateZ(-1px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.dark .product-card-3d-wrapper::after {
+  background: linear-gradient(180deg, rgba(255,122,47,0.08), rgba(0,0,0,0.3));
+}
+
+.dark .product-card .product-card__meta p,
+.dark .product-card .product-card__badge {
+  color: var(--c-muted);
+}
+
+.countdown-wrap { z-index: 2; position: relative; pointer-events: auto; }
+
 /* ─── Dark mode toggle ─── */
 .dark-mode-toggle {
   background: transparent;

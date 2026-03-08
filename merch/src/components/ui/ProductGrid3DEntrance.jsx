@@ -1,10 +1,10 @@
 // merch/src/components/ui/ProductGrid3DEntrance.jsx
-import React, { useRef, useEffect, useState, Children, useMemo } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 
-const STAGGER_MS = 30;
+const STAGGER_MS = 80;
 
-function usePrefersReducedMotion() {
+function useReducedMotion() {
   const [reduced, setReduced] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -20,19 +20,17 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-function AnimatedCard({ children, index, progress, disabled }) {
-  const delay = (index * STAGGER_MS) / 1000;
+function AnimatedCard({ children, index = 0, progress, disabled }) {
+  const idx = index;
+  const start = Math.min(0.2 + idx * 0.04, 0.6);
+  const end = Math.min(start + 0.45, 1);
 
-  const rotateX = useTransform(progress, [0, 1], [60, 0]);
-  const translateY = useTransform(progress, [0, 1], [120, 0]);
-  const scale = useTransform(progress, [0, 1], [0.92, 1]);
-  const opacity = useTransform(progress, [0, 1], [0.6, 1]);
-  const shadow = useTransform(progress, [0, 1], [
-    "0 40px 60px rgba(0,0,0,0.25)",
-    "0 12px 34px rgba(15,23,42,0.05)",
-  ]);
+  const rotateX = useTransform(progress, [0, start, end, 1], [70, 40, 0, 0], { clamp: true });
+  const translateY = useTransform(progress, [0, start, end, 1], [80, 40, 0, 0], { clamp: true });
+  const scale = useTransform(progress, [0, start, end, 1], [0.92, 0.96, 1, 1], { clamp: true });
+  const opacity = useTransform(progress, [0, start + 0.05, end], [0.6, 0.9, 1]);
 
-  if (disabled) return children;
+  if (disabled) return <div style={{ pointerEvents: "auto" }}>{children}</div>;
 
   return (
     <motion.div
@@ -41,12 +39,12 @@ function AnimatedCard({ children, index, progress, disabled }) {
         y: translateY,
         scale,
         opacity,
-        boxShadow: shadow,
-        willChange: "transform, opacity",
-        transformOrigin: "center bottom",
         transformStyle: "preserve-3d",
+        willChange: "transform, opacity",
+        pointerEvents: "auto",
       }}
-      transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1], delay }}
+      className="product-card-3d-wrapper"
+      transition={{ type: "spring", stiffness: 140, damping: 18 }}
     >
       {children}
     </motion.div>
@@ -55,45 +53,47 @@ function AnimatedCard({ children, index, progress, disabled }) {
 
 export default function ProductGrid3DEntrance({ children, className = "product-grid" }) {
   const containerRef = useRef(null);
-  const reduced = usePrefersReducedMotion();
-  const [hasPlayed, setHasPlayed] = useState(false);
-  const items = useMemo(() => Children.toArray(children), [children]);
+  const reduced = useReducedMotion();
+
+  if (reduced) {
+    return (
+      <div ref={containerRef} className={className}>
+        {children}
+      </div>
+    );
+  }
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start 0.9", "start 0.2"],
+    offset: ["start end", "end start"],
   });
 
-  const progress = useTransform(scrollYProgress, [0, 1], [0, 1], { clamp: true });
+  const progress = useTransform(scrollYProgress, [0, 0.2, 0.7, 1], [0, 0.15, 0.9, 1], { clamp: true });
 
   useMotionValueEvent(progress, "change", (v) => {
     // Debug: uncomment to verify progress fires
-    // console.log("ProductGrid3DEntrance progress:", v?.toFixed?.(3) ?? v);
-    if (v >= 0.98 && !hasPlayed) setHasPlayed(true);
+    // console.log("3D progress:", v?.toFixed?.(3) ?? v);
   });
 
-  const disabled = reduced || hasPlayed;
+  const items = useMemo(() => React.Children.toArray(children), [children]);
 
   return (
     <div
       ref={containerRef}
-      className={className}
+      className="product-grid-3d-entrance"
       style={{
-        perspective: disabled ? undefined : 1200,
-        transformStyle: disabled ? undefined : "preserve-3d",
-        overflow: "visible",
+        perspective: 1200,
+        transformStyle: "preserve-3d",
+        pointerEvents: "auto",
       }}
     >
-      {items.map((child, i) => (
-        <AnimatedCard
-          key={child.key ?? i}
-          index={i}
-          progress={progress}
-          disabled={disabled}
-        >
-          {child}
-        </AnimatedCard>
-      ))}
+      <div className={className} style={{ transformStyle: "preserve-3d" }}>
+        {items.map((child, i) => (
+          <AnimatedCard key={child.key ?? i} index={i} progress={progress} disabled={false}>
+            {child}
+          </AnimatedCard>
+        ))}
+      </div>
     </div>
   );
 }
