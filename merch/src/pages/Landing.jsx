@@ -1,197 +1,210 @@
 // src/pages/Landing.jsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { PRODUCT_CATALOG } from "../data/products";
 import { prefersReducedMotion } from "../lib/motion";
-import previewUtsav from "../assets/preview-utsav.svg";
-import previewPhaseshift from "../assets/preview-phaseshift.svg";
-import previewFarouche from "../assets/preview-farouche.svg";
-import previewClub from "../assets/preview-club.svg";
+import "./Landing.css"; // Ensure you import the styles
 
-const EVENTS = [
+const APPAREL_SLIDES = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAA4lGLbTToxkch_opLjxCXCVQ-pQKAF-rYoHyvASchNBr9Xks4pG1yFGVW416CyzfgWY-KUaPreeEz8GcryjzHnPg6q8Uw5tg9zOHRWWVaUJtfck1QHPU5AAOCbl2JMBsWvWsAOBpuxmNW4CerV3KJZO2axbiAvXnd00hMRkObGmUrOD-IkIMe35WY8U5X0mjk3DAfiOIyMSSrCVSnbTMsJ3GZJvcb7VV45ZA2BrFfBR0gfH1sNDegzibrhVyIpmI8JqrrazXVrGU",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBh4I9NyQ38IL93N_VKPhG2esazhgY6-4IjEl6XvvQkdnLta3h6ZPXelACGQauGD05grwCSEQqFroSDaVYvITdMncbwjgDPQ1_FyQbXIXT98ZELjMjbhwrKzrD0WorT0beKHjRUaU1f9C67Ancd39jDtK8lba5xqZabfi5YdzoSSAaNS8TVRtFTUOvBAfDm7JUymie-bgIv5F3CURAcLakcc5iarDuv6mUHSdITEadFOtyhggiHp7FuKTje6wBnqnAauaHVFc56syc",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBBMSa1mWzsKVjzYgjuYCVNu3zn7kzURmZKYT7veY3hgTINXl3WjqVhkZn81qt77eEPj95FJwMkxRa-USGVV-je8UkukFbqW4kouQsgpipQElOuTW2eeEAM3YJlpSU5OM-AmruL_DhSE-duwp2VjWB1B2m4lpMueYSRBcXuvhW5mtkISpqpQx8ocfL4l589oaWFCBRCacQvWUC6c8HC49yHl9IXZvm20ZVGX1oxsV7n_veQXkR3-O2F_UnASRfMNUmNPBfC_-LoTZQ"
+];
+
+const EVENTS_DATA = [
   {
     key: "utsav",
     label: "Utsav",
-    preview: previewUtsav,
+    desc: "The Annual Cultural Fest",
+    bgClass: "event-card--utsav",
+    bgUrl: "https://images.unsplash.com/photo-1514525253344-f814d873ee41?auto=format&fit=crop&q=80&w=800",
     path: "/event/utsav",
-    color: "orange",
   },
   {
     key: "phaseshift",
     label: "Phaseshift",
-    preview: previewPhaseshift,
+    desc: "Technical Symposium",
+    bgClass: "event-card--phaseshift",
+    bgUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800",
     path: "/event/phaseshift",
-    color: "blue",
   },
   {
     key: "farouche",
     label: "Farouche",
-    preview: previewFarouche,
+    desc: "Management Fest",
+    bgClass: "event-card--farouche",
+    bgUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
     path: "/event/farouche",
-    color: "violet",
   },
   {
     key: "club",
     label: "Club & Dept Merch",
-    preview: previewClub,
+    desc: "Exclusive Collections",
+    bgClass: "event-card--default",
+    bgUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800",
     path: "/event/club",
-    color: "green",
-  },
+  }
 ];
 
-const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
+export default function Landing() {
+  const [activeSlide, setActiveSlide] = useState(0);
 
-function getFeaturedProducts() {
-  const featured = [];
-  for (const tabKey of ["utsav", "phaseshift", "farouche"]) {
-    const products = PRODUCT_CATALOG[tabKey] || [];
-    products.slice(0, 3).forEach((p) => featured.push({ ...p, tabKey }));
-  }
-  return featured;
-}
-
-function RollingStrip() {
-  const stripRef = useRef(null);
-
+  // Apparel Auto-cycling logic
   useEffect(() => {
     if (prefersReducedMotion()) return;
-    const el = stripRef.current;
-    if (!el) return;
+    const interval = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % APPAREL_SLIDES.length);
+    }, 5000); // 5 sec per slide
+    return () => clearInterval(interval);
+  }, []);
 
-    let rafId;
-    const onScroll = () => {
-      rafId = requestAnimationFrame(() => {
-        const scrollY = window.scrollY;
-        el.style.transform = `translateX(${-scrollY * 0.15}px)`;
+  // Intersection Observer for fade-in animations
+  useEffect(() => {
+    if (prefersReducedMotion()) {
+      document.querySelectorAll('.fade-in-section').forEach(section => {
+        section.classList.add('is-visible');
       });
+      return;
+    }
+
+    const observerOptions = {
+      threshold: 0.1
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll('.fade-in-section');
+    elements.forEach(section => observer.observe(section));
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafId);
+      elements.forEach(section => observer.unobserve(section));
     };
   }, []);
 
-  const words = "BMSCE · UTSAV · PHASESHIFT · FAROUCHE · MERCH · ";
-  const repeated = words.repeat(8);
-
   return (
-    <div
-      className="hero-rolling-strip"
-      ref={stripRef}
-      aria-hidden="true"
-      data-rolling-strip
-    >
-      <span>{repeated}</span>
-    </div>
-  );
-}
-
-function HeroCarousel() {
-  const products = getFeaturedProducts();
-  const carouselRef = useRef(null);
-
-  const handleKeyDown = (e) => {
-    const container = carouselRef.current;
-    if (!container) return;
-    if (e.key === "ArrowRight") {
-      container.scrollBy({ left: 180, behavior: "smooth" });
-    } else if (e.key === "ArrowLeft") {
-      container.scrollBy({ left: -180, behavior: "smooth" });
-    }
-  };
-
-  if (!products.length) return null;
-
-  return (
-    <div
-      className="hero-carousel"
-      ref={carouselRef}
-      role="region"
-      aria-label="Featured products"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
-      {products.map((p) => (
-        <Link
-          key={`${p.tabKey}-${p.id}`}
-          to={`/event/${p.tabKey}`}
-          className="hero-carousel-item"
-          tabIndex={-1}
-        >
-          <div
-            className="hero-carousel__img"
-            style={{
-              background: p.imageUrl
-                ? `url(${p.imageUrl}) center/cover`
-                : `linear-gradient(135deg, ${p.swatch[0]}, ${p.swatch[1]})`,
-            }}
-          >
-            {!p.imageUrl && <span>{p.previewLabel || p.name}</span>}
-          </div>
-          <div className="hero-carousel__info">
-            <span className="hero-carousel__name">{p.name}</span>
-            <span className="hero-carousel__price">{formatPrice(p.price)}</span>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-export default function Landing() {
-  return (
-    <div className="landing-page page-enter">
-      <div className="landing-watermark" aria-hidden="true" />
-      <div className="landing-content">
-        <h1 className="landing-title">BMSCE Merchandise</h1>
-        <p className="landing-description">
-          Exclusive merchandise for Utsav, Phaseshift, Farouche, and Club events.
-          Premium quality, limited edition designs.
-        </p>
-
-        <HeroCarousel />
-
-        <div className="events-scroll-container" style={{ position: "relative" }}>
-          <RollingStrip />
-          <div className="events-scroll-track">
-            {EVENTS.map((event) => (
-              <Link
-                key={event.key}
-                to={event.path}
-                className={`event-card theme-${event.color}`}
-              >
-                <div className="event-card-image">
-                  <img src={event.preview} alt={event.label} loading="lazy" />
-                </div>
-                <div className="event-card-label">{event.label}</div>
-              </Link>
-            ))}
-            {/* Duplicate for seamless loop */}
-            {EVENTS.map((event) => (
-              <Link
-                key={`${event.key}-dup`}
-                to={event.path}
-                className={`event-card theme-${event.color}`}
-              >
-                <div className="event-card-image">
-                  <img src={event.preview} alt={event.label} loading="lazy" />
-                </div>
-                <div className="event-card-label">{event.label}</div>
-              </Link>
-            ))}
+    <div className="landing-page">
+      {/* 1. Hero Section */}
+      <header className="landing-hero fade-in-section">
+        <div id="hero-canvas-container">
+          <div className="iridescent-blob blob-1"></div>
+          <div className="iridescent-blob blob-2"></div>
+          <div className="iridescent-blob blob-3"></div>
+        </div>
+        <div className="hero-content">
+          <h1 className="hero-title">
+            BMSCE <span className="hero-title-gradient">Merch</span>
+          </h1>
+          <p className="hero-subtitle">
+            The official merchandise platform for BMS College of Engineering. 
+            Exclusive, limited-edition drops for every major college event — designed by students, for students.
+          </p>
+          <div className="hero-actions">
+            <a href="#events" className="hero-btn">Explore Drops</a>
+            <Link to="/resell" className="hero-btn" style={{ background: '#f97316', color: '#fff', borderColor: '#f97316' }}>Browse Revault</Link>
           </div>
         </div>
-        <div className="landing-actions">
-          <Link to="/resell" className="btn">
-            Browse Revault
-          </Link>
-          <Link to="/about" className="btn btn--ghost">
-            About Us
-          </Link>
+      </header>
+
+      {/* 2. Quote Section */}
+      <section className="landing-quote-section fade-in-section">
+        <h2 className="landing-quote">
+          "When does a man die? When he is hit by a bullet? No! When he suffers a disease? No! When he ate a soup made out of a poisonous mushroom? No! A man dies when he is forgotten!"
+        </h2>
+        <p className="landing-quote-author">— Make your mark. Stay remembered.</p>
+      </section>
+
+      {/* 3. Apparel Showcase */}
+      <section className="apparel-showcase fade-in-section" id="showcase">
+        <div className="apparel-slider">
+          {APPAREL_SLIDES.map((url, idx) => (
+            <div
+              key={idx}
+              className={`apparel-slide ${idx === activeSlide ? 'active' : ''}`}
+              style={{ backgroundImage: `url('${url}')` }}
+            ></div>
+          ))}
+          <div className="apparel-gradient"></div>
         </div>
-      </div>
+        <div className="apparel-content">
+          <h3 className="apparel-title">Premium Quality</h3>
+          <p className="apparel-desc">Heavyweight cotton, vibrant prints, reinforced stitching.</p>
+        </div>
+      </section>
+
+      {/* 4. Events Scroller */}
+      <section className="events-section fade-in-section" id="events">
+        <div className="events-header">
+          <h2 className="events-title">Explore Events</h2>
+          <p className="events-subtitle">Gear up for the biggest fests on campus.</p>
+        </div>
+        
+        <div className="events-scroller">
+          {EVENTS_DATA.map((event) => (
+            <Link
+              key={event.key}
+              to={event.path}
+              className={`event-scroller-card ${event.bgClass}`}
+            >
+              <div
+                className="event-card-bg"
+                style={{ backgroundImage: `url('${event.bgUrl}')` }}
+              ></div>
+              <div className="event-card-content">
+                <span className="event-card-tag">{event.desc}</span>
+                <h3 className="event-card-name">{event.label.toUpperCase()}</h3>
+              </div>
+            </Link>
+          ))}
+          {/* Duplicate for seamless effect or extended scroll width */}
+          {EVENTS_DATA.map((event) => (
+            <Link
+              key={`${event.key}-dup`}
+              to={event.path}
+              className={`event-scroller-card ${event.bgClass}`}
+              aria-hidden="true" // Hide from screen readers if just duplicate visual
+            >
+              <div
+                className="event-card-bg"
+                style={{ backgroundImage: `url('${event.bgUrl}')` }}
+              ></div>
+              <div className="event-card-content">
+                <span className="event-card-tag">{event.desc}</span>
+                <h3 className="event-card-name">{event.label.toUpperCase()}</h3>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. Support Section */}
+      <section className="support-section fade-in-section" id="about">
+        <div className="support-content">
+          <h2 className="support-title">Support the Maker</h2>
+          <p className="support-desc">
+            Love the drops and the work behind this platform? Help keep the merch rolling — every bit of support counts.
+          </p>
+          <a href="https://www.buymeacoffee.com/souparno" target="_blank" rel="noreferrer" className="support-btn">
+            <span>☕</span> Buy Me a Coffee
+          </a>
+        </div>
+      </section>
+
+      {/* 6. Footer */}
+      <footer className="landing-footer">
+        <div className="footer-avatar">S</div>
+        <h4 className="footer-name">Souparno</h4>
+        <p className="footer-role">Developer & Maintainer of BMSCE Merch</p>
+        <div className="footer-links">
+          <a href="https://wa.me/919831219028" className="footer-link">WhatsApp</a>
+          <a href="mailto:souparno.cs24@bmsce.ac.in" className="footer-link">Email</a>
+        </div>
+        <p className="footer-tagline">Built with care at BMSCE</p>
+      </footer>
     </div>
   );
 }
