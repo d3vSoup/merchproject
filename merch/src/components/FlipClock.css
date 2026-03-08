@@ -2,14 +2,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 20px 30px;
-  background: rgba(255, 255, 255, 0.9);
+  gap: 10px;
+  padding: 20px 28px;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   margin: 20px auto;
   width: fit-content;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.event-hero-countdown .countdown-clock {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.event-hero-countdown .countdown-value {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  box-shadow: none;
+}
+
+.event-hero-countdown .countdown-unit:last-child .countdown-value {
+  background: var(--accent);
+  border-color: rgba(255, 102, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(255, 102, 0, 0.35);
+}
+
+.event-hero-countdown .countdown-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.event-hero-countdown .countdown-unit:last-child .countdown-label {
+  color: var(--accent);
+}
+
+.event-hero-countdown .countdown-separator {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .countdown-unit {

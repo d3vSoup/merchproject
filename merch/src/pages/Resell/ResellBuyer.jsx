@@ -327,6 +327,7 @@ export default function ResellBuyer() {
             Merch Items
           </GradientText>
         </h2>
+        <p className="resell-buyer__subtitle">Browse verified student listings. Safe, moderated marketplace.</p>
       </div>
 
       <div className="resell-buyer__filters">

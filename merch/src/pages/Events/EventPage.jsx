@@ -379,35 +379,67 @@ export default function EventPage() {
     );
   }
 
-  return (
-    <section className="product-section">
-      <div className="section-heading">
-        <RotatingText
-          texts={MERCH_HEADING_TEXTS}
-          mainClassName="section-heading__rotate"
-          staggerFrom="last"
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ y: "-120%" }}
-          staggerDuration={0.025}
-          splitLevelClassName="section-heading__rotate-split"
-          transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          rotationInterval={2500}
-        />
-        {eventStatus.type === "soldout" && (
-          <span className="event-soldout" style={{ marginLeft: "16px", fontSize: "0.85rem", color: "#ef4444", fontWeight: 600 }}>
-            SOLD OUT
-          </span>
-        )}
-      </div>
+  const eventTitles = {
+    utsav: "Utsav",
+    phaseshift: "Phaseshift",
+    farouche: "Farouche",
+  };
+  const eventTitle = eventTitles[eventKey] || currentTabLabel;
+  const showCountdown = eventStatus.type === "countdown" && eventStatus.countdown;
 
-      {eventStatus.type === "countdown" && eventStatus.countdown && (
-        <FlipClock targetDate={eventStatus.countdown} />
+  return (
+    <section className="product-section event-page">
+      {showCountdown && (
+        <div className="event-hero-banner">
+          <span className="event-hero-badge">
+            <span className="event-hero-badge-dot" />
+            Limited Edition Drop
+          </span>
+          <h2 className="event-hero-title">
+            {eventTitle.toUpperCase()} <span className="event-hero-year">2025</span>
+          </h2>
+          <p className="event-hero-subtitle">
+            Exclusive apparel designed for the culture. Premium fabrics. Unmatched spirit.
+          </p>
+          <div className="event-hero-countdown">
+            <FlipClock targetDate={eventStatus.countdown} />
+          </div>
+        </div>
+      )}
+
+      {!showCountdown && (
+        <div className="event-collection-header">
+          <div className="section-heading">
+            <RotatingText
+              texts={MERCH_HEADING_TEXTS}
+              mainClassName="section-heading__rotate"
+              staggerFrom="last"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-120%" }}
+              staggerDuration={0.025}
+              splitLevelClassName="section-heading__rotate-split"
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              rotationInterval={2500}
+            />
+            {eventStatus.type === "soldout" && (
+              <span className="event-soldout">SOLD OUT</span>
+            )}
+          </div>
+          <p className="event-collection-subtitle">Exclusive apparel designed for the culture.</p>
+        </div>
+      )}
+
+      {showCountdown && (
+        <div className="event-collection-header event-collection-header--below-hero">
+          <h3 className="event-collection-title">The {eventTitle} Collection</h3>
+          <p className="event-collection-subtitle">Exclusive apparel designed for the culture.</p>
+        </div>
       )}
 
       <div className="product-grid-wrapper">
         <ProductGrid3DEntrance>
-        {eventProducts.map((product) => {
+        {eventProducts.map((product, idx) => {
           const defaultVariant = product.sleeveOptions?.[0] || null;
           const productKey = `${eventKey}:${product.id}`;
           const selectedVariant = productSelections[productKey] || defaultVariant;
@@ -416,11 +448,12 @@ export default function EventPage() {
           const isProductSoldOut = isSoldOut(itemKey);
           const cartItem = findCartItem(eventKey, product.id, variant);
           const quantity = cartItem?.quantity || 0;
+          const showLimitedBadge = showCountdown && idx === 0 && !isProductSoldOut;
 
           return (
             <article
               key={productKey}
-              className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
+              className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showLimitedBadge ? "product-card--featured" : ""}`}
               data-product-key={productKey}
               style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
@@ -434,8 +467,20 @@ export default function EventPage() {
                 }}
                 onClick={() => !isProductSoldOut && setSelectedProduct(product)}
               >
+                {showLimitedBadge && <span className="product-card__badge-tag">Limited</span>}
                 {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
                 {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
+                {!isProductSoldOut && (
+                  <div className="product-card__hover-actions">
+                    <button
+                      type="button"
+                      className="product-card__quick-add"
+                      onClick={(e) => { e.stopPropagation(); adjustCart(eventKey, product, variant, 1); }}
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                )}
                 <WishlistHeart
                   tabKey={eventKey}
                   productId={product.id}

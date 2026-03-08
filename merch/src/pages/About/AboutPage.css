@@ -1,3 +1,16 @@
+/* Fade-in scroll animation (Intersection Observer) */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+  will-change: opacity, transform;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .about-page {
   max-width: 900px;
   margin: 0 auto;
@@ -27,18 +40,6 @@
   color: var(--muted);
   line-height: 1.7;
   max-width: 600px;
-  margin: 0 auto;
-}
-
-.about-quote {
-  margin-bottom: 48px;
-  padding: 32px 24px;
-  text-align: center;
-}
-
-.about-quote .scroll-reveal-text {
-  color: var(--c-text, #111827);
-  max-width: 700px;
   margin: 0 auto;
 }
 
@@ -350,6 +351,11 @@
 
 .about-dev-links a:hover {
   text-decoration: underline;
+}
+
+/* Dev card wrapper (for fade-in) */
+.about-dev-card-wrapper {
+  margin-bottom: 0;
 }
 
 /* Footer text */

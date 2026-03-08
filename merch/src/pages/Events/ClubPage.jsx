@@ -373,7 +373,7 @@ export default function ClubPage() {
   }
 
   return (
-    <section className="product-section">
+    <section className="product-section event-page">
       <div className="club-tabs-container">
         <div className="club-main-tabs">
           <button
@@ -455,8 +455,9 @@ export default function ClubPage() {
 
       {currentCategory && (
         <>
-          <div className="section-heading">
-            {currentCategory} Merchandise
+          <div className="event-collection-header">
+            <h3 className="event-collection-title">{currentCategory} Merchandise</h3>
+            <p className="event-collection-subtitle">Exclusive apparel for societies & teams.</p>
           </div>
           {displayProducts.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
@@ -520,6 +521,17 @@ export default function ClubPage() {
                     onClick={() => !isProductSoldOut && setSelectedProduct(product)}
                   >
                     {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
+                    {!isProductSoldOut && (
+                      <div className="product-card__hover-actions">
+                        <button
+                          type="button"
+                          className="product-card__quick-add"
+                          onClick={(e) => { e.stopPropagation(); adjustCart(product, variant, 1); }}
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    )}
                     {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                     <WishlistHeart
                       tabKey="club"
