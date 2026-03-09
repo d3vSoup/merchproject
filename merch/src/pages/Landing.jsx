@@ -1,209 +1,182 @@
-// src/pages/Landing.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { prefersReducedMotion } from "../lib/motion";
-import "./Landing.css"; // Ensure you import the styles
+import "./Landing.css";
 
 const APPAREL_SLIDES = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAA4lGLbTToxkch_opLjxCXCVQ-pQKAF-rYoHyvASchNBr9Xks4pG1yFGVW416CyzfgWY-KUaPreeEz8GcryjzHnPg6q8Uw5tg9zOHRWWVaUJtfck1QHPU5AAOCbl2JMBsWvWsAOBpuxmNW4CerV3KJZO2axbiAvXnd00hMRkObGmUrOD-IkIMe35WY8U5X0mjk3DAfiOIyMSSrCVSnbTMsJ3GZJvcb7VV45ZA2BrFfBR0gfH1sNDegzibrhVyIpmI8JqrrazXVrGU",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBh4I9NyQ38IL93N_VKPhG2esazhgY6-4IjEl6XvvQkdnLta3h6ZPXelACGQauGD05grwCSEQqFroSDaVYvITdMncbwjgDPQ1_FyQbXIXT98ZELjMjbhwrKzrD0WorT0beKHjRUaU1f9C67Ancd39jDtK8lba5xqZabfi5YdzoSSAaNS8TVRtFTUOvBAfDm7JUymie-bgIv5F3CURAcLakcc5iarDuv6mUHSdITEadFOtyhggiHp7FuKTje6wBnqnAauaHVFc56syc",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBBMSa1mWzsKVjzYgjuYCVNu3zn7kzURmZKYT7veY3hgTINXl3WjqVhkZn81qt77eEPj95FJwMkxRa-USGVV-je8UkukFbqW4kouQsgpipQElOuTW2eeEAM3YJlpSU5OM-AmruL_DhSE-duwp2VjWB1B2m4lpMueYSRBcXuvhW5mtkISpqpQx8ocfL4l589oaWFCBRCacQvWUC6c8HC49yHl9IXZvm20ZVGX1oxsV7n_veQXkR3-O2F_UnASRfMNUmNPBfC_-LoTZQ"
-];
-
-const EVENTS_DATA = [
-  {
-    key: "utsav",
-    label: "Utsav",
-    desc: "The Annual Cultural Fest",
-    bgClass: "event-card--utsav",
-    bgUrl: "https://images.unsplash.com/photo-1514525253344-f814d873ee41?auto=format&fit=crop&q=80&w=800",
-    path: "/event/utsav",
-  },
-  {
-    key: "phaseshift",
-    label: "Phaseshift",
-    desc: "Technical Symposium",
-    bgClass: "event-card--phaseshift",
-    bgUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800",
-    path: "/event/phaseshift",
-  },
-  {
-    key: "farouche",
-    label: "Farouche",
-    desc: "Management Fest",
-    bgClass: "event-card--farouche",
-    bgUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
-    path: "/event/farouche",
-  },
-  {
-    key: "club",
-    label: "Club & Dept Merch",
-    desc: "Exclusive Collections",
-    bgClass: "event-card--default",
-    bgUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800",
-    path: "/event/club",
-  }
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBjkZN_je4uu1T_yhTASUwwVZV649r8wrvyIyMCSsumUlC0OIrvXmsEzRGZlit8dh2aLKlKzHRZMfprzVwgxZVi7bkTF1DJfFmkjVTHJaBHARg2v8HvRQyr0ZxwXqS-dgVIiF-8fMdIrULfoJQB4mnHdr00Ajw8a6Yw3_ECj69_PHP5rBVuiFUQX7cJUruK2cjmvuhHtvM9Z2Fut8r1CPJ8wqdGZFZPhXul--80I-oJYvr6I4yi1yvaI9d_UZFKNo6s9cZIOEpHBLQ",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuCrHUJdYGUVl0g3AW7PxOPK3fh6EnbRYA9rZ4dZ419DpFNaTxtX_MLvBk61G2uhQG5VBX4LIwNL_fBa6zu2GoNpc3Y1Hk861pxvw_jLDAKumQ7HUGX6QKVCgqQHV4rjtFBi3ADY4jzi2Q1WGj345xMkabC1kCbpr7XWIp7JWut2-ukF9JS3MGSvUTUdzUB-tn1Ez0xA6T5z_0Gx89JUyb5plIjrkHNEp5sGM33hz8NuCPtiDxOyXrLJGE-z17x_hWgOgj8KQ7UMyy8",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDSmi3kt37Dn0ZNlBDVjUxxse2O1wB0DPtrB-fA0qCuW_L8SMDCmCcTng9ISsR8voIwkLVLb51HuK6ycd1HximGMnEiuD0ZYghuKw7e8azJSBjs_C0qRibFf6aM-6X1X4aOGOm17t9B462HGptZKpBnpWqnC-gNPklY4MjefbxYpSkwgVxyvZsKU8oRpva-cgcY7E4cviYClClLqeBgB7sV5_ASLjd74nmxICw3VlBlXqSBo7vzBXy1DLIgCxl6orQCc-OjdxTUZ5A",
 ];
 
 export default function Landing() {
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const scrollContainerRef = useRef(null);
 
-  // Apparel Auto-cycling logic
+  // Hero carousel slow fade logic
   useEffect(() => {
-    if (prefersReducedMotion()) return;
     const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % APPAREL_SLIDES.length);
-    }, 5000); // 5 sec per slide
+      setCurrentSlide((prev) => (prev + 1) % APPAREL_SLIDES.length);
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Intersection Observer for fade-in animations
-  useEffect(() => {
-    if (prefersReducedMotion()) {
-      document.querySelectorAll('.fade-in-section').forEach(section => {
-        section.classList.add('is-visible');
-      });
-      return;
+  const scrollNext = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
+  };
 
-    const observerOptions = {
-      threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    }, observerOptions);
-
-    const elements = document.querySelectorAll('.fade-in-section');
-    elements.forEach(section => observer.observe(section));
-
-    return () => {
-      elements.forEach(section => observer.unobserve(section));
-    };
-  }, []);
+  const scrollPrev = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="landing-page">
-      {/* 1. Hero Section */}
-      <header className="landing-hero fade-in-section">
-        <div id="hero-canvas-container">
-          <div className="iridescent-blob blob-1"></div>
-          <div className="iridescent-blob blob-2"></div>
-          <div className="iridescent-blob blob-3"></div>
-        </div>
-        <div className="hero-content">
-          <h1 className="hero-title">
-            BMSCE <span className="hero-title-gradient">Merch</span>
-          </h1>
-          <p className="hero-subtitle">
-            The official merchandise platform for BMS College of Engineering. 
-            Exclusive, limited-edition drops for every major college event — designed by students, for students.
-          </p>
-          <div className="hero-actions">
-            <a href="#events" className="hero-btn">Explore Drops</a>
-            <Link to="/resell" className="hero-btn" style={{ background: '#f97316', color: '#fff', borderColor: '#f97316' }}>Browse Revault</Link>
+    <div className="bg-[#F9FAFB] text-[#111827] font-sans antialiased w-full h-full min-h-screen">
+      <main>
+        {/* BEGIN: HeroSection */}
+        <section className="relative min-h-[85vh] flex flex-col md:flex-row items-center overflow-hidden" data-purpose="hero-split-layout">
+          {/* Left Side: Shaped Image Container with Slow Fade */}
+          <div className="w-full md:w-7/12 h-[50vh] md:h-[85vh] relative hero-shape bg-gray-200" id="hero-carousel">
+            {/* Slides */}
+            {APPAREL_SLIDES.map((slide, idx) => (
+              <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>
+                <img alt="BMSCE Apparel" className="w-full h-full object-cover" src={slide} />
+              </div>
+            ))}
+            {/* Overlay for contrast if needed */}
+            <div className="absolute inset-0 bg-black/5"></div>
+          </div>
+          
+          {/* Right Side: Clean Typography */}
+          <div className="w-full md:w-5/12 px-8 md:px-16 py-12 md:py-0 flex flex-col justify-center">
+            <span className="text-[#FF6B00] font-bold tracking-[0.2em] uppercase text-xs mb-4">Official Merchandise</span>
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6">
+              BMSCE <br/> MERCH
+            </h1>
+            <p className="text-gray-600 text-lg md:text-xl max-w-md mb-10 leading-relaxed">
+              Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
+            </p>
+            <div>
+              <a className="inline-block bg-[#111827] text-white px-10 py-4 font-semibold hover:bg-[#FF6B00] transition-all duration-300" href="#events">
+                Shop Collection
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* BEGIN: EventsSection */}
+        <section className="py-24 bg-white overflow-hidden" id="events">
+          <div className="max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end">
+            <div>
+              <h2 className="text-3xl font-bold">Event Exclusives</h2>
+              <p className="text-gray-500 mt-2">Limited edition gear for our biggest campus fests.</p>
+            </div>
+            <div className="flex space-x-2">
+              <button 
+                className="p-3 border border-gray-200 hover:bg-gray-50 rounded-full transition-colors flex items-center justify-center cursor-pointer" 
+                onClick={scrollPrev}
+                id="prevBtn"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+              </button>
+              <button 
+                className="p-3 border border-gray-200 hover:bg-gray-50 rounded-full transition-colors flex items-center justify-center cursor-pointer" 
+                onClick={scrollNext}
+                id="nextBtn"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
+              </button>
+            </div>
+          </div>
+          
+          {/* Horizontal Scrolling Container */}
+          <div className="flex overflow-x-auto no-scrollbar gap-8 px-6 md:px-[calc((100vw-1280px)/2+24px)] pb-8" id="eventScroll" ref={scrollContainerRef}>
+            
+            {/* Event Card: UTSAV */}
+            <Link to="/event/utsav" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
+              <div className="relative h-[500px] overflow-hidden rounded-2xl">
+                <img alt="UTSAV Fest" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAbHf2uBARGIwI4XQ5-uax3Hn3OPf2GKnmgCp2c7sLFyXy5h5L2W1I69oMrneuBIfJXh2jOgSbUAsFb9vB1CtvoyvavaaML46uYVqRLOtUFuLrVifB9v19tDHafF4_LdUJIa6rB-EDTZDr9NV1EWnKF6Jrni7ibSwP28MMDBj2ACvosUMyLz1leKy_NgGou3Ge6xS6FXu75hwfXtLdjlOxZWXvC039LJMOkdOvG0sPvpPZxK2sOE3Y__4ViuDDVF3a8SJ61lMzz2E"/>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-8 left-8">
+                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">UTSAV</h3>
+                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Available Now</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Event Card: PHASESHIFT */}
+            <Link to="/event/phaseshift" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
+              <div className="relative h-[500px] overflow-hidden rounded-2xl">
+                <img alt="PHASESHIFT Tech Fest" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7rnhqigfkCw3UmfvS4OKGxj4CXqhEpzUq_Y3Pe25B8FZJyEK3RvGOuLIS3i9OdgDj1SyW5ApWtor4QUkoElcjkYWqw5H7ErPUAyMOPSbzyxiixH0vTrZTgIIEfnidmoOQ-UBfqh_YpdbIDsA2Nyni6iQzFHwdgylDzrbGq14AkM9n65qVRWU7GqvPkb3rTUtGyuFbqoAq6VhdDxKjxeKgRWOapyX2vnaqQpeuGX6EIv6QbyiLIQGUfjZFpo4J_e82IzpyFWGiXew"/>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-8 left-8">
+                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">PHASESHIFT</h3>
+                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Coming Soon</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Event Card: FAROUCHE */}
+            <Link to="/event/farouche" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
+              <div className="relative h-[500px] overflow-hidden rounded-2xl">
+                <img alt="FAROUCHE Fashion" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0v1pAdAlddIsSbD-o0AIoR1d_BN2hJQMhdDtkU4slZsXaTjC4JunqL4kFSnu_OTqeExw1oEUZTWl-H6-VWNUG2j0ZdkSxDZNuEk7m6hRk3gdNCdUgcADg3Uinww5jz-XmTzz5YBQD3CLThnMTPnDLYyRbNjtjgdkL9IyC9UZqVq0vzz0XBGaHa51TfWv6JUKVRXKKTrXJwvCU6_Ta_Gq33puBbuDzZDJ-f1kCNQ7ZrUOOOsMiGDWPl0qx4tZjrvr5VoWuE8dcbCg"/>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-8 left-8">
+                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">FAROUCHE</h3>
+                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Archive</span>
+                </div>
+              </div>
+            </Link>
+            
+          </div>
+        </section>
+
+        {/* BEGIN: AboutPreview */}
+        <section className="py-24 bg-[#F9FAFB]" id="about">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#FF6B00] mb-6">Our Philosophy</h2>
+            <p className="text-3xl md:text-4xl font-medium leading-tight">
+              &quot;BMSCE Merch isn&apos;t just clothing; it&apos;s a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.&quot;
+            </p>
+            <div className="mt-12">
+              <Link className="font-bold border-b-2 border-[#FF6B00] pb-1 hover:text-[#FF6B00] transition-colors" to="/about">Learn more about our sustainable sourcing</Link>
+            </div>
+          </div>
+        </section>
+
+      </main>
+      
+      {/* BEGIN: Footer */}
+      <footer className="bg-[#111827] text-white py-16">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="col-span-1 md:col-span-2">
+            <span className="text-2xl font-bold tracking-tighter">BMSCE<span className="text-[#FF6B00]">MERCH</span></span>
+            <p className="mt-6 text-gray-400 max-w-sm">The official store for BMS College of Engineering. Delivering premium quality apparel since 2023.</p>
+          </div>
+          <div>
+            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-gray-500">Quick Links</h4>
+            <ul className="space-y-4 text-sm">
+              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Shipping Policy</Link></li>
+              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Returns &amp; Exchanges</Link></li>
+              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Size Guide</Link></li>
+              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Contact Us</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-gray-500">Connect</h4>
+            <ul className="space-y-4 text-sm">
+              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">Instagram</a></li>
+              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">LinkedIn</a></li>
+              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">Twitter</a></li>
+            </ul>
           </div>
         </div>
-      </header>
-
-      {/* 2. Quote Section */}
-      <section className="landing-quote-section fade-in-section">
-        <h2 className="landing-quote">
-          "When does a man die? When he is hit by a bullet? No! When he suffers a disease? No! When he ate a soup made out of a poisonous mushroom? No! A man dies when he is forgotten!"
-        </h2>
-        <p className="landing-quote-author">— Make your mark. Stay remembered.</p>
-      </section>
-
-      {/* 3. Apparel Showcase */}
-      <section className="apparel-showcase fade-in-section" id="showcase">
-        <div className="apparel-slider">
-          {APPAREL_SLIDES.map((url, idx) => (
-            <div
-              key={idx}
-              className={`apparel-slide ${idx === activeSlide ? 'active' : ''}`}
-              style={{ backgroundImage: `url('${url}')` }}
-            ></div>
-          ))}
-          <div className="apparel-gradient"></div>
+        <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-xs text-gray-500 flex justify-between">
+          <p>© 2023 BMSCE Merch. All rights reserved.</p>
+          <p>Handcrafted by Design Students</p>
         </div>
-        <div className="apparel-content">
-          <h3 className="apparel-title">Premium Quality</h3>
-          <p className="apparel-desc">Heavyweight cotton, vibrant prints, reinforced stitching.</p>
-        </div>
-      </section>
-
-      {/* 4. Events Scroller */}
-      <section className="events-section fade-in-section" id="events">
-        <div className="events-header">
-          <h2 className="events-title">Explore Events</h2>
-          <p className="events-subtitle">Gear up for the biggest fests on campus.</p>
-        </div>
-        
-        <div className="events-scroller">
-          {EVENTS_DATA.map((event) => (
-            <Link
-              key={event.key}
-              to={event.path}
-              className={`event-scroller-card ${event.bgClass}`}
-            >
-              <div
-                className="event-card-bg"
-                style={{ backgroundImage: `url('${event.bgUrl}')` }}
-              ></div>
-              <div className="event-card-content">
-                <span className="event-card-tag">{event.desc}</span>
-                <h3 className="event-card-name">{event.label.toUpperCase()}</h3>
-              </div>
-            </Link>
-          ))}
-          {/* Duplicate for seamless effect or extended scroll width */}
-          {EVENTS_DATA.map((event) => (
-            <Link
-              key={`${event.key}-dup`}
-              to={event.path}
-              className={`event-scroller-card ${event.bgClass}`}
-              aria-hidden="true" // Hide from screen readers if just duplicate visual
-            >
-              <div
-                className="event-card-bg"
-                style={{ backgroundImage: `url('${event.bgUrl}')` }}
-              ></div>
-              <div className="event-card-content">
-                <span className="event-card-tag">{event.desc}</span>
-                <h3 className="event-card-name">{event.label.toUpperCase()}</h3>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* 5. Support Section */}
-      <section className="support-section fade-in-section" id="about">
-        <div className="support-content">
-          <h2 className="support-title">Support the Maker</h2>
-          <p className="support-desc">
-            Love the drops and the work behind this platform? Help keep the merch rolling — every bit of support counts.
-          </p>
-          <a href="https://www.buymeacoffee.com/souparno" target="_blank" rel="noreferrer" className="support-btn">
-            <span>☕</span> Buy Me a Coffee
-          </a>
-        </div>
-      </section>
-
-      {/* 6. Footer */}
-      <footer className="landing-footer">
-        <div className="footer-avatar">S</div>
-        <h4 className="footer-name">Souparno</h4>
-        <p className="footer-role">Developer & Maintainer of BMSCE Merch</p>
-        <div className="footer-links">
-          <a href="https://wa.me/919831219028" className="footer-link">WhatsApp</a>
-          <a href="mailto:souparno.cs24@bmsce.ac.in" className="footer-link">Email</a>
-        </div>
-        <p className="footer-tagline">Built with care at BMSCE</p>
       </footer>
     </div>
   );

@@ -14,12 +14,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .watermark{pointer-events:none;position:fixed;inset:0;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="1" fill="%23cbd5e1" opacity="0.35"/><circle cx="10" cy="10" r="0.5" fill="%23cbd5e1" opacity="0.2"/><circle cx="50" cy="50" r="0.5" fill="%23cbd5e1" opacity="0.2"/></svg>');background-repeat:repeat;opacity:var(--watermark-opacity,0.025);z-index:0}
 
 /* Topbar: left tabs (full-width pills), center brand, right actions */
-.topbar{position:sticky;top:0;display:flex;align-items:center;gap:20px;padding:14px 24px;background:rgba(255,255,255,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,0.06);z-index:30;transition:box-shadow 0.2s ease,background 0.2s ease}
-.topbar--scrolled{box-shadow:0 1px 12px var(--c-shadow,rgba(15,23,42,0.06));background:rgba(255,255,255,0.92)}
+.topbar{position:sticky;top:0;display:flex;align-items:center;gap:20px;padding:14px 24px;background:rgba(255,255,255,0.8);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid #f3f4f6;z-index:100;transition:box-shadow 0.3s ease,background 0.3s ease;color:#111827}
+.topbar--scrolled{box-shadow:0 2px 16px rgba(0,0,0,0.06);background:rgba(255,255,255,0.95);border-bottom:1px solid #e5e7eb;}
 
 /* Mobile Hamburger Menu Button - Hidden on desktop */
-.mobile-menu-btn{display:none;background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;color:var(--text);transition:background 0.15s ease;z-index:35}
-.mobile-menu-btn:hover{background:rgba(0,0,0,0.06)}
+.mobile-menu-btn{display:none;background:transparent;border:0;cursor:pointer;padding:8px;border-radius:8px;color:#111827;transition:background 0.15s ease;z-index:35}
+.mobile-menu-btn:hover{background:rgba(0,0,0,0.05)}
 .mobile-menu-btn svg{display:block;width:24px;height:24px}
 
 /* Mobile Menu Dropdown - Hidden on desktop */
@@ -34,12 +34,12 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .tabs-row{display:flex;gap:8px;flex:1}
 .desktop-tabs{display:flex}
 .tab-wrapper{position:relative}
-.tab{position:relative;flex:1;min-width:96px;padding:8px 12px;border-radius:999px;text-align:center;cursor:pointer;font-weight:700;letter-spacing:0.04em;transition:transform .12s ease,box-shadow .12s ease,background .3s ease;text-decoration:none;color:var(--text);display:block;overflow:hidden}
+.tab{position:relative;flex:1;min-width:96px;padding:8px 12px;border-radius:999px;text-align:center;cursor:pointer;font-weight:700;letter-spacing:0.04em;transition:transform .12s ease,box-shadow .12s ease,background .3s ease;text-decoration:none;color:#111827;display:block;overflow:hidden}
 .tab::before{content:'';position:absolute;inset:-2px;border-radius:999px;padding:2px;background:linear-gradient(45deg,transparent,transparent);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .3s ease}
 .tab:hover::before{opacity:1;background:linear-gradient(45deg,#ff6600,#ff8c42,#ffa366,#ff6600);background-size:200% 200%;animation:star-border 3s linear infinite}
 @keyframes star-border{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-.tab:hover{transform:scale(1.02);box-shadow:0 8px 20px rgba(16,24,40,0.06)}
-.tab--active{background:linear-gradient(90deg, rgba(255,102,0,0.12), rgba(255,102,0,0.06));}
+.tab:hover{transform:scale(1.02);box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+.tab--active{background:linear-gradient(90deg, rgba(255,102,0,0.2), rgba(255,102,0,0.1));}
 
 /* preview dropdown (hidden until hover) */
 .tab-preview{position:absolute;left:50%;transform:translateX(-50%) translateY(6px);top:calc(100% + 8px);width:260px;padding:0;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 16px 40px rgba(16,24,40,0.12);opacity:0;pointer-events:none;transition:all .2s cubic-bezier(.4,0,.2,1);z-index:40;overflow:hidden}
@@ -58,7 +58,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .tab-preview-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all .2s ease}
 .tab-preview-dot--active{background:var(--accent);transform:scale(1.3)}
 
-.brand{flex:0 0 320px;text-align:center;font-weight:700;font-size:1.15rem;letter-spacing:0.08em;font-family:var(--font-display,'Space Grotesk',sans-serif);color:var(--c-text,#111827);text-decoration:none}
+.brand{flex:0 0 320px;text-align:center;font-weight:700;font-size:1.15rem;letter-spacing:0.08em;font-family:var(--font-display,'Space Grotesk',sans-serif);color:#111827;text-decoration:none}
 
 /* Top-right actions: small compact */
 .top-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
