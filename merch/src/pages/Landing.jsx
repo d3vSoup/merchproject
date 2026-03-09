@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../api";
 import "./Landing.css";
 
 const APPAREL_SLIDES = [
@@ -11,13 +12,50 @@ const APPAREL_SLIDES = [
 export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollContainerRef = useRef(null);
+  const [heroSlides, setHeroSlides] = useState(APPAREL_SLIDES);
+
+  // Fetch dynamic hero images from Admin Overrides
+  useEffect(() => {
+    let mounted = true;
+    const fetchHeroImages = async () => {
+      try {
+        const res = await api.get('/api/catalog/overrides');
+        const overrides = res.data?.overrides || [];
+        const heroConfig = overrides.find(o => o.tab_key === 'system' && o.product_id === 'hero_carousel');
+        if (mounted && heroConfig && heroConfig.images && heroConfig.images.length > 0) {
+          setHeroSlides(heroConfig.images);
+        }
+      } catch (e) {
+        console.error("Failed to fetch custom hero images:", e);
+      }
+    };
+    fetchHeroImages();
+    return () => { mounted = false; };
+  }, []);
 
   // Hero carousel slow fade logic
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % APPAREL_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, [heroSlides]);
+
+  // Map vertical wheel scroll to horizontal scrolling for the Events container
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e) => {
+      // If the scroll is strictly vertical, translate it to horizontal
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
   const scrollNext = () => {
@@ -36,11 +74,11 @@ export default function Landing() {
     <div className="bg-[#F9FAFB] text-[#111827] font-sans antialiased w-full h-full min-h-screen">
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative min-h-[85vh] flex flex-col md:flex-row items-center overflow-hidden" data-purpose="hero-split-layout">
+        <section className="relative min-h-screen flex flex-col md:flex-row items-center overflow-hidden" data-purpose="hero-split-layout">
           {/* Left Side: Shaped Image Container with Slow Fade */}
-          <div className="w-full md:w-7/12 h-[50vh] md:h-[85vh] relative hero-shape bg-gray-200" id="hero-carousel">
+          <div className="w-full md:w-7/12 h-[50vh] md:h-screen relative hero-shape bg-gray-200" id="hero-carousel">
             {/* Slides */}
-            {APPAREL_SLIDES.map((slide, idx) => (
+            {heroSlides.map((slide, idx) => (
               <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>
                 <img alt="BMSCE Apparel" className="w-full h-full object-cover" src={slide} />
               </div>
@@ -126,6 +164,18 @@ export default function Landing() {
                 <div className="absolute bottom-8 left-8">
                   <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">FAROUCHE</h3>
                   <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Archive</span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Event Card: CLUBS */}
+            <Link to="/event/club" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
+              <div className="relative h-[500px] overflow-hidden rounded-2xl">
+                <img alt="Clubs & Depts" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2070&auto=format&fit=crop" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-8 left-8">
+                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">CLUBS</h3>
+                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Ongoing</span>
                 </div>
               </div>
             </Link>
