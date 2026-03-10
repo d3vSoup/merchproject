@@ -10,6 +10,7 @@ import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 import api from "../../api";
 import { useSortPreference, SORT_OPTIONS, sortItems } from "../../hooks/useSortPreference";
+import AnimatedDropdown from "../../components/ui/AnimatedDropdown";
 import { Analytics } from "../../api/analytics";
 import "./CartPage.css";
 
@@ -272,17 +273,13 @@ export default function CartPage() {
               <span className="cart-item-count">{sortedCartItems.length} Item{sortedCartItems.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="cart-sort">
-              <label htmlFor="cart-sort-select" className="cart-sort-label">Sort by</label>
-              <select
-                id="cart-sort-select"
+              <AnimatedDropdown
+                label="Sort by"
+                options={SORT_OPTIONS}
                 value={sortBy}
-                onChange={(e) => changeSort(e.target.value)}
-                className="cart-sort-select"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                onChange={changeSort}
+                id="cart-sort-select"
+              />
             </div>
           </div>
 

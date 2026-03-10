@@ -10,6 +10,7 @@ import { triggerWishlistUpdate } from "../../components/WishlistHeart";
 import { PRODUCT_CATALOG } from "../../data/products";
 import toast from "react-hot-toast";
 import { useSortPreference, SORT_OPTIONS, sortItems } from "../../hooks/useSortPreference";
+import AnimatedDropdown from "../../components/ui/AnimatedDropdown";
 import "./WishlistPage.css";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -220,17 +221,13 @@ export default function WishlistPage() {
           <p className="wishlist-count">{wishlistItems.length} item{wishlistItems.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="wishlist-sort">
-          <label htmlFor="wishlist-sort-select" className="wishlist-sort-label">Sort by</label>
-          <select
-            id="wishlist-sort-select"
+          <AnimatedDropdown
+            label="Sort by"
+            options={SORT_OPTIONS}
             value={sortBy}
-            onChange={(e) => changeSort(e.target.value)}
-            className="wishlist-sort-select"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+            onChange={changeSort}
+            id="wishlist-sort-select"
+          />
         </div>
       </div>
       
