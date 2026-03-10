@@ -1271,6 +1271,41 @@ app.post("/api/resell/items/list", authMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/admin/hero/upload - Admin: Upload hero image to Supabase Storage
+app.post('/api/admin/hero/upload', authMiddleware, uploadMemory.single('image'), async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured' });
+    }
+    const fileExt = req.file.originalname.split('.').pop() || 'jpg';
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const { data, error } = await supabaseAdmin.storage
+      .from('hero-images')
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        cacheControl: '3600',
+        upsert: false
+      });
+    if (error) {
+      console.error('Hero upload error:', error);
+      return res.status(500).json({ message: 'Failed to upload image', error: error.message });
+    }
+    const { data: { publicUrl } } = supabaseAdmin.storage
+      .from('hero-images')
+      .getPublicUrl(data.path);
+    return res.json({ url: publicUrl });
+  } catch (err) {
+    console.error('Hero upload error:', err);
+    return res.status(500).json({ message: 'Upload failed', error: err.message });
+  }
+});
+
 // POST /api/resell/upload-image - Upload resell image to Supabase Storage (uses service role, bypasses RLS)
 app.post('/api/resell/upload-image', authMiddleware, uploadMemory.single('image'), async (req, res) => {
   try {

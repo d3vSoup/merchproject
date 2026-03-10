@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
 import { SkeletonGrid, SkeletonList } from "../../components/Skeleton";
+import HeroImagesManager from "../../components/admin/HeroImagesManager";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
 
@@ -318,6 +319,7 @@ export default function AdminItems() {
       const res = await api.get('/api/catalog/overrides');
       const overrides = res.data?.overrides || [];
       const updated = JSON.parse(JSON.stringify(PRODUCT_CATALOG));
+      if (!updated.system) updated.system = [];
       overrides.forEach((override) => {
         const tab = override.tab_key;
         if (!updated[tab]) return;
@@ -707,46 +709,18 @@ export default function AdminItems() {
         )}
 
         {selectedTab === 'system' ? (
-          <div className="admin-products-list">
-            <h4>Manage Hero Images</h4>
-            <div style={{ backgroundColor: '#fff', padding: 24, borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <p style={{ marginBottom: 16, color: '#6b7280', fontSize: '0.9rem' }}>
-                These images will be displayed on the main landing page hero carousel. Ensure they are high quality and vertically oriented (or responsive) for the best look.
-              </p>
-              <label style={{ display: 'block', marginBottom: 16 }}>
-                <span style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Image URLs (One URL per line)</span>
-                <textarea 
-                  rows={8}
-                  style={{ width: '100%', padding: 12, border: '1px solid #ddd', borderRadius: 6, fontFamily: 'monospace' }}
-                  defaultValue={(editableCatalog['system']?.find(p => p.id === 'hero_carousel')?.images || []).join('\n')}
-                  id="hero-images-textarea"
-                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-                />
-              </label>
-              <button 
-                type="button" 
-                className="btn btn--primary"
-                onClick={async () => {
-                  const textarea = document.getElementById('hero-images-textarea');
-                  const urls = textarea.value.split('\n').map(u => u.trim()).filter(Boolean);
-                  try {
-                    await saveCatalogOverride({
-                      tabKey: 'system',
-                      id: 'hero_carousel',
-                      name: 'Hero Carousel Config',
-                      images: urls
-                    });
-                    await fetchOverrides();
-                    toast.success('Hero images updated successfully!');
-                  } catch (e) {
-                    toast.error('Failed to update hero images');
-                  }
-                }}
-              >
-                Save Hero Images
-              </button>
-            </div>
-          </div>
+          <HeroImagesManager
+            images={editableCatalog['system']?.find(p => p.id === 'hero_carousel')?.images || []}
+            onSave={async (urls) => {
+              await saveCatalogOverride({
+                tabKey: 'system',
+                id: 'hero_carousel',
+                name: 'Hero Carousel Config',
+                images: urls
+              });
+              await fetchOverrides();
+            }}
+          />
         ) : selectedTab === 'listed' ? (
           <div className="admin-products-list">
             <h4>Resell Listings</h4>
