@@ -20,6 +20,10 @@ import AdminOrders from "./pages/Admin/AdminOrders";
 import AdminItems from "./pages/Admin/AdminItems";
 import AboutPage from "./pages/About/AboutPage";
 import ContactPage from "./pages/Contact/ContactPage";
+import UseOfOurWebsitePage from "./pages/Legal/UseOfOurWebsitePage";
+import ShippingPolicyPage from "./pages/Legal/ShippingPolicyPage";
+import ReturnsExchangesPage from "./pages/Legal/ReturnsExchangesPage";
+import SizeChartPage from "./pages/Legal/SizeChartPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import { useCartCount } from "./hooks/useCartCount";
 
@@ -88,6 +92,10 @@ function AppContent() {
           />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/use-of-our-website" element={<UseOfOurWebsitePage />} />
+          <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
+          <Route path="/returns-exchanges" element={<ReturnsExchangesPage />} />
+          <Route path="/size-chart" element={<SizeChartPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Layout>

@@ -320,6 +320,20 @@ export default function Layout({ children, cartCount = 0 }) {
             ))}
             <div className="mobile-menu-divider" />
             <Link
+              to="/size-chart"
+              className={`mobile-menu-item ${location.pathname === "/size-chart" ? "mobile-menu-item--active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Size Chart
+            </Link>
+            <Link
+              to="/use-of-our-website"
+              className={`mobile-menu-item ${location.pathname === "/use-of-our-website" ? "mobile-menu-item--active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              T&amp;C
+            </Link>
+            <Link
               to="/about"
               className={`mobile-menu-item ${location.pathname === "/about" ? "mobile-menu-item--active" : ""}`}
               onClick={() => setMobileMenuOpen(false)}

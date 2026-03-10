@@ -185,24 +185,24 @@ export default function Landing() {
           <div>
             <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Quick Links</h4>
             <ul className="space-y-4 text-sm">
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Shipping Policy</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Returns &amp; Exchanges</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Size Guide</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Contact Us</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/shipping-policy">Shipping Policy</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/returns-exchanges">Returns &amp; Exchanges</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/size-chart">Size Guide</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/contact">Contact Us</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Connect</h4>
             <ul className="space-y-4 text-sm">
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">Instagram</a></li>
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">LinkedIn</a></li>
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">Twitter</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://www.instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://www.linkedin.com/in/souparno-chakraborty-ab932b351?utm_source=share_via&utm_content=profile&utm_medium=member_ios" target="_blank" rel="noreferrer">LinkedIn</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://twitter.com" target="_blank" rel="noreferrer">Twitter</a></li>
             </ul>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-xs text-gray-500 flex justify-between">
-          <p>© 2023 BMSCE Merch. All rights reserved.</p>
-          <p>Handcrafted by Design Students</p>
+          <p>BMSCE 2026</p>
+          <p>Handcrafted by Souparno Chakraborty</p>
         </div>
       </footer>
     </div>

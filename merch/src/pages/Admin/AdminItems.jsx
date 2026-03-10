@@ -6,6 +6,7 @@ import api from "../../api";
 import { SkeletonGrid, SkeletonList } from "../../components/Skeleton";
 import HeroImagesManager from "../../components/admin/HeroImagesManager";
 import EventImagesManager from "../../components/admin/EventImagesManager";
+import SizeChartManager from "../../components/admin/SizeChartManager";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
 
@@ -739,6 +740,18 @@ export default function AdminItems() {
                   id: `event_images_${eventKey}`,
                   name: `Event Images ${eventKey}`,
                   images
+                });
+                await fetchOverrides();
+              }}
+            />
+            <SizeChartManager
+              imageUrl={editableCatalog['system']?.find(p => p.id === 'size_chart')?.images?.[0] || null}
+              onSave={async (images) => {
+                await saveCatalogOverride({
+                  tabKey: 'system',
+                  id: 'size_chart',
+                  name: 'Size Chart',
+                  images: images || []
                 });
                 await fetchOverrides();
               }}
