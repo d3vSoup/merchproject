@@ -206,20 +206,20 @@ export default function Landing() {
             <p className="mt-6 text-gray-400 max-w-sm">The official store for BMS College of Engineering. Delivering premium quality apparel since 2023.</p>
           </div>
           <div>
-            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-gray-500">Quick Links</h4>
+            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Quick Links</h4>
             <ul className="space-y-4 text-sm">
-              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Shipping Policy</Link></li>
-              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Returns &amp; Exchanges</Link></li>
-              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Size Guide</Link></li>
-              <li><Link className="hover:text-[#FF6B00] transition-colors" to="#">Contact Us</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Shipping Policy</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Returns &amp; Exchanges</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Size Guide</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="#">Contact Us</Link></li>
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-gray-500">Connect</h4>
+            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Connect</h4>
             <ul className="space-y-4 text-sm">
-              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">Instagram</a></li>
-              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">LinkedIn</a></li>
-              <li><a className="hover:text-[#FF6B00] transition-colors" href="#">Twitter</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">Instagram</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">LinkedIn</a></li>
+              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="#">Twitter</a></li>
             </ul>
           </div>
         </div>

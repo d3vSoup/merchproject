@@ -521,17 +521,6 @@ export default function ClubPage() {
                     onClick={() => !isProductSoldOut && setSelectedProduct(product)}
                   >
                     {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
-                    {!isProductSoldOut && (
-                      <div className="product-card__hover-actions">
-                        <button
-                          type="button"
-                          className="product-card__quick-add"
-                          onClick={(e) => { e.stopPropagation(); adjustCart(product, variant, 1); }}
-                        >
-                          Add to Cart
-                        </button>
-                      </div>
-                    )}
                     {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                     <WishlistHeart
                       tabKey="club"

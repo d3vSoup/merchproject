@@ -515,17 +515,6 @@ export default function EventPage() {
                 {showLimitedBadge && <span className="product-card__badge-tag">Limited</span>}
                 {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
                 {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
-                {!isProductSoldOut && (
-                  <div className="product-card__hover-actions">
-                    <button
-                      type="button"
-                      className="product-card__quick-add"
-                      onClick={(e) => { e.stopPropagation(); adjustCart(eventKey, product, variant, 1); }}
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                )}
                 <WishlistHeart
                   tabKey={eventKey}
                   productId={product.id}
