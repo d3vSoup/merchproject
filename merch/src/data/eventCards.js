@@ -1,0 +1,8 @@
+// Event cards for homepage horizontal scroll - shared config
+export const EVENT_CARDS = [
+  { key: "utsav", label: "UTSAV", status: "Available Now", path: "/event/utsav", fallbackUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAAbHf2uBARGIwI4XQ5-uax3Hn3OPf2GKnmgCp2c7sLFyXy5h5L2W1I69oMrneuBIfJXh2jOgSbUAsFb9vB1CtvoyvavaaML46uYVqRLOtUFuLrVifB9v19tDHafF4_LdUJIa6rB-EDTZDr9NV1EWnKF6Jrni7ibSwP28MMDBj2ACvosUMyLz1leKy_NgGou3Ge6xS6FXu75hwfXtLdjlOxZWXvC039LJMOkdOvG0sPvpPZxK2sOE3Y__4ViuDDVF3a8SJ61lMzz2E" },
+  { key: "phaseshift", label: "PHASESHIFT", status: "Coming Soon", path: "/event/phaseshift", fallbackUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuB7rnhqigfkCw3UmfvS4OKGxj4CXqhEpzUq_Y3Pe25B8FZJyEK3RvGOuLIS3i9OdgDj1SyW5ApWtor4QUkoElcjkYWqw5H7ErPUAyMOPSbzyxiixH0vTrZTgIIEfnidmoOQ-UBfqh_YpdbIDsA2Nyni6iQzFHwdgylDzrbGq14AkM9n65qVRWU7GqvPkb3rTUtGyuFbqoAq6VhdDxKjxeKgRWOapyX2vnaqQpeuGX6EIv6QbyiLIQGUfjZFpo4J_e82IzpyFWGiXew" },
+  { key: "farouche", label: "FAROUCHE", status: "Archive", path: "/event/farouche", fallbackUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuC0v1pAdAlddIsSbD-o0AIoR1d_BN2hJQMhdDtkU4slZsXaTjC4JunqL4kFSnu_OTqeExw1oEUZTWl-H6-VWNUG2j0ZdkSxDZNuEk7m6hRk3gdNCdUgcADg3Uinww5jz-XmTzz5YBQD3CLThnMTPnDLYyRbNjtjgdkL9IyC9UZqVq0vzz0XBGaHa51TfWv6JUKVRXKKTrXJwvCU6_Ta_Gq33puBbuDzZDJ-f1kCNQ7ZrUOOOsMiGDWPl0qx4tZjrvr5VoWuE8dcbCg" },
+  { key: "club", label: "CLUBS", status: "Ongoing", path: "/event/club", fallbackUrl: "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2070&auto=format&fit=crop" },
+  { key: "revault", label: "REVAULT", status: "Resell", path: "/resell", fallbackUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=2070&auto=format&fit=crop" },
+];

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import { EVENT_CARDS } from "../data/eventCards";
 import "./Landing.css";
 
 const APPAREL_SLIDES = [
@@ -14,10 +15,12 @@ export default function Landing() {
   const scrollContainerRef = useRef(null);
   const [heroSlides, setHeroSlides] = useState(APPAREL_SLIDES);
 
-  // Fetch dynamic hero images from Admin Overrides
+  const [eventImages, setEventImages] = useState({});
+
+  // Fetch dynamic hero images and event images from Admin Overrides
   useEffect(() => {
     let mounted = true;
-    const fetchHeroImages = async () => {
+    const fetchOverrides = async () => {
       try {
         const res = await api.get('/api/catalog/overrides');
         const overrides = res.data?.overrides || [];
@@ -25,11 +28,18 @@ export default function Landing() {
         if (mounted && heroConfig && heroConfig.images && heroConfig.images.length > 0) {
           setHeroSlides(heroConfig.images);
         }
+        const map = {};
+        overrides.forEach((o) => {
+          if (o.tab_key === 'system' && o.product_id?.startsWith('event_images_') && Array.isArray(o.images)) {
+            map[o.product_id] = o.images;
+          }
+        });
+        if (mounted) setEventImages(map);
       } catch (e) {
-        console.error("Failed to fetch custom hero images:", e);
+        console.error("Failed to fetch overrides:", e);
       }
     };
-    fetchHeroImages();
+    fetchOverrides();
     return () => { mounted = false; };
   }, []);
 
@@ -131,55 +141,22 @@ export default function Landing() {
           
           {/* Horizontal Scrolling Container */}
           <div className="flex overflow-x-auto no-scrollbar gap-8 px-6 md:px-[calc((100vw-1280px)/2+24px)] pb-8" id="eventScroll" ref={scrollContainerRef}>
-            
-            {/* Event Card: UTSAV */}
-            <Link to="/event/utsav" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
-              <div className="relative h-[500px] overflow-hidden rounded-2xl">
-                <img alt="UTSAV Fest" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAbHf2uBARGIwI4XQ5-uax3Hn3OPf2GKnmgCp2c7sLFyXy5h5L2W1I69oMrneuBIfJXh2jOgSbUAsFb9vB1CtvoyvavaaML46uYVqRLOtUFuLrVifB9v19tDHafF4_LdUJIa6rB-EDTZDr9NV1EWnKF6Jrni7ibSwP28MMDBj2ACvosUMyLz1leKy_NgGou3Ge6xS6FXu75hwfXtLdjlOxZWXvC039LJMOkdOvG0sPvpPZxK2sOE3Y__4ViuDDVF3a8SJ61lMzz2E"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-8 left-8">
-                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">UTSAV</h3>
-                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Available Now</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Event Card: PHASESHIFT */}
-            <Link to="/event/phaseshift" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
-              <div className="relative h-[500px] overflow-hidden rounded-2xl">
-                <img alt="PHASESHIFT Tech Fest" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7rnhqigfkCw3UmfvS4OKGxj4CXqhEpzUq_Y3Pe25B8FZJyEK3RvGOuLIS3i9OdgDj1SyW5ApWtor4QUkoElcjkYWqw5H7ErPUAyMOPSbzyxiixH0vTrZTgIIEfnidmoOQ-UBfqh_YpdbIDsA2Nyni6iQzFHwdgylDzrbGq14AkM9n65qVRWU7GqvPkb3rTUtGyuFbqoAq6VhdDxKjxeKgRWOapyX2vnaqQpeuGX6EIv6QbyiLIQGUfjZFpo4J_e82IzpyFWGiXew"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-8 left-8">
-                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">PHASESHIFT</h3>
-                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Coming Soon</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Event Card: FAROUCHE */}
-            <Link to="/event/farouche" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
-              <div className="relative h-[500px] overflow-hidden rounded-2xl">
-                <img alt="FAROUCHE Fashion" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0v1pAdAlddIsSbD-o0AIoR1d_BN2hJQMhdDtkU4slZsXaTjC4JunqL4kFSnu_OTqeExw1oEUZTWl-H6-VWNUG2j0ZdkSxDZNuEk7m6hRk3gdNCdUgcADg3Uinww5jz-XmTzz5YBQD3CLThnMTPnDLYyRbNjtjgdkL9IyC9UZqVq0vzz0XBGaHa51TfWv6JUKVRXKKTrXJwvCU6_Ta_Gq33puBbuDzZDJ-f1kCNQ7ZrUOOOsMiGDWPl0qx4tZjrvr5VoWuE8dcbCg"/>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-8 left-8">
-                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">FAROUCHE</h3>
-                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Archive</span>
-                </div>
-              </div>
-            </Link>
-
-            {/* Event Card: CLUBS */}
-            <Link to="/event/club" className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
-              <div className="relative h-[500px] overflow-hidden rounded-2xl">
-                <img alt="Clubs & Depts" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2070&auto=format&fit=crop" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div className="absolute bottom-8 left-8">
-                  <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">CLUBS</h3>
-                  <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">Ongoing</span>
-                </div>
-              </div>
-            </Link>
-            
+            {EVENT_CARDS.map((ev) => {
+              const images = eventImages[`event_images_${ev.key}`] || [];
+              const src = images[0] || ev.fallbackUrl;
+              return (
+                <Link key={ev.key} to={ev.path} className="min-w-[300px] md:min-w-[450px] group cursor-pointer block" data-purpose="event-card">
+                  <div className="relative h-[500px] overflow-hidden rounded-2xl">
+                    <img alt={ev.label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={src} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-8 left-8">
+                      <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">{ev.label}</h3>
+                      <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">{ev.status}</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 

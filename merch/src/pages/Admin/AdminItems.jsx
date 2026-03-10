@@ -5,6 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import api from "../../api";
 import { SkeletonGrid, SkeletonList } from "../../components/Skeleton";
 import HeroImagesManager from "../../components/admin/HeroImagesManager";
+import EventImagesManager from "../../components/admin/EventImagesManager";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
 
@@ -28,7 +29,7 @@ const TABS = [
   { key: "farouche", label: "Farouche" },
   { key: "club", label: "Club & Dept Merch" },
   { key: "listed", label: "Listed (Resell)" },
-  { key: "system", label: "Hero Images" },
+  { key: "system", label: "Hero & Event Images" },
 ];
 
 const CLUBS = [
@@ -709,18 +710,40 @@ export default function AdminItems() {
         )}
 
         {selectedTab === 'system' ? (
-          <HeroImagesManager
-            images={editableCatalog['system']?.find(p => p.id === 'hero_carousel')?.images || []}
-            onSave={async (urls) => {
-              await saveCatalogOverride({
-                tabKey: 'system',
-                id: 'hero_carousel',
-                name: 'Hero Carousel Config',
-                images: urls
-              });
-              await fetchOverrides();
-            }}
-          />
+          <>
+            <HeroImagesManager
+              images={editableCatalog['system']?.find(p => p.id === 'hero_carousel')?.images || []}
+              onSave={async (urls) => {
+                await saveCatalogOverride({
+                  tabKey: 'system',
+                  id: 'hero_carousel',
+                  name: 'Hero Carousel Config',
+                  images: urls
+                });
+                await fetchOverrides();
+              }}
+            />
+            <EventImagesManager
+              eventImages={(() => {
+                const map = {};
+                (editableCatalog['system'] || []).forEach((p) => {
+                  if (p?.id?.startsWith('event_images_')) {
+                    map[p.id] = { images: Array.isArray(p.images) ? p.images : [] };
+                  }
+                });
+                return map;
+              })()}
+              onSave={async (eventKey, images) => {
+                await saveCatalogOverride({
+                  tabKey: 'system',
+                  id: `event_images_${eventKey}`,
+                  name: `Event Images ${eventKey}`,
+                  images
+                });
+                await fetchOverrides();
+              }}
+            />
+          </>
         ) : selectedTab === 'listed' ? (
           <div className="admin-products-list">
             <h4>Resell Listings</h4>
