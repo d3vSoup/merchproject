@@ -13,6 +13,7 @@ import WishlistHeart from "../../components/WishlistHeart";
 import FlipClock from "../../components/FlipClock";
 import api from "../../api";
 import FadeInSection from "../../components/ui/FadeInSection";
+import GlareHover from "../../components/ui/GlareHover";
 import RotatingText from "../../components/ui/RotatingText";
 import EventDetailsSection from "../../components/EventDetailsSection";
 
@@ -497,6 +498,18 @@ export default function EventPage() {
 
           return (
             <FadeInSection key={productKey} as="div" className="product-grid__card">
+            <GlareHover
+              fill
+              width="100%"
+              height="100%"
+              borderRadius="20px"
+              glareColor="#ffffff"
+              glareOpacity={0.3}
+              glareAngle={-30}
+              glareSize={300}
+              transitionDuration={800}
+              className="product-card-glare"
+            >
             <article
               className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showLimitedBadge ? "product-card--featured" : ""}`}
               data-product-key={productKey}
@@ -582,6 +595,7 @@ export default function EventPage() {
                 </button>
               </div>
             </article>
+            </GlareHover>
             </FadeInSection>
           );
         })}

@@ -11,6 +11,7 @@ import ProductModal from "../../components/ProductModal";
 import WishlistHeart from "../../components/WishlistHeart";
 import api from "../../api";
 import FadeInSection from "../../components/ui/FadeInSection";
+import GlareHover from "../../components/ui/GlareHover";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -506,6 +507,18 @@ export default function ClubPage() {
 
               return (
                 <FadeInSection key={productKey} as="div" className="product-grid__card">
+                <GlareHover
+                  fill
+                  width="100%"
+                  height="100%"
+                  borderRadius="20px"
+                  glareColor="#ffffff"
+                  glareOpacity={0.3}
+                  glareAngle={-30}
+                  glareSize={300}
+                  transitionDuration={800}
+                  className="product-card-glare"
+                >
                 <article 
                   className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
                   style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -588,6 +601,7 @@ export default function ClubPage() {
                     </button>
                   </div>
                 </article>
+                </GlareHover>
                 </FadeInSection>
               );
             })}
