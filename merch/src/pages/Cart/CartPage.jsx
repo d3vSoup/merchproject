@@ -243,21 +243,11 @@ export default function CartPage() {
     );
   }
 
-  // Get badge class based on event
-  const getBadgeClass = (eventLabel) => {
-    const label = eventLabel.toLowerCase();
-    if (label.includes('utsav')) return 'utsav';
-    if (label.includes('phaseshift')) return 'phaseshift';
-    if (label.includes('farouche')) return 'farouche';
-    if (label.includes('club') || label.includes('dept')) return 'club';
-    return 'default';
-  };
-
   if (cartItems.length === 0) {
     return (
       <section className="cart-section">
-        <div className="cart-header">
-          <h1 className="cart-title">Your Cart</h1>
+        <div className="cart-header cart-header--empty">
+          <h1 className="cart-title">Shopping Bag</h1>
           <p className="cart-subtitle">Add items to get started</p>
         </div>
         <div className="cart-empty">
@@ -273,121 +263,118 @@ export default function CartPage() {
 
   return (
     <section className="cart-section">
-      <div className="cart-header">
-        <div>
-          <h1 className="cart-title">Your Cart</h1>
-          <p className="cart-subtitle">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
-        </div>
-        <div className="cart-sort">
-          <label htmlFor="cart-sort-select" className="cart-sort-label">Sort by</label>
-          <select
-            id="cart-sort-select"
-            value={sortBy}
-            onChange={(e) => changeSort(e.target.value)}
-            className="cart-sort-select"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      
-      <div className="cart-items">
-        {sortedCartItems.map((item, idx) => {
-          const badgeClass = getBadgeClass(item.eventLabel);
-          const itemColor = item.swatch?.[0] || '#ff6b35';
-          const itemStyle = {
-            '--item-color': itemColor
-          };
-          
-          return (
-            <div 
-              key={idx} 
-              className="cart-item"
-              style={itemStyle}
-            >
-              {/* Product Preview */}
-              <div 
-                className="cart-item-preview"
-                style={{
-                  background: item.imageUrl
-                    ? `url(${item.imageUrl}) center/cover`
-                    : `linear-gradient(135deg, ${item.swatch[0]}, ${item.swatch[1]})`,
-                }}
+      <div className="cart-layout">
+        {/* Left: Scrollable cart items */}
+        <div className="cart-items-col">
+          <div className="cart-header">
+            <div>
+              <h1 className="cart-title">Shopping Bag</h1>
+              <span className="cart-item-count">{sortedCartItems.length} Item{sortedCartItems.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="cart-sort">
+              <label htmlFor="cart-sort-select" className="cart-sort-label">Sort by</label>
+              <select
+                id="cart-sort-select"
+                value={sortBy}
+                onChange={(e) => changeSort(e.target.value)}
+                className="cart-sort-select"
               >
-                {!item.imageUrl && <span>{item.previewLabel}</span>}
-              </div>
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-              {/* Item Info */}
-              <div className="cart-item-info">
-                <h3 className="cart-item-name">{item.name}</h3>
-                {item.description && (
-                  <p className="cart-item-description">{item.description}</p>
-                )}
-                <div className="cart-item-meta">
-                  <span className={`cart-item-badge ${badgeClass}`}>
-                    {item.eventLabel}
-                  </span>
-                  {item.variant && (
-                    <span className="cart-item-variant">{item.variant}</span>
-                  )}
-                </div>
-                <div className="cart-item-price-info">
-                  <span className="cart-item-price">
-                    {formatPrice(item.price)} <span className="cart-item-price-value">each</span>
-                  </span>
-                </div>
-              </div>
+          <div className="cart-items">
+            {sortedCartItems.map((item, idx) => {
+              const itemColor = item.swatch?.[0] || '#ff6b35';
+              const itemStyle = { '--item-color': itemColor };
 
-              {/* Controls */}
-              <div className="cart-item-controls">
-                <button
-                  className="cart-item-remove"
-                  onClick={() => removeItem(item)}
-                  aria-label="Remove item"
+              return (
+                <div
+                  key={idx}
+                  className="cart-item"
+                  style={{ ...itemStyle, animationDelay: `${idx * 0.08}s` }}
                 >
-                  Remove
-                </button>
-                <div className="qty-control">
-                  <button
-                    className="qty-btn"
-                    onClick={() => adjustCart(item, -1)}
-                    disabled={item.quantity === 0}
-                    aria-label="Decrease quantity"
+                  <div
+                    className="cart-item-preview"
+                    style={{
+                      background: item.imageUrl
+                        ? `url(${item.imageUrl}) center/cover`
+                        : `linear-gradient(135deg, ${item.swatch[0]}, ${item.swatch[1]})`,
+                    }}
                   >
-                    −
-                  </button>
-                  <span className="qty-count">{item.quantity}</span>
-                  <button
-                    className="qty-btn"
-                    onClick={() => adjustCart(item, 1)}
-                    aria-label="Increase quantity"
-                  >
-                    +
-                  </button>
+                    {!item.imageUrl && <span>{item.previewLabel}</span>}
+                  </div>
+                  <div className="cart-item-body">
+                    <div className="cart-item-top">
+                      <div>
+                        <h3 className="cart-item-name">{item.name}</h3>
+                        <p className="cart-item-variant-line">
+                          {item.eventLabel}
+                          {item.variant ? ` / ${item.variant}` : ''}
+                        </p>
+                      </div>
+                      <span className="cart-item-unit-price">{formatPrice(item.price)}</span>
+                    </div>
+                    <div className="cart-item-bottom">
+                      <div className="qty-control">
+                        <button
+                          className="qty-btn"
+                          onClick={() => adjustCart(item, -1)}
+                          disabled={item.quantity === 0}
+                          aria-label="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <span className="qty-count" aria-label={`Quantity: ${item.quantity}`}>{item.quantity}</span>
+                        <button
+                          className="qty-btn"
+                          onClick={() => adjustCart(item, 1)}
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <button
+                        className="cart-item-remove"
+                        onClick={() => removeItem(item)}
+                        aria-label="Remove item"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="cart-item-total">
-                  {formatPrice(item.price * item.quantity)}
-                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right: Sticky summary sidebar */}
+        <div className="cart-summary-col">
+          <div className="cart-summary">
+            <h2 className="cart-summary-title">Summary</h2>
+            <div className="cart-summary-rows">
+              <div className="cart-summary-row">
+                <span>Subtotal</span>
+                <span>{formatPrice(total)}</span>
+              </div>
+              <div className="cart-summary-row">
+                <span>Shipping</span>
+                <span className="cart-summary-free">FREE</span>
+              </div>
+              <div className="cart-summary-row cart-summary-total">
+                <span>Total</span>
+                <span>{formatPrice(total)}</span>
               </div>
             </div>
-          );
-        })}
-      </div>
-
-      {/* Cart Summary */}
-      <div className="cart-summary">
-        <div className="cart-summary-header">
-          <span className="cart-summary-label">Order Summary</span>
+            <button className="checkout-btn" onClick={handleCheckout}>
+              Checkout
+            </button>
+          </div>
         </div>
-        <div className="cart-total">
-          <span className="cart-total-label">Total Amount</span>
-          <span className="total-amount">{formatPrice(total)}</span>
-        </div>
-        <button className="checkout-btn" onClick={handleCheckout}>
-          Proceed to Checkout
-        </button>
       </div>
     </section>
   );
