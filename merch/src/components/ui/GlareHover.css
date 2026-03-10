@@ -54,7 +54,12 @@
 }
 
 .glare-hover--fill {
-  display: block;
+  display: flex;
   width: 100%;
   min-height: 100%;
+}
+
+.glare-hover--fill > * {
+  flex: 1;
+  min-height: 0;
 }
