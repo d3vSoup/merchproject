@@ -157,6 +157,14 @@ export default function ResellBuyer() {
   const [replyForm, setReplyForm] = useState({ comments: "" });
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [submittingReply, setSubmittingReply] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState(null);
+
+  // Close lightbox on Escape
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setLightboxImg(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), 350);
@@ -490,8 +498,9 @@ export default function ResellBuyer() {
             <div className="resell-modal__gallery">
               {mainImage ? (
                 <>
-                  <div className="resell-modal__gallery-main">
+                  <div className="resell-modal__gallery-main" style={{ cursor: 'zoom-in' }} onClick={() => setLightboxImg(mainImage)}>
                     <img src={mainImage} alt={selectedItem.title} />
+                    <span style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: 6, padding: '3px 8px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ FULL</span>
                   </div>
                   {modalImages.length > 1 && (
                     <div className="resell-modal__gallery-thumbs">
@@ -705,6 +714,26 @@ export default function ResellBuyer() {
               Close
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen Lightbox */}
+      {lightboxImg && (
+        <div
+          onClick={() => setLightboxImg(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, cursor: 'zoom-out' }}
+        >
+          <button
+            onClick={() => setLightboxImg(null)}
+            style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label="Close"
+          >×</button>
+          <img
+            src={lightboxImg}
+            alt="Full preview"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '92vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+          />
         </div>
       )}
     </div>

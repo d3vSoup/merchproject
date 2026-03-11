@@ -19,7 +19,7 @@ const TABS = [
   { key: "phaseshift", label: "Phaseshift", catalogKey: "phaseshift", path: "/event/phaseshift" },
   { key: "farouche", label: "Farouche", catalogKey: "farouche", path: "/event/farouche" },
   { key: "club", label: "Club & Dept Merch", catalogKey: "club", path: "/event/club" },
-  { key: "resell", label: "Revault", catalogKey: null, path: "/resell" },
+  { key: "resell", label: "Revault - Resell", catalogKey: null, path: "/resell" },
 ];
 
 const overrideCache = {};

@@ -80,6 +80,13 @@ export default function ResellSeller() {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyForm, setReplyForm] = useState({ comments: '' });
   const [submittingReply, setSubmittingReply] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setLightboxImg(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   function canEdit(item) {
     if (!item?.created_at || item.deleted_at) return false;
@@ -336,11 +343,17 @@ export default function ResellSeller() {
       {/* Header */}
       <div className="seller-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.02em' }}>My Listings</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-            {items.length} active · {pastItems.length} past
-          </p>
-        </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ width: 28, height: 1, background: 'var(--accent, #ec5b13)', display: 'inline-block' }} />
+              <span style={{ fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--accent, #ec5b13)' }}>Your Marketplace</span>
+            </div>
+            <h2 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase' }}>
+              My <span style={{ background: 'linear-gradient(to right, var(--accent, #ec5b13), #ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Listings</span>
+            </h2>
+            <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
+              {items.length} active · {pastItems.length} past
+            </p>
+          </div>
         <button
           className="btn btn--primary"
           onClick={() => showForm ? cancelForm() : (setEditingItem(null), setFormData({ title: "", condition: "new", year: "", description: "", priceRange: "", pictures: [] }), setShowForm(true))}
@@ -565,8 +578,10 @@ export default function ResellSeller() {
             <div>
               {mainImage ? (
                 <>
-                  <div style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden', borderRadius: '20px 20px 0 0', background: 'rgba(0,0,0,0.04)' }}>
+                  <div style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden', borderRadius: '20px 20px 0 0', background: 'rgba(0,0,0,0.04)', cursor: 'zoom-in', position: 'relative' }}
+                       onClick={() => setLightboxImg(mainImage)}>
                     <img src={mainImage} alt={selectedItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <span style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: 6, padding: '3px 8px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ FULL</span>
                   </div>
                   {modalImages.length > 1 && (
                     <div style={{ display: 'flex', gap: 8, padding: '12px 24px', overflowX: 'auto' }}>
@@ -665,6 +680,26 @@ export default function ResellSeller() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen Lightbox */}
+      {lightboxImg && (
+        <div
+          onClick={() => setLightboxImg(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, cursor: 'zoom-out' }}
+        >
+          <button
+            onClick={() => setLightboxImg(null)}
+            style={{ position: 'absolute', top: 20, right: 24, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label="Close"
+          >×</button>
+          <img
+            src={lightboxImg}
+            alt="Full preview"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '92vw', maxHeight: '90vh', objectFit: 'contain', borderRadius: 8, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }}
+          />
         </div>
       )}
     </div>

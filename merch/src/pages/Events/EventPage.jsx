@@ -20,7 +20,6 @@ import EventDetailsSection from "../../components/EventDetailsSection";
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
 const MERCH_HEADING_TEXTS = [
-  "Merch Line-up",
   "Limited Drops",
   "Campus Drip",
   "Fresh Fits",
@@ -40,6 +39,7 @@ export default function EventPage() {
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [eventDetails, setEventDetails] = useState(null);
+  const [heroCarouselIdx, setHeroCarouselIdx] = useState(0);
 
   // Removed localStorage dependency - countdown is now fetched from backend
 
@@ -373,20 +373,6 @@ export default function EventPage() {
   if (loadingSoldOut) {
     return (
       <section className="product-section">
-        <div className="section-heading">
-          <RotatingText
-            texts={MERCH_HEADING_TEXTS}
-            mainClassName="section-heading__rotate"
-            staggerFrom="last"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "-120%" }}
-            staggerDuration={0.025}
-            splitLevelClassName="section-heading__rotate-split"
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            rotationInterval={2500}
-          />
-        </div>
         <SkeletonGrid />
       </section>
     );
@@ -406,6 +392,18 @@ export default function EventPage() {
     "WEAR THE ENERGY",
     "EXCLUSIVE EVENT MERCH",
   ];
+
+  // Collect all product images for the hero carousel
+  const heroImages = eventProducts
+    .flatMap(p => p.images?.length ? p.images : p.imageUrl ? [p.imageUrl] : [])
+    .filter(Boolean);
+
+  // Auto-rotate hero carousel
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const t = setInterval(() => setHeroCarouselIdx(i => (i + 1) % heroImages.length), 2500);
+    return () => clearInterval(t);
+  }, [heroImages.length]);
 
   return (
     <section className="product-section event-page">
@@ -436,8 +434,21 @@ export default function EventPage() {
               </div>
               <div className="made-for-main-stage__visual">
                 <div className="made-for-main-stage__box made-for-main-stage__box--base" />
-                <div className="made-for-main-stage__box made-for-main-stage__box--top">
-                  {eventProducts[0]?.imageUrl && (
+                <div className="made-for-main-stage__box made-for-main-stage__box--top" style={{ overflow: 'hidden', position: 'relative' }}>
+                  {heroImages.map((src, idx) => (
+                    <div
+                      key={idx}
+                      className="made-for-main-stage__product-img"
+                      style={{
+                        backgroundImage: `url(${src})`,
+                        position: 'absolute',
+                        inset: 0,
+                        opacity: idx === heroCarouselIdx ? 1 : 0,
+                        transition: 'opacity 0.8s ease-in-out',
+                      }}
+                    />
+                  ))}
+                  {heroImages.length === 0 && eventProducts[0]?.imageUrl && (
                     <div
                       className="made-for-main-stage__product-img"
                       style={{ backgroundImage: `url(${eventProducts[0].imageUrl})` }}
