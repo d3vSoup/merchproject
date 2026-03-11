@@ -36,12 +36,7 @@ export default function WishlistPage() {
     }
   }, [user]);
 
-  // Reload wishlist when overrides change (after initial load)
-  useEffect(() => {
-    if (user && Object.keys(productOverrides).length > 0) {
-      loadWishlist(productOverrides);
-    }
-  }, [productOverrides]);
+
 
   async function loadOverrides() {
     try {

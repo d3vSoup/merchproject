@@ -2003,7 +2003,8 @@ const { data: confirmedOrder, error: orderErr } = await supabaseAdmin
       user_usn: sbUser?.usn || "-",
       user_phone: sbUser?.phone || "-",
       is_delivery: isDelivery || false,
-      delivery_address: isDelivery ? (deliveryAddress || null) : null,
+      delivery_address: isDelivery ? (typeof deliveryAddress === 'object' ? (deliveryAddress?.address || null) : (deliveryAddress || null)) : null,
+      delivery_maps_link: isDelivery && typeof deliveryAddress === 'object' ? (deliveryAddress?.mapsLink || null) : null,
     }
   ])
   .select()
@@ -2067,7 +2068,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
     // Get all confirmed orders - fetch separately and join manually
     const { data: confirmedOrders, error: confirmedError } = await supabaseAdmin
       .from('confirmed_orders')
-      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address, delivery_maps_link')
       .order('created_at', { ascending: false });
 
     // Get all cart items (dummy orders) - fetch separately and join manually
@@ -2226,6 +2227,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
           createdAt: order.created_at,
           is_delivery: order.is_delivery || false,
           delivery_address: order.delivery_address || null,
+          delivery_maps_link: order.delivery_maps_link || null,
         });
       });
     }
@@ -2448,7 +2450,7 @@ app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
     const { date, startDate, endDate } = req.query;
     let query = supabaseAdmin
       .from('confirmed_orders')
-      .select('id, order_number, items, total_amount, payment_status, created_at, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address, delivery_maps_link')
       .order('created_at', { ascending: false });
 
     if (startDate && endDate) {
@@ -2487,12 +2489,13 @@ app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
         status: o.payment_status || 'pending',
         is_delivery: o.is_delivery ? 'Yes' : 'No',
         delivery_address: o.delivery_address || '',
+        delivery_maps_link: o.delivery_maps_link || '',
       };
     });
 
-    const csvHeader = 'Order Number,Date,Name,Email,USN,Phone,Items,Total (₹),Status,Delivery,Delivery Address\n';
+    const csvHeader = 'Order Number,Date,Name,Email,USN,Phone,Items,Total (₹),Status,Delivery,Delivery Address,Maps Link\n';
     const csvRows = rows.map(r =>
-      [r.order_number, r.date, `"${(r.name || '').replace(/"/g, '""')}"`, r.email, r.usn, r.phone, `"${(r.items || '').replace(/"/g, '""')}"`, r.total, r.status, r.is_delivery, `"${(r.delivery_address || '').replace(/"/g, '""')}"`].join(',')
+      [r.order_number, r.date, `"${(r.name || '').replace(/"/g, '""')}"`, r.email, r.usn, r.phone, `"${(r.items || '').replace(/"/g, '""')}"`, r.total, r.status, r.is_delivery, `"${(r.delivery_address || '').replace(/"/g, '""')}"`, `"${(r.delivery_maps_link || '').replace(/"/g, '""')}"`].join(',')
     ).join('\n');
     const csv = csvHeader + csvRows;
 

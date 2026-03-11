@@ -25,6 +25,7 @@ export default function CartPage() {
   const [sortBy, changeSort] = useSortPreference('cart_sort', 'price_asc');
   const [wantsDelivery, setWantsDelivery] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryMapsLink, setDeliveryMapsLink] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -216,8 +217,17 @@ export default function CartPage() {
       name: item.name,
     }));
 
+    if (wantsDelivery && !deliveryAddress.trim() && !deliveryMapsLink.trim()) {
+      toast.error('Please enter a delivery address or Google Maps link');
+      return;
+    }
+
     try {
-      const order = await createOrder(orderItems, total, wantsDelivery, wantsDelivery ? deliveryAddress : null);
+      const deliveryInfo = wantsDelivery ? {
+        address: deliveryAddress.trim(),
+        mapsLink: deliveryMapsLink.trim(),
+      } : null;
+      const order = await createOrder(orderItems, total, wantsDelivery, deliveryInfo);
       if (order) {
         Analytics.orderPlaced(order?.id || order?.order_number, total);
         toast.success("Order placed successfully!");
@@ -394,8 +404,25 @@ export default function CartPage() {
                     placeholder="Enter your delivery address…"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    rows={3}
+                    rows={2}
                   />
+                  <div className="delivery-maps-link">
+                    <span className="delivery-maps-icon">📍</span>
+                    <input
+                      type="url"
+                      placeholder="Paste Google Maps link…"
+                      value={deliveryMapsLink}
+                      onChange={(e) => setDeliveryMapsLink(e.target.value)}
+                    />
+                  </div>
+                  <a
+                    className="delivery-maps-help"
+                    href="https://www.google.com/maps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Google Maps →
+                  </a>
                 </div>
               )}
             </div>

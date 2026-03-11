@@ -451,7 +451,10 @@ export default function AdminOrders() {
                       <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
                       {order.is_delivery && (
                         <span style={{ fontSize: '0.85rem', color: 'var(--accent)' }}>
-                          📦 Delivery — {order.delivery_address || 'No address provided'}
+                          📦 Delivery — {order.delivery_address || 'No address'}
+                          {order.delivery_maps_link && (
+                            <> · <a href={order.delivery_maps_link} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Maps 🔗</a></>
+                          )}
                         </span>
                       )}
                       <span className="order-summary-total">Total: {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}</span>
