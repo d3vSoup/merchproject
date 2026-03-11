@@ -52,13 +52,45 @@
 }
 
 .cart-title {
-  font-size: 2.25rem;
-  font-weight: 800;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
   color: #1a1a1a;
-  margin: 0;
-  letter-spacing: -0.03em;
+  margin: 0 0 8px;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
-  line-height: 1.1;
+  line-height: 0.95;
+}
+
+.cart-title__gradient {
+  background: linear-gradient(to right, var(--accent, #ec5b13), #ff8c42);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cart-header__left {
+  max-width: 640px;
+}
+
+.cart-header__accent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cart-header__accent-line {
+  width: 32px;
+  height: 1px;
+  background: var(--accent, #ec5b13);
+}
+
+.cart-header__accent-text {
+  font-size: 0.625rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--accent, #ec5b13);
 }
 
 .cart-item-count {

@@ -4,16 +4,13 @@ import api from "../api";
 import { EVENT_CARDS } from "../data/eventCards";
 import "./Landing.css";
 
-const APPAREL_SLIDES = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBjkZN_je4uu1T_yhTASUwwVZV649r8wrvyIyMCSsumUlC0OIrvXmsEzRGZlit8dh2aLKlKzHRZMfprzVwgxZVi7bkTF1DJfFmkjVTHJaBHARg2v8HvRQyr0ZxwXqS-dgVIiF-8fMdIrULfoJQB4mnHdr00Ajw8a6Yw3_ECj69_PHP5rBVuiFUQX7cJUruK2cjmvuhHtvM9Z2Fut8r1CPJ8wqdGZFZPhXul--80I-oJYvr6I4yi1yvaI9d_UZFKNo6s9cZIOEpHBLQ",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCrHUJdYGUVl0g3AW7PxOPK3fh6EnbRYA9rZ4dZ419DpFNaTxtX_MLvBk61G2uhQG5VBX4LIwNL_fBa6zu2GoNpc3Y1Hk861pxvw_jLDAKumQ7HUGX6QKVCgqQHV4rjtFBi3ADY4jzi2Q1WGj345xMkabC1kCbpr7XWIp7JWut2-ukF9JS3MGSvUTUdzUB-tn1Ez0xA6T5z_0Gx89JUyb5plIjrkHNEp5sGM33hz8NuCPtiDxOyXrLJGE-z17x_hWgOgj8KQ7UMyy8",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDSmi3kt37Dn0ZNlBDVjUxxse2O1wB0DPtrB-fA0qCuW_L8SMDCmCcTng9ISsR8voIwkLVLb51HuK6ycd1HximGMnEiuD0ZYghuKw7e8azJSBjs_C0qRibFf6aM-6X1X4aOGOm17t9B462HGptZKpBnpWqnC-gNPklY4MjefbxYpSkwgVxyvZsKU8oRpva-cgcY7E4cviYClClLqeBgB7sV5_ASLjd74nmxICw3VlBlXqSBo7vzBXy1DLIgCxl6orQCc-OjdxTUZ5A",
-];
+const APPAREL_SLIDES = [];
 
 export default function Landing() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const scrollContainerRef = useRef(null);
   const [heroSlides, setHeroSlides] = useState(APPAREL_SLIDES);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   const [eventImages, setEventImages] = useState({});
 
@@ -27,6 +24,7 @@ export default function Landing() {
         const heroConfig = overrides.find(o => o.tab_key === 'system' && o.product_id === 'hero_carousel');
         if (mounted && heroConfig && heroConfig.images && heroConfig.images.length > 0) {
           setHeroSlides(heroConfig.images);
+          setHeroLoaded(true);
         }
         const map = {};
         overrides.forEach((o) => {
@@ -88,11 +86,15 @@ export default function Landing() {
           {/* Left Side: Shaped Image Container with Slow Fade */}
           <div className="w-full md:w-7/12 h-[50vh] md:h-screen relative hero-shape bg-gray-200" id="hero-carousel">
             {/* Slides */}
-            {heroSlides.map((slide, idx) => (
+            {heroSlides.length > 0 ? heroSlides.map((slide, idx) => (
               <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>
                 <img alt="BMSCE Apparel" className="w-full h-full object-cover" src={slide} />
               </div>
-            ))}
+            )) : (
+              <div className="w-full h-full flex items-center justify-center bg-[#111827]">
+                <span className="text-4xl font-black text-white/20">BMSCE MERCH</span>
+              </div>
+            )}
             {/* Overlay for contrast if needed */}
             <div className="absolute inset-0 bg-black/5"></div>
           </div>
@@ -180,11 +182,12 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
             <span className="text-2xl font-bold tracking-tighter">BMSCE<span className="text-[#FF6B00]">MERCH</span></span>
-            <p className="mt-6 text-gray-400 max-w-sm">The official store for BMS College of Engineering. Delivering premium quality apparel since 2023.</p>
+            <p className="mt-6 text-gray-400 max-w-sm">The official store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
           </div>
           <div>
             <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Quick Links</h4>
             <ul className="space-y-4 text-sm">
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/about">About Us</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/shipping-policy">Shipping Policy</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/returns-exchanges">Returns &amp; Exchanges</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/size-chart">Size Guide</Link></li>

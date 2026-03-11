@@ -262,7 +262,13 @@ export default function CartPage() {
     return (
       <section className="cart-section">
         <div className="cart-header cart-header--empty">
-          <h1 className="cart-title">Shopping Bag</h1>
+          <div className="cart-header__left">
+            <div className="cart-header__accent">
+              <span className="cart-header__accent-line" />
+              <span className="cart-header__accent-text">Your Collection</span>
+            </div>
+            <h1 className="cart-title">Shopping <br /><span className="cart-title__gradient">Bag</span></h1>
+          </div>
           <p className="cart-subtitle">Add items to get started</p>
         </div>
         <div className="cart-empty">
@@ -282,8 +288,12 @@ export default function CartPage() {
         {/* Left: Scrollable cart items */}
         <div className="cart-items-col">
           <div className="cart-header">
-            <div>
-              <h1 className="cart-title">Shopping Bag</h1>
+            <div className="cart-header__left">
+              <div className="cart-header__accent">
+                <span className="cart-header__accent-line" />
+                <span className="cart-header__accent-text">Your Collection</span>
+              </div>
+              <h1 className="cart-title">Shopping <br /><span className="cart-title__gradient">Bag</span></h1>
               <span className="cart-item-count">{sortedCartItems.length} Item{sortedCartItems.length !== 1 ? 's' : ''}</span>
             </div>
             <div className="cart-sort">
