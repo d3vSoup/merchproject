@@ -369,6 +369,18 @@ export default function EventPage() {
     return false;
   };
 
+  // Collect all product images for the hero carousel (must be before early return to satisfy Rules of Hooks)
+  const heroImages = eventProducts
+    .flatMap(p => p.images?.length ? p.images : p.imageUrl ? [p.imageUrl] : [])
+    .filter(Boolean);
+
+  // Auto-rotate hero carousel
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const t = setInterval(() => setHeroCarouselIdx(i => (i + 1) % heroImages.length), 2500);
+    return () => clearInterval(t);
+  }, [heroImages.length]);
+
   // Don't render until data is loaded to avoid flash
   if (loadingSoldOut) {
     return (
@@ -393,17 +405,7 @@ export default function EventPage() {
     "EXCLUSIVE EVENT MERCH",
   ];
 
-  // Collect all product images for the hero carousel
-  const heroImages = eventProducts
-    .flatMap(p => p.images?.length ? p.images : p.imageUrl ? [p.imageUrl] : [])
-    .filter(Boolean);
 
-  // Auto-rotate hero carousel
-  useEffect(() => {
-    if (heroImages.length <= 1) return;
-    const t = setInterval(() => setHeroCarouselIdx(i => (i + 1) % heroImages.length), 2500);
-    return () => clearInterval(t);
-  }, [heroImages.length]);
 
   return (
     <section className="product-section event-page">
