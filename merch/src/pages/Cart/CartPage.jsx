@@ -23,6 +23,8 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [productOverrides, setProductOverrides] = useState({});
   const [sortBy, changeSort] = useSortPreference('cart_sort', 'price_asc');
+  const [wantsDelivery, setWantsDelivery] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -215,7 +217,7 @@ export default function CartPage() {
     }));
 
     try {
-      const order = await createOrder(orderItems, total);
+      const order = await createOrder(orderItems, total, wantsDelivery, wantsDelivery ? deliveryAddress : null);
       if (order) {
         Analytics.orderPlaced(order?.id || order?.order_number, total);
         toast.success("Order placed successfully!");
@@ -233,7 +235,9 @@ export default function CartPage() {
     }
   }
 
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = wantsDelivery ? 100 : 0;
+  const total = subtotal + deliveryFee;
   const sortedCartItems = sortItems(cartItems, sortBy, (i) => i.price, (i) => i.eventLabel);
 
   if (loading) {
@@ -356,17 +360,46 @@ export default function CartPage() {
             <div className="cart-summary-rows">
               <div className="cart-summary-row">
                 <span>Subtotal</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="cart-summary-row">
                 <span>Shipping</span>
-                <span className="cart-summary-free">FREE</span>
+                <span className="cart-summary-free">{wantsDelivery ? formatPrice(100) : 'FREE'}</span>
               </div>
+              {wantsDelivery && (
+                <div className="cart-summary-row">
+                  <span>Delivery Fee</span>
+                  <span>{formatPrice(100)}</span>
+                </div>
+              )}
               <div className="cart-summary-row cart-summary-total">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
+
+            <div className="delivery-section">
+              <label className="delivery-toggle">
+                <input
+                  type="checkbox"
+                  checked={wantsDelivery}
+                  onChange={(e) => setWantsDelivery(e.target.checked)}
+                />
+                <span>I want delivery</span>
+              </label>
+              <p className="delivery-fee-note">Delivery fee: ₹100</p>
+              {wantsDelivery && (
+                <div className="delivery-address-input">
+                  <textarea
+                    placeholder="Enter your delivery address…"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              )}
+            </div>
+
             <button className="checkout-btn" onClick={handleCheckout}>
               Checkout
             </button>

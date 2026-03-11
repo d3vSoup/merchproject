@@ -38,7 +38,7 @@
 }
 
 .event-hero-countdown .countdown-unit:last-child .countdown-label {
-  color: var(--accent);
+  color: #fff;
 }
 
 .event-hero-countdown .countdown-separator {

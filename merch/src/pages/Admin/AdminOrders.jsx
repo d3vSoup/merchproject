@@ -145,9 +145,15 @@ export default function AdminOrders() {
     setLoading(false);
   }
 
-  async function exportOrdersCsv(dateFilter = null) {
+  async function exportOrdersCsv(dateFilter = null, rangeStart = null, rangeEnd = null) {
     try {
-      const params = dateFilter ? { date: dateFilter } : {};
+      const params = {};
+      if (rangeStart && rangeEnd) {
+        params.startDate = rangeStart;
+        params.endDate = rangeEnd;
+      } else if (dateFilter) {
+        params.date = dateFilter;
+      }
       const res = await api.get('/api/admin/orders/export', {
         params,
         responseType: 'blob',
@@ -162,7 +168,8 @@ export default function AdminOrders() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `orders${dateFilter ? `-${dateFilter}` : ''}.csv`;
+      const dateSuffix = rangeStart && rangeEnd ? `-${rangeStart}_to_${rangeEnd}` : (dateFilter ? `-${dateFilter}` : '');
+      a.download = `orders${dateSuffix}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success('CSV exported');
@@ -214,12 +221,27 @@ export default function AdminOrders() {
   }
 
   const resellListings = allOrders.filter(o => o.type === 'resell_listing');
+
+  // CSV date range state
+  const [csvStartDate, setCsvStartDate] = React.useState('');
+  const [csvEndDate, setCsvEndDate] = React.useState('');
   
   const displayOrders = activeTab === 'all' ? allOrders 
     : activeTab === 'orders' ? confirmedOrders
     : activeTab === 'cart' ? cartItems
     : activeTab === 'resell' ? resellListings
     : allOrders;
+
+  function getWeekRange() {
+    const now = new Date();
+    const day = now.getDay();
+    const start = new Date(now);
+    start.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+    return {
+      startDate: start.toISOString().slice(0, 10),
+      endDate: now.toISOString().slice(0, 10)
+    };
+  }
 
   return (
     <section className="admin-section">
@@ -239,8 +261,26 @@ export default function AdminOrders() {
             <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv(new Date().toISOString().slice(0, 10))}>
               Today
             </button>
+            <button className="btn btn--ghost btn--sm" onClick={() => {
+              const { startDate, endDate } = getWeekRange();
+              exportOrdersCsv(null, startDate, endDate);
+            }}>
+              This Week
+            </button>
             <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv()}>
               All
+            </button>
+          </div>
+          <div className="admin-orders-export" style={{ gap: '6px' }}>
+            <input type="date" value={csvStartDate} onChange={e => setCsvStartDate(e.target.value)} style={{ fontSize: '0.85rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)' }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>to</span>
+            <input type="date" value={csvEndDate} onChange={e => setCsvEndDate(e.target.value)} style={{ fontSize: '0.85rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)' }} />
+            <button 
+              className="btn btn--ghost btn--sm" 
+              disabled={!csvStartDate || !csvEndDate}
+              onClick={() => exportOrdersCsv(null, csvStartDate, csvEndDate)}
+            >
+              Export Range
             </button>
           </div>
           <div className="admin-orders-tabs">
@@ -337,6 +377,7 @@ export default function AdminOrders() {
                     <div className="order-items-summary">
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                       <span className="order-total-inline">{formatPrice(isNaN(total) ? 0 : total)}</span>
+                      {order.is_delivery && <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 600 }}>📦 Delivery</span>}
                     </div>
                     <div className="order-total">
                     {order.type === 'resell_listing' ? (
@@ -408,6 +449,11 @@ export default function AdminOrders() {
                     </div>
                     <div className="order-summary-bar">
                       <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
+                      {order.is_delivery && (
+                        <span style={{ fontSize: '0.85rem', color: 'var(--accent)' }}>
+                          📦 Delivery — {order.delivery_address || 'No address provided'}
+                        </span>
+                      )}
                       <span className="order-summary-total">Total: {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}</span>
                     </div>
                   </details>

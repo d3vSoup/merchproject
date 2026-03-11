@@ -1940,7 +1940,7 @@ app.post('/api/orders/create', orderLimiter, authMiddleware, async (req, res) =>
       });
     }
 
-    const { items, totalAmount } = req.body;
+    const { items, totalAmount, isDelivery, deliveryAddress } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0 || !totalAmount) {
       return res.status(400).json({ message: 'Invalid order data' });
     }
@@ -2002,6 +2002,8 @@ const { data: confirmedOrder, error: orderErr } = await supabaseAdmin
       user_email: sbUser?.email || req.auth.email,
       user_usn: sbUser?.usn || "-",
       user_phone: sbUser?.phone || "-",
+      is_delivery: isDelivery || false,
+      delivery_address: isDelivery ? (deliveryAddress || null) : null,
     }
   ])
   .select()
@@ -2065,7 +2067,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
     // Get all confirmed orders - fetch separately and join manually
     const { data: confirmedOrders, error: confirmedError } = await supabaseAdmin
       .from('confirmed_orders')
-      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address')
       .order('created_at', { ascending: false });
 
     // Get all cart items (dummy orders) - fetch separately and join manually
@@ -2221,7 +2223,9 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
           items: order.items || [],
           totalAmount: parseFloat(order.total_amount || 0),
           paymentStatus: order.payment_status,
-          createdAt: order.created_at
+          createdAt: order.created_at,
+          is_delivery: order.is_delivery || false,
+          delivery_address: order.delivery_address || null,
         });
       });
     }
@@ -2435,19 +2439,27 @@ app.delete('/api/admin/orders/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/admin/orders/export - CSV export (admin only, optional date filter)
+// GET /api/admin/orders/export - CSV export (admin only, date filter: single date, range, or week)
 app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
   try {
     if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
     if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
 
-    const { date } = req.query; // YYYY-MM-DD for single day
+    const { date, startDate, endDate } = req.query;
     let query = supabaseAdmin
       .from('confirmed_orders')
-      .select('id, order_number, items, total_amount, payment_status, created_at, user_name, user_email, user_usn, user_phone')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address')
       .order('created_at', { ascending: false });
 
-    if (date) {
+    if (startDate && endDate) {
+      // Custom date range
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query = query.gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
+    } else if (date) {
+      // Single day
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);
       const end = new Date(date);
@@ -2473,17 +2485,20 @@ app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
         items: itemsStr,
         total: o.total_amount,
         status: o.payment_status || 'pending',
+        is_delivery: o.is_delivery ? 'Yes' : 'No',
+        delivery_address: o.delivery_address || '',
       };
     });
 
-    const csvHeader = 'Order Number,Date,Name,Email,USN,Phone,Items,Total (₹),Status\n';
+    const csvHeader = 'Order Number,Date,Name,Email,USN,Phone,Items,Total (₹),Status,Delivery,Delivery Address\n';
     const csvRows = rows.map(r =>
-      [r.order_number, r.date, `"${(r.name || '').replace(/"/g, '""')}"`, r.email, r.usn, r.phone, `"${(r.items || '').replace(/"/g, '""')}"`, r.total, r.status].join(',')
+      [r.order_number, r.date, `"${(r.name || '').replace(/"/g, '""')}"`, r.email, r.usn, r.phone, `"${(r.items || '').replace(/"/g, '""')}"`, r.total, r.status, r.is_delivery, `"${(r.delivery_address || '').replace(/"/g, '""')}"`].join(',')
     ).join('\n');
     const csv = csvHeader + csvRows;
 
+    const filenameDate = startDate && endDate ? `-${startDate}_to_${endDate}` : (date ? `-${date}` : '');
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="orders${date ? `-${date}` : ''}.csv"`);
+    res.setHeader('Content-Disposition', `attachment; filename="orders${filenameDate}.csv"`);
     return res.send(csv);
   } catch (err) {
     console.error('Export orders error:', err);

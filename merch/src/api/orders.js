@@ -2,12 +2,14 @@
 import api from '../api';
 import { withRetry, isOrderRetryable } from '../utils/withRetry';
 
-export async function createOrder(items, totalAmount) {
+export async function createOrder(items, totalAmount, isDelivery = false, deliveryAddress = null) {
   const res = await withRetry(
     () =>
       api.post('/api/orders/create', {
         items,
-        totalAmount
+        totalAmount,
+        isDelivery,
+        deliveryAddress
       }),
     {
       maxRetries: 2,

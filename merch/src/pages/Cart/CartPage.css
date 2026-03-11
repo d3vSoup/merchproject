@@ -299,6 +299,9 @@
   position: sticky;
   top: 100px;
   align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
 
 .cart-summary-title {
@@ -316,7 +319,68 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+}
+
+/* Delivery toggle & address */
+.delivery-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: rgba(255, 102, 0, 0.04);
+  border: 1px solid rgba(255, 102, 0, 0.12);
+  border-radius: 12px;
+}
+
+.delivery-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.delivery-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent, #ff6600);
+  cursor: pointer;
+}
+
+.delivery-fee-note {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 6px;
+  margin-left: 28px;
+}
+
+.delivery-address-input {
+  margin-top: 12px;
+}
+
+.delivery-address-input textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+  max-height: 120px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #fff;
+}
+
+.delivery-address-input textarea:focus {
+  outline: none;
+  border-color: var(--accent, #ff6600);
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.12);
+}
+
+.delivery-address-input textarea::placeholder {
+  color: #94a3b8;
 }
 
 .cart-summary-row {

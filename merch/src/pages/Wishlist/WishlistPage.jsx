@@ -198,7 +198,15 @@ export default function WishlistPage() {
     return (
       <div className="wishlist-page">
         <div className="wishlist-header">
-          <h1 className="wishlist-title">Your Wishlist</h1>
+          <div className="wishlist-header__left">
+            <div className="wishlist-header__accent">
+              <span className="wishlist-header__accent-line" />
+              <span className="wishlist-header__accent-text">Personal Selection</span>
+            </div>
+            <h1 className="wishlist-title">
+              Saved <br /><span className="wishlist-title__gradient">Essentials</span>
+            </h1>
+          </div>
         </div>
         <div className="wishlist-empty">
           <div className="wishlist-empty__icon">♡</div>
@@ -215,72 +223,94 @@ export default function WishlistPage() {
 
   return (
     <div className="wishlist-page">
+      {/* Editorial Header */}
       <div className="wishlist-header">
-        <div>
-          <h1 className="wishlist-title">Your Wishlist</h1>
-          <p className="wishlist-count">{wishlistItems.length} item{wishlistItems.length !== 1 ? 's' : ''}</p>
+        <div className="wishlist-header__left">
+          <div className="wishlist-header__accent">
+            <span className="wishlist-header__accent-line" />
+            <span className="wishlist-header__accent-text">Personal Selection</span>
+          </div>
+          <h1 className="wishlist-title">
+            Saved <br /><span className="wishlist-title__gradient">Essentials</span>
+          </h1>
+          <p className="wishlist-count">
+            Curate your campus identity. {wishlistItems.length} piece{wishlistItems.length !== 1 ? 's' : ''} saved.
+          </p>
         </div>
-        <div className="wishlist-sort">
-          <AnimatedDropdown
-            label="Sort by"
-            options={SORT_OPTIONS}
-            value={sortBy}
-            onChange={changeSort}
-            id="wishlist-sort-select"
-          />
+        <div className="wishlist-header__right">
+          <div className="wishlist-sort">
+            <AnimatedDropdown
+              label="Sort by"
+              options={SORT_OPTIONS}
+              value={sortBy}
+              onChange={changeSort}
+              id="wishlist-sort-select"
+            />
+          </div>
         </div>
       </div>
-      
+
+      {/* Filter Bar */}
+      <div className="wishlist-filter-bar">
+        <span className="wishlist-filter-bar__count">
+          Showing {sortedWishlistItems.length} of {wishlistItems.length} items
+        </span>
+      </div>
+
+      {/* Product Grid */}
       <div className="wishlist-grid">
         {sortedWishlistItems.map((item, idx) => (
-          <article key={idx} className="wishlist-card">
-            <div
-              className="wishlist-card__image"
-              style={{
-                background: item.imageUrl
-                  ? `url(${item.imageUrl}) center/cover`
-                  : `linear-gradient(135deg, ${item.swatch[0]}, ${item.swatch[1]})`,
-              }}
-            >
-              {!item.imageUrl && <span>{item.previewLabel || item.name}</span>}
-            </div>
-            
-            <button
-              className="wishlist-card__remove"
-              onClick={() => removeItem(item)}
-              aria-label={`Remove ${item.name} from wishlist`}
-            >
-              ✕
-            </button>
-            
-            <div className="wishlist-card__content">
-              <h3 className="wishlist-card__name">{item.name}</h3>
-              <p className="wishlist-card__desc">{item.description}</p>
-              
-              <div className="wishlist-card__meta">
-                <span className="wishlist-card__price">{formatPrice(item.price)}</span>
-                <span className="wishlist-card__event">{item.eventLabel}</span>
+          <article key={idx} className="wishlist-card" style={{ animationDelay: `${0.1 + idx * 0.05}s` }}>
+            <div className="wishlist-card__image-wrap">
+              <div
+                className="wishlist-card__image"
+                style={{
+                  background: item.imageUrl
+                    ? `url(${item.imageUrl}) center/cover`
+                    : `linear-gradient(135deg, ${item.swatch[0]}, ${item.swatch[1]})`,
+                }}
+              >
+                {!item.imageUrl && <span>{item.previewLabel || item.name}</span>}
               </div>
-              
-              {item.variant && (
-                <p className="wishlist-card__variant">{item.variant}</p>
-              )}
-              
-              <div className="wishlist-card__actions">
+
+              {/* Event badge */}
+              <span className="wishlist-card__badge">{item.eventLabel}</span>
+
+              {/* Remove button */}
+              <button
+                className="wishlist-card__remove"
+                onClick={() => removeItem(item)}
+                aria-label={`Remove ${item.name} from wishlist`}
+              >
+                ✕
+              </button>
+
+              {/* Quick Add overlay */}
+              <div className="wishlist-card__overlay">
                 <button
-                  className="btn btn--primary"
+                  className="wishlist-card__quick-add"
                   onClick={() => addToCart(item)}
                 >
-                  Add to Cart
-                </button>
-                <button
-                  className="btn btn--ghost"
-                  onClick={() => navigate(`/event/${item.tabKey}`)}
-                >
-                  View
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add_shopping_cart</span>
+                  Quick Add
                 </button>
               </div>
             </div>
+
+            {/* Card Info */}
+            <div className="wishlist-card__info">
+              <div>
+                <h3 className="wishlist-card__name">{item.name}</h3>
+                <p className="wishlist-card__desc">
+                  {item.description || `${item.eventLabel}${item.variant ? ` / ${item.variant}` : ''}`}
+                </p>
+              </div>
+              <span className="wishlist-card__price">{formatPrice(item.price)}</span>
+            </div>
+
+            {item.variant && (
+              <p className="wishlist-card__variant">{item.variant}</p>
+            )}
           </article>
         ))}
       </div>
