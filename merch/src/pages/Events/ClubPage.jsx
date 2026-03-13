@@ -381,16 +381,16 @@ export default function ClubPage() {
         {/* Clubs Top Menu */}
         <div style={{ position: 'relative' }}>
           <StaggeredMenu
-            position="bottom-left"
+            position="left"
             items={CLUBS.map(c => ({ label: c, ariaLabel: `Select ${c}` }))}
             displaySocials={false}
             displayItemNumbering={true}
             menuButtonColor="var(--c-text, #111)"
-            openMenuButtonColor="#fff"
+            openMenuButtonColor="#111"
             changeMenuColorOnOpen={true}
             colors={['#FF6B00', '#FF9F4A']}
             accentColor="#FF6B00"
-            isFixed={true}
+            isFixed={false}
             menuLabel={selectedClub || "CLUBS"}
             closeLabel="CLOSE"
             iconPosition="left"
@@ -407,16 +407,16 @@ export default function ClubPage() {
         {/* Depts Top Menu */}
         <div style={{ position: 'relative' }}>
           <StaggeredMenu
-            position="bottom-right"
+            position="right"
             items={DEPARTMENTS.map(d => ({ label: d, ariaLabel: `Select ${d}` }))}
             displaySocials={false}
             displayItemNumbering={true}
             menuButtonColor="var(--c-text, #111)"
-            openMenuButtonColor="#fff"
+            openMenuButtonColor="#111"
             changeMenuColorOnOpen={true}
             colors={['#5227FF', '#B19EEF']}
             accentColor="#5227FF"
-            isFixed={true}
+            isFixed={false}
             menuLabel={selectedDept || "DEPARTMENTS"}
             closeLabel="CLOSE"
             iconPosition="right"

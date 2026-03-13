@@ -4,15 +4,15 @@ import './LegalPages.css';
 const SizeChartPage = () => {
   return (
     <div className="legal-page">
-      <div className="legal-container">
-        <h1 className="legal-title">Size Guide</h1>
-        <p className="legal-updated">Last updated: {new Date().toLocaleDateString()}</p>
+      <div className="legal-container size-guide-container">
+        <div className="size-guide-header" style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <h1 className="legal-title" style={{ fontSize: '2.5rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>Size Guide</h1>
+          <p className="legal-intro" style={{ color: '#666', fontSize: '1.1rem', maxWidth: '500px', margin: '0 auto', lineHeight: 1.6 }}>
+            Measurements are in inches unless otherwise specified. For the best fit, we recommend measuring a similar item of clothing you already own.
+          </p>
+        </div>
         
         <div className="legal-content">
-          <p>
-            Find your perfect fit with our comprehensive size guide. Measurements are in inches unless otherwise specified. 
-            For the best fit, we recommend measuring a similar item of clothing you already own that fits well.
-          </p>
 
           <section className="legal-section fade-in-section is-visible">
             <h2>T-Shirts</h2>
