@@ -1241,8 +1241,8 @@ export default function AdminItems() {
         )}
 
         {editingProduct && (
-          <div className="admin-edit-modal">
-            <div className="admin-edit-content">
+          <div className="admin-edit-modal" onClick={() => setEditingProduct(null)}>
+            <div className="admin-edit-content" onClick={(e) => e.stopPropagation()}>
               <h3>Edit Product</h3>
               <div className="admin-edit-form">
                 <label>
@@ -1356,8 +1356,8 @@ export default function AdminItems() {
         )}
 
         {addingProduct && (
-          <div className="admin-edit-modal">
-            <div className="admin-edit-content">
+          <div className="admin-edit-modal" onClick={() => setAddingProduct(false)}>
+            <div className="admin-edit-content" onClick={(e) => e.stopPropagation()}>
               <h3>Add New Product to {TABS.find(t => t.key === addingProduct.tabKey)?.label}</h3>
               <div className="admin-edit-form">
                 <label>

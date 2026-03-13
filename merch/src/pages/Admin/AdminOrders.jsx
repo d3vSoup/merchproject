@@ -372,12 +372,18 @@ export default function AdminOrders() {
                           {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                         </span>
                         {order.is_delivery && <span className="admin-delivery-tag">📦 Delivery</span>}
+                        {order.is_delivery && order.delivery_address && (
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--admin-text-muted)', marginTop: '2px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.delivery_address}>📍 {order.delivery_address}</span>
+                        )}
                       </div>
                     </td>
                     <td>
                       <span className="admin-order-price">
                         {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}
                       </span>
+                      {order.is_delivery && order.delivery_charge != null && (
+                        <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '0.8rem', marginLeft: '4px', display: 'block' }}>+{formatPrice(order.delivery_charge)}</span>
+                      )}
                     </td>
                     <td>
                       {order.type === 'confirmed_order' ? (
@@ -420,8 +426,8 @@ export default function AdminOrders() {
       )}
 
       {selectedOrder && (
-        <div className="admin-edit-modal">
-          <div className="admin-edit-content" style={{ maxWidth: '700px' }}>
+        <div className="admin-edit-modal" onClick={() => setSelectedOrder(null)}>
+          <div className="admin-edit-content" style={{ maxWidth: '700px' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ margin: 0 }}>Order Details</h3>
               <button className="admin-icon-btn" onClick={() => setSelectedOrder(null)}>
@@ -445,6 +451,15 @@ export default function AdminOrders() {
                 {selectedOrder.created_at && <p style={{ margin: 0, color: 'var(--admin-text-muted)' }}>Date: {new Date(selectedOrder.created_at).toLocaleString()}</p>}
               </div>
             </div>
+
+            {/* Delivery Info */}
+            {selectedOrder.is_delivery && (
+              <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                <p style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>📦 DELIVERY ORDER</p>
+                {selectedOrder.delivery_address && <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}><strong>Address:</strong> {selectedOrder.delivery_address}</p>}
+                {selectedOrder.delivery_charge != null && <p style={{ margin: 0, fontSize: '0.9rem', color: '#ef4444', fontWeight: 700 }}>Delivery Charge: +{formatPrice(selectedOrder.delivery_charge)}</p>}
+              </div>
+            )}
 
             <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.5rem' }}>Items ({selectedOrder.items.length})</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -472,6 +487,13 @@ export default function AdminOrders() {
                 </div>
               ))}
             </div>
+
+            {/* Total with delivery */}
+            {selectedOrder.is_delivery && selectedOrder.delivery_charge != null && (
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--admin-border)', display: 'flex', justifyContent: 'flex-end', gap: '2rem', alignItems: 'center' }}>
+                <span style={{ color: '#ef4444', fontWeight: 700 }}>+{formatPrice(selectedOrder.delivery_charge)} delivery</span>
+              </div>
+            )}
 
             <div className="admin-edit-actions">
               <button className="btn btn--ghost" onClick={() => setSelectedOrder(null)}>Close</button>

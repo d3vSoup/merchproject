@@ -11,6 +11,7 @@ export default function AdminThemeControl() {
     announcement: "",
     showAnnouncement: false,
     gradientStyle: "classic",
+    deliveryCharge: 100,
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -183,6 +184,30 @@ export default function AdminThemeControl() {
               onChange={handleChange} 
               placeholder="e.g. Free shipping on orders over ₹1000!"
             />
+          </div>
+        </div>
+
+        <div className="admin-theme-card">
+          <h3>
+            <span className="material-symbols-outlined">local_shipping</span>
+            Delivery Settings
+          </h3>
+          
+          <div className="theme-form-group">
+            <label>Delivery Charge (₹)</label>
+            <input 
+              type="number" 
+              className="theme-select" 
+              name="deliveryCharge" 
+              value={themeSettings.deliveryCharge || 0} 
+              onChange={(e) => setThemeSettings(prev => ({ ...prev, deliveryCharge: parseInt(e.target.value) || 0 }))}
+              min="0"
+              step="10"
+              placeholder="e.g. 100"
+            />
+            <p style={{ fontSize: '0.8rem', color: 'var(--admin-text-muted)', margin: '0.5rem 0 0' }}>
+              This charge is added when a customer opts for home delivery.
+            </p>
           </div>
         </div>
       </div>

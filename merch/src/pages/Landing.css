@@ -1,5 +1,22 @@
 /* src/pages/Landing.css */
 
+/* Hero curved bottom */
+.hero-curved-bottom {
+  position: relative;
+}
+.hero-curved-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: -5%;
+  right: -5%;
+  height: 80px;
+  background: white;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
 /* Faster fade transition for hero images */
 .fade-layer {
   position: absolute;

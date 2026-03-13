@@ -100,7 +100,7 @@ export default function Landing() {
     <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative flex flex-col w-full min-h-[calc(100vh-80px)] overflow-hidden" style={{ borderBottomLeftRadius: '50% 80px', borderBottomRightRadius: '50% 80px' }} data-purpose="hero-fullscreen-layout">
+        <section className="relative flex flex-col w-full min-h-screen overflow-hidden hero-curved-bottom" data-purpose="hero-fullscreen-layout">
           {/* Background Hero Image */}
           <div className="absolute inset-0 w-full h-full bg-gray-900" id="hero-carousel">
             {/* Slides */}
@@ -118,7 +118,7 @@ export default function Landing() {
           </div>
           
           {/* Center Overlay Typography */}
-          <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-[calc(100vh-80px)] text-center px-6">
+          <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-screen text-center px-6">
             <span className="bg-white/10 backdrop-blur-md text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-sm mb-6 shadow-xl inline-block border border-white/30">
               Official Merchandise
             </span>
@@ -129,7 +129,7 @@ export default function Landing() {
               Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
             </p>
             <div>
-              <a className="inline-block bg-white text-[#111827] px-14 py-5 text-xl font-bold hover:bg-[#FF6B00] hover:text-white transition-colors duration-300 shadow-2xl rounded-full" href="#events">
+              <a className="inline-block bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-3 text-base font-semibold hover:bg-white/30 transition-all duration-300 rounded-full no-underline" href="#events" style={{ textDecoration: 'none' }}>
                 Shop Collection
               </a>
             </div>
