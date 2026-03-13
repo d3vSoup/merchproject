@@ -7,6 +7,7 @@ import GradientText from "./ui/GradientText";
 import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
 import GlassToggle from "./GlassToggle";
+import VariableProximity from "./ui/VariableProximity";
 import { getUserIdByEmail, getCart } from "../supabase/client";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../data/products";
 import api from "../api";
@@ -281,10 +282,11 @@ export default function Layout({ children, cartCount = 0 }) {
   };
 
   const activeTab = getActiveTab();
+  const topbarRef = useRef(null);
 
   return (
     <div className={`app-root theme-${activeTab || "default"}`}>
-      <header className={`topbar${scrolled ? ' topbar--scrolled' : ''}`}>
+      <header ref={topbarRef} className={`topbar${scrolled ? ' topbar--scrolled' : ''}`}>
         {/* Mobile Hamburger Menu Button - Only visible on phones */}
         <button
           className="mobile-menu-btn"
@@ -380,8 +382,16 @@ export default function Layout({ children, cartCount = 0 }) {
           ))}
         </nav>
 
-        <Link to="/" className="brand">
-          ALMA
+        <Link to="/" className="brand" style={{ position: 'relative' }}>
+          <VariableProximity
+            label="ALMA"
+            className="brand-variable"
+            fromFontVariationSettings="'wght' 700, 'opsz' 14"
+            toFontVariationSettings="'wght' 1000, 'opsz' 40"
+            containerRef={topbarRef}
+            radius={120}
+            falloff="linear"
+          />
         </Link>
 
         <div className="top-actions">
