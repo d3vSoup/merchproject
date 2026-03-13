@@ -18,12 +18,13 @@
 }
 
 .admin-tab {
-  background: none;
-  border: none;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--admin-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  opacity: 0.7;
   cursor: pointer;
   border-radius: 8px;
   display: flex;
@@ -32,9 +33,15 @@
   transition: all 0.2s ease;
 }
 
+.admin-tab:hover {
+  opacity: 1;
+  background-color: rgba(0,0,0,0.05);
+}
+
 .admin-tab--active {
   background-color: var(--admin-primary);
   color: #ffffff;
+  opacity: 1;
 }
 
 .admin-tab-count {

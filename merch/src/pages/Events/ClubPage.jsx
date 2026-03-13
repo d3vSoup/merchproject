@@ -483,14 +483,12 @@ export default function ClubPage() {
             <h3 className="event-collection-title">
               {currentCategory} Merchandise
               {trendingStatus[currentCategory] && (
-                <TextType 
-                  text=" Trending 🔥" 
-                  as="span" 
+                <span 
                   className="trending-tag"
-                  style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }} 
-                  typingSpeed={80}
-                  cursorClassName="text-red-500"
-                />
+                  style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', display: 'inline-block', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} 
+                >
+                  Trending 🔥
+                </span>
               )}
             </h3>
             <p className="event-collection-subtitle">Exclusive apparel for societies & teams.</p>

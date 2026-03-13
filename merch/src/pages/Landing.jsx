@@ -119,7 +119,7 @@ export default function Landing() {
           
           {/* Center Overlay Typography */}
           <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-[calc(100vh-80px)] text-center px-6">
-            <span className="bg-[#FF6B00] text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-sm mb-6 shadow-xl inline-block transform -rotate-2 border-2 border-white/20">
+            <span className="bg-white/10 backdrop-blur-md text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-sm mb-6 shadow-xl inline-block border border-white/30">
               Official Merchandise
             </span>
             <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">

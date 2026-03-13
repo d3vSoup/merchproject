@@ -156,3 +156,94 @@
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+/* Edit/Add Modal Fixes */
+.admin-edit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-edit-content {
+  background: var(--admin-card-bg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  border: 1px solid var(--admin-border);
+}
+
+.admin-edit-content h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--admin-text);
+}
+
+.admin-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-edit-form input[type="text"],
+.admin-edit-form input[type="number"],
+.admin-edit-form input[type="url"],
+.admin-edit-form textarea {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: inherit;
+}
+
+.admin-edit-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
+/* Event Details Margin Fix */
+.admin-event-details {
+  background-color: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.admin-event-details-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.admin-event-details-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.admin-event-details-fields input {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+.admin-event-details > button {
+  margin-top: 1rem;
+}
