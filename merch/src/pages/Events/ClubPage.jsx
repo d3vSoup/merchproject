@@ -390,7 +390,7 @@ export default function ClubPage() {
             changeMenuColorOnOpen={true}
             colors={['#FF6B00', '#FF9F4A']}
             accentColor="#FF6B00"
-            isFixed={false}
+            isFixed={true}
             menuLabel={selectedClub || "CLUBS"}
             closeLabel="CLOSE"
             iconPosition="left"
@@ -416,7 +416,7 @@ export default function ClubPage() {
             changeMenuColorOnOpen={true}
             colors={['#5227FF', '#B19EEF']}
             accentColor="#5227FF"
-            isFixed={false}
+            isFixed={true}
             menuLabel={selectedDept || "DEPARTMENTS"}
             closeLabel="CLOSE"
             iconPosition="right"
