@@ -100,7 +100,7 @@ export default function Landing() {
     <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative flex flex-col w-full min-h-[calc(100vh-80px)] overflow-hidden" data-purpose="hero-fullscreen-layout">
+        <section className="relative flex flex-col w-full min-h-[calc(100vh-80px)] overflow-hidden" style={{ borderBottomLeftRadius: '50% 80px', borderBottomRightRadius: '50% 80px' }} data-purpose="hero-fullscreen-layout">
           {/* Background Hero Image */}
           <div className="absolute inset-0 w-full h-full bg-gray-900" id="hero-carousel">
             {/* Slides */}
