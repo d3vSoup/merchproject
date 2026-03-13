@@ -391,6 +391,9 @@ export default function ClubPage() {
             colors={['#FF6B00', '#FF9F4A']}
             accentColor="#FF6B00"
             isFixed={true}
+            menuLabel="CLUBS"
+            closeLabel="CLOSE"
+            iconPosition="left"
             onItemClick={(item) => {
               setActiveTab("clubs");
               setSelectedClub(item.label);
@@ -414,6 +417,9 @@ export default function ClubPage() {
             colors={['#5227FF', '#B19EEF']}
             accentColor="#5227FF"
             isFixed={true}
+            menuLabel="DEPTS"
+            closeLabel="CLOSE"
+            iconPosition="right"
             onItemClick={(item) => {
               setActiveTab("departments");
               setSelectedDept(item.label);
@@ -461,9 +467,10 @@ export default function ClubPage() {
       )}
 
       {!currentCategory && (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
-          <p style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Select a Club or Department to view merchandise</p>
-          <p style={{ fontSize: '0.9rem' }}>Choose from the tabs above to browse available items</p>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#6B7280', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.02))', borderRadius: '24px', margin: '2rem auto', maxWidth: '600px', border: '1px dashed rgba(0,0,0,0.1)' }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#9CA3AF' }}><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#111827', margin: 0 }}>Select an Organization</h3>
+          <p style={{ fontSize: '1.05rem', margin: 0, lineHeight: 1.6, maxWidth: '400px' }}>Use the <strong>CLUBS</strong> menu on the left or the <strong>DEPTS</strong> menu on the right to browse their exclusive merchandise collections.</p>
         </div>
       )}
 

@@ -19,7 +19,10 @@ export const StaggeredMenu = ({
   closeOnClickAway = true,
   onMenuOpen,
   onMenuClose,
-  onItemClick
+  onItemClick,
+  menuLabel = 'Menu',
+  closeLabel = 'Close',
+  iconPosition = 'right'
 }) => {
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
@@ -31,7 +34,7 @@ export const StaggeredMenu = ({
   const iconRef = useRef(null);
   const textInnerRef = useRef(null);
   const textWrapRef = useRef(null);
-  const [textLines, setTextLines] = useState(['Menu', 'Close']);
+  const [textLines, setTextLines] = useState([menuLabel, closeLabel]);
 
   const openTlRef = useRef(null);
   const closeTweenRef = useRef(null);
@@ -193,12 +196,12 @@ export const StaggeredMenu = ({
     const inner = textInnerRef.current;
     if (!inner) return;
     textCycleAnimRef.current?.kill();
-    const currentLabel = opening ? 'Menu' : 'Close';
-    const targetLabel = opening ? 'Close' : 'Menu';
+    const currentLabel = opening ? menuLabel : closeLabel;
+    const targetLabel = opening ? closeLabel : menuLabel;
     const cycles = 3;
     const seq = [currentLabel];
     let last = currentLabel;
-    for (let i = 0; i < cycles; i++) { last = last === 'Menu' ? 'Close' : 'Menu'; seq.push(last); }
+    for (let i = 0; i < cycles; i++) { last = last === menuLabel ? closeLabel : menuLabel; seq.push(last); }
     if (last !== targetLabel) seq.push(targetLabel);
     seq.push(targetLabel);
     setTextLines(seq);
@@ -270,6 +273,12 @@ export const StaggeredMenu = ({
         onClick={toggleMenu}
         type="button"
       >
+        {iconPosition === 'left' && (
+          <span ref={iconRef} className="sm-icon" aria-hidden="true" style={{ marginRight: '6px' }}>
+            <span ref={plusHRef} className="sm-icon-line" />
+            <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
+          </span>
+        )}
         <span ref={textWrapRef} className="sm-toggle-textWrap" aria-hidden="true">
           <span ref={textInnerRef} className="sm-toggle-textInner">
             {textLines.map((l, i) => (
@@ -277,10 +286,12 @@ export const StaggeredMenu = ({
             ))}
           </span>
         </span>
-        <span ref={iconRef} className="sm-icon" aria-hidden="true">
-          <span ref={plusHRef} className="sm-icon-line" />
-          <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
-        </span>
+        {iconPosition === 'right' && (
+          <span ref={iconRef} className="sm-icon" aria-hidden="true" style={{ marginLeft: '6px' }}>
+            <span ref={plusHRef} className="sm-icon-line" />
+            <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
+          </span>
+        )}
       </button>
 
       <aside ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>
