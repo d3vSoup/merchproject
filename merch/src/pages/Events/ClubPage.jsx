@@ -376,12 +376,12 @@ export default function ClubPage() {
 
   return (
     <section className="product-section event-page">
-      {/* Edge-aligned Club & Dept menus */}
-      <div className="club-edge-menus">
-        {/* Club hamburger - left edge */}
-        <div className="club-edge-menu club-edge-menu--left">
+      {/* Top selection bar serving as StaggeredMenu triggers */}
+      <div className="club-selection-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', marginBottom: '2rem' }}>
+        {/* Clubs Top Menu */}
+        <div style={{ position: 'relative' }}>
           <StaggeredMenu
-            position="left"
+            position="bottom-left"
             items={CLUBS.map(c => ({ label: c, ariaLabel: `Select ${c}` }))}
             displaySocials={false}
             displayItemNumbering={true}
@@ -390,24 +390,24 @@ export default function ClubPage() {
             changeMenuColorOnOpen={true}
             colors={['#FF6B00', '#FF9F4A']}
             accentColor="#FF6B00"
-            isFixed={true}
-            menuLabel="CLUBS"
+            isFixed={false}
+            menuLabel={selectedClub || "CLUBS"}
             closeLabel="CLOSE"
             iconPosition="left"
+            className="club-staggered-menu-top"
             onItemClick={(item) => {
               setActiveTab("clubs");
               setSelectedClub(item.label);
               setSelectedDept(null);
               setIeeeSubclub(null);
             }}
-            className="club-staggered-menu"
           />
         </div>
 
-        {/* Dept hamburger - right edge */}
-        <div className="club-edge-menu club-edge-menu--right">
+        {/* Depts Top Menu */}
+        <div style={{ position: 'relative' }}>
           <StaggeredMenu
-            position="right"
+            position="bottom-right"
             items={DEPARTMENTS.map(d => ({ label: d, ariaLabel: `Select ${d}` }))}
             displaySocials={false}
             displayItemNumbering={true}
@@ -416,35 +416,19 @@ export default function ClubPage() {
             changeMenuColorOnOpen={true}
             colors={['#5227FF', '#B19EEF']}
             accentColor="#5227FF"
-            isFixed={true}
-            menuLabel="DEPTS"
+            isFixed={false}
+            menuLabel={selectedDept || "DEPARTMENTS"}
             closeLabel="CLOSE"
             iconPosition="right"
+            className="dept-staggered-menu-top"
             onItemClick={(item) => {
               setActiveTab("departments");
               setSelectedDept(item.label);
               setSelectedClub(null);
               setIeeeSubclub(null);
             }}
-            className="dept-staggered-menu"
           />
         </div>
-      </div>
-
-      {/* Current selection indicator + IEEE sub-selector */}
-      <div className="club-selection-bar">
-        <button
-          className={`club-tab ${activeTab === "clubs" ? "is-active" : ""}`}
-          onClick={() => { setActiveTab("clubs"); setSelectedClub(null); setSelectedDept(null); setIeeeSubclub(null); }}
-        >
-          {selectedClub ? `☰ ${selectedClub}` : "☰ Clubs"}
-        </button>
-        <button
-          className={`club-tab ${activeTab === "departments" ? "is-active" : ""}`}
-          onClick={() => { setActiveTab("departments"); setSelectedClub(null); setSelectedDept(null); setIeeeSubclub(null); }}
-        >
-          {selectedDept ? `${selectedDept} ☰` : "Departments ☰"}
-        </button>
       </div>
 
       {/* IEEE sub-club selector */}

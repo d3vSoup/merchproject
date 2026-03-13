@@ -100,9 +100,9 @@ export default function Landing() {
     <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative min-h-screen flex flex-col md:flex-row items-center overflow-hidden" data-purpose="hero-split-layout">
+        <section className="relative min-h-[calc(100vh-80px)] flex flex-col md:flex-row items-center overflow-hidden px-6 py-4" data-purpose="hero-split-layout">
           {/* Left Side: Shaped Image Container with Slow Fade */}
-          <div className="w-full md:w-7/12 h-[50vh] md:h-screen relative hero-shape bg-gray-200" id="hero-carousel">
+          <div className="w-full md:w-7/12 h-[50vh] md:h-[calc(100vh-120px)] relative hero-shape bg-gray-200 rounded-3xl overflow-hidden" id="hero-carousel">
             {/* Slides */}
             {heroSlides.length > 0 ? heroSlides.map((slide, idx) => (
               <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>

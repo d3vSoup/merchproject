@@ -58,7 +58,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .tab-preview-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all .2s ease}
 .tab-preview-dot--active{background:var(--accent);transform:scale(1.3)}
 
-.brand{flex:0 0 auto;text-align:left;font-weight:900;font-size:1.6rem;letter-spacing:0.06em;font-family:'Roboto Flex','Space Grotesk',sans-serif;color:#111827;text-decoration:none;order:1;z-index:3}
+.brand{flex:0 0 auto;text-align:left;font-weight:900;font-size:2.2rem;letter-spacing:0.18em;font-family:'Roboto Flex','Space Grotesk',sans-serif;color:#111827;text-decoration:none;order:1;z-index:3;text-transform:uppercase}
 
 /* Top-right actions: small compact */
 .top-actions{display:flex;align-items:center;gap:10px;order:3;z-index:3}
@@ -197,14 +197,11 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .event-soldout{margin-left:12px;font-size:0.85rem;color:#ef4444;font-weight:700}
 .product-grid-wrapper{margin-top:24px;margin-bottom:120px;width:100%}
 
-/* Club & Dept edge-aligned menus */
-.club-edge-menus{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:50}
-.club-edge-menu{pointer-events:auto;position:absolute;top:50%;transform:translateY(-50%)}
-.club-edge-menu--left{left:12px}
-.club-edge-menu--right{right:12px}
-.club-edge-menu .sm-toggle{font-size:0.85rem;padding:8px 12px;background:rgba(255,255,255,0.9);backdrop-filter:blur(8px);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:1px solid rgba(0,0,0,0.06)}
-.club-edge-menu .sm-toggle:hover{background:rgba(255,255,255,1);box-shadow:0 4px 16px rgba(0,0,0,0.12)}
-.club-selection-bar{display:flex;justify-content:space-between;align-items:center;padding:0 8px;margin-bottom:1rem}
+/* Club selection bar styling */
+.club-selection-bar{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem;margin-bottom:2rem;border-bottom:1px solid rgba(0,0,0,0.06);background:rgba(255,255,255,0.5);border-radius:16px}
+.club-staggered-menu-top .sm-toggle,.dept-staggered-menu-top .sm-toggle{font-size:1.1rem;font-weight:800;letter-spacing:0.1em;padding:12px 20px;background:transparent;box-shadow:none;border:none}
+.club-staggered-menu-top .sm-toggle:hover,.dept-staggered-menu-top .sm-toggle:hover{background:rgba(0,0,0,0.04)}
+
 .event-hero-banner .product-grid-wrapper{margin-top:0}
 .section-heading{font-size:var(--text-section,1.5rem);font-weight:700;margin:0;letter-spacing:0.04em;color:var(--c-text,#111827);display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-family:var(--font-display,'Space Grotesk',sans-serif)}
 .section-heading__rotate{display:inline-flex;font-weight:800;font-size:1.65rem;letter-spacing:0.02em;color:var(--c-text,#111827);overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -331,7 +328,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .tabs-row{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tabs-row::-webkit-scrollbar{display:none}
 .tab{min-width:auto;padding:8px 14px;font-size:0.85rem;white-space:nowrap;flex-shrink:0}
-.brand{font-size:1.2rem;letter-spacing:0.04em}
+.brand{font-size:1.5rem;letter-spacing:0.12em}
 .landing-page{min-height:60vh;padding:24px 16px}
 .events-scroll-container{margin:24px 0}
 .event-card{flex:0 0 220px}
@@ -881,8 +878,8 @@ select:focus {
   .brand {
     flex: 0 1 auto;
     min-width: 0;
-    font-size: 1.1rem;
-    letter-spacing: 0.04rem;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
     text-align: left;
     order: 1;
     overflow: hidden;
