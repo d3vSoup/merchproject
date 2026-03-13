@@ -9,7 +9,7 @@ export default function ShippingPolicyPage() {
       <FadeInSection className="legal-hero">
         <h1>Shipping Policy</h1>
         <p className="legal-intro">
-          Information about how we deliver your BMSCE Merch orders.
+          Information about how we deliver your ALMA orders.
         </p>
       </FadeInSection>
 

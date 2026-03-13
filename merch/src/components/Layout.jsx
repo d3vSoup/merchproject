@@ -300,6 +300,13 @@ export default function Layout({ children, cartCount = 0 }) {
         {/* Mobile Menu Dropdown - Only visible on phones when open */}
         {mobileMenuOpen && (
           <div className="mobile-menu-dropdown" ref={mobileMenuRef}>
+            <Link
+              to="/"
+              className={`mobile-menu-item ${location.pathname === "/" ? "mobile-menu-item--active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
             {TABS.map((tab) => (
               <Link
                 key={tab.key}
@@ -374,7 +381,7 @@ export default function Layout({ children, cartCount = 0 }) {
         </nav>
 
         <Link to="/" className="brand">
-          BMSCE Merchandise
+          ALMA
         </Link>
 
         <div className="top-actions">
@@ -384,7 +391,7 @@ export default function Layout({ children, cartCount = 0 }) {
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
             >
-              🔍
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </button>
 
             <GlassToggle />
@@ -395,7 +402,7 @@ export default function Layout({ children, cartCount = 0 }) {
               title="Wishlist"
               aria-label="Wishlist"
             >
-              ♥
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
               {wishlistCount > 0 && (
                 <span className="wishlist-badge" aria-label={`${wishlistCount} items in wishlist`}>
                   {wishlistCount > 99 ? "99+" : wishlistCount}
@@ -409,7 +416,7 @@ export default function Layout({ children, cartCount = 0 }) {
               title="Cart"
               aria-label="Cart"
             >
-              🛒
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               {cartCount > 0 && (
                 <span className="cart-badge" aria-label={`${cartCount} items in cart`}>
                   {cartCount > 99 ? "99+" : cartCount}
@@ -519,21 +526,21 @@ export default function Layout({ children, cartCount = 0 }) {
                               className="btn btn--ghost btn--admin"
                               onClick={() => setAccountOpen(false)}
                             >
-                              📊 Dashboard
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Dashboard
                             </Link>
                             <Link
                               to="/admin/orders"
                               className="btn btn--ghost btn--admin"
                               onClick={() => setAccountOpen(false)}
                             >
-                              📦 Manage Orders
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Manage Orders
                             </Link>
                             <Link
                               to="/admin/items"
                               className="btn btn--ghost btn--admin"
                               onClick={() => setAccountOpen(false)}
                             >
-                              🛍️ Manage Items
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Manage Items
                             </Link>
                           </div>
                         </div>

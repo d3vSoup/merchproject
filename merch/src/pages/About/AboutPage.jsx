@@ -6,7 +6,7 @@ const FEATURES = [
   {
     icon: "🎨",
     title: "Exclusive Designs",
-    desc: "Every drop features original artwork created specifically for BMSCE events — limited edition, never repeated.",
+    desc: "Every drop features original artwork created specifically for campus events — limited edition, never repeated.",
   },
   {
     icon: "🧵",
@@ -54,7 +54,7 @@ export default function AboutPage() {
     <div className="about-page">
       <FadeInSection className="about-hero">
         <h1>
-          BMSCE <span>Merch</span>
+          ALMA <span>Store</span>
         </h1>
         <p className="about-hero-tagline">
           The official merchandise platform for BMS College of Engineering.
@@ -116,7 +116,7 @@ export default function AboutPage() {
         <h2>Chat With Us</h2>
         <p>Got questions about an order, sizing, or upcoming drops? Reach out directly on WhatsApp — we usually reply within a few hours.</p>
         <a
-          href="https://wa.me/919831219028?text=Hi%2C%20I%20have%20a%20question%20about%20BMSCE%20Merch"
+          href="https://wa.me/919831219028?text=Hi%2C%20I%20have%20a%20question%20about%20ALMA%20Store"
           target="_blank"
           rel="noreferrer"
           className="about-whatsapp-btn"
@@ -131,7 +131,7 @@ export default function AboutPage() {
           <div className="about-dev-avatar">S</div>
           <div className="about-dev-info">
             <h3>Souparno</h3>
-            <p>Developer & maintainer of BMSCE Merch</p>
+            <p>Developer & maintainer of ALMA Store</p>
             <div className="about-dev-links">
               <a href="https://wa.me/919831219028" target="_blank" rel="noreferrer">WhatsApp</a>
               <a href="tel:+919831219028">9831219028</a>

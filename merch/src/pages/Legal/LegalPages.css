@@ -1,14 +1,19 @@
-/* Fade-in (same as About page) */
+/* Fade-in (cinematic reveal) */
 .legal-page .fade-in-section {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 1.5s ease-out, transform 1.5s ease-out;
-  will-change: opacity, transform;
+  transform: translateY(30px) scale(0.97);
+  filter: blur(4px);
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+              filter 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--stagger-index, 0) * 100ms);
+  will-change: opacity, transform, filter;
 }
 
 .legal-page .fade-in-section.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 .legal-page {

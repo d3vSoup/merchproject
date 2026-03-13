@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
 import { EVENT_CARDS } from "../data/eventCards";
+import { PRODUCT_CATALOG } from "../data/products";
 import "./Landing.css";
 
 const APPAREL_SLIDES = [];
@@ -41,24 +42,41 @@ export default function Landing() {
     return () => { mounted = false; };
   }, []);
 
-  // Hero carousel slow fade logic
+  // Hero carousel — faster transition (3s interval)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [heroSlides]);
 
-  // Map vertical wheel scroll to horizontal scrolling for the Events container
+  // Smooth wheel→horizontal scroll with RAF (no jitter)
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
 
+    let animating = false;
+    let targetScroll = el.scrollLeft;
+
+    const smoothScroll = () => {
+      const diff = targetScroll - el.scrollLeft;
+      if (Math.abs(diff) < 0.5) {
+        el.scrollLeft = targetScroll;
+        animating = false;
+        return;
+      }
+      el.scrollLeft += diff * 0.12;
+      requestAnimationFrame(smoothScroll);
+    };
+
     const handleWheel = (e) => {
-      // If the scroll is strictly vertical, translate it to horizontal
       if (e.deltaY !== 0) {
         e.preventDefault();
-        el.scrollLeft += e.deltaY;
+        targetScroll = Math.max(0, Math.min(el.scrollWidth - el.clientWidth, targetScroll + e.deltaY));
+        if (!animating) {
+          animating = true;
+          requestAnimationFrame(smoothScroll);
+        }
       }
     };
 
@@ -79,7 +97,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="bg-[#F9FAFB] text-[#111827] font-sans antialiased w-full h-full min-h-screen">
+    <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
         <section className="relative min-h-screen flex flex-col md:flex-row items-center overflow-hidden" data-purpose="hero-split-layout">
@@ -88,11 +106,11 @@ export default function Landing() {
             {/* Slides */}
             {heroSlides.length > 0 ? heroSlides.map((slide, idx) => (
               <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>
-                <img alt="BMSCE Apparel" className="w-full h-full object-cover" src={slide} />
+                <img alt="ALMA Apparel" className="w-full h-full object-cover" src={slide} />
               </div>
             )) : (
               <div className="w-full h-full flex items-center justify-center bg-[#111827]">
-                <span className="text-4xl font-black text-white/20">BMSCE MERCH</span>
+                <span className="text-4xl font-black text-white/20">ALMA</span>
               </div>
             )}
             {/* Overlay for contrast if needed */}
@@ -103,7 +121,7 @@ export default function Landing() {
           <div className="w-full md:w-5/12 px-8 md:px-16 py-12 md:py-0 flex flex-col justify-center">
             <span className="text-[#FF6B00] font-bold tracking-[0.2em] uppercase text-xs mb-4">Official Merchandise</span>
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6">
-              BMSCE <br/> MERCH
+              ALMA <br/> <span className="text-[#FF6B00]">STORE</span>
             </h1>
             <p className="text-gray-600 text-lg md:text-xl max-w-md mb-10 leading-relaxed">
               Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
@@ -115,6 +133,36 @@ export default function Landing() {
             </div>
           </div>
         </section>
+
+        {/* BEGIN: Product Marquee Rows */}
+        {(() => {
+          const eventKeys = ['utsav', 'phaseshift', 'farouche'];
+          const rows = eventKeys.map(key => {
+            const products = PRODUCT_CATALOG[key] || [];
+            const imgs = products.filter(p => p.imageUrl).map(p => ({ url: p.imageUrl, name: p.name }));
+            // Shuffle
+            const shuffled = [...imgs].sort(() => Math.random() - 0.5);
+            // Double for seamless loop
+            return [...shuffled, ...shuffled];
+          });
+          const directions = ['right', 'left', 'right'];
+
+          return rows.some(r => r.length > 0) ? (
+            <section className="marquee-section">
+              {rows.map((row, rowIdx) => (
+                <div key={rowIdx} className={`marquee-track marquee-track--${directions[rowIdx]}`}>
+                  <div className="marquee-inner">
+                    {row.map((item, i) => (
+                      <div key={i} className="marquee-item">
+                        <img src={item.url} alt={item.name} loading="lazy" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          ) : null;
+        })()}
 
         {/* BEGIN: EventsSection */}
         <section className="py-24 bg-white overflow-hidden" id="events">
@@ -167,7 +215,7 @@ export default function Landing() {
           <div className="max-w-4xl mx-auto px-6 text-center">
             <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#FF6B00] mb-6">Our Philosophy</h2>
             <p className="text-3xl md:text-4xl font-medium leading-tight">
-              &quot;BMSCE Merch isn&apos;t just clothing; it&apos;s a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.&quot;
+              &quot;ALMA isn&apos;t just clothing; it&apos;s a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.&quot;
             </p>
             <div className="mt-12">
               <Link className="font-bold border-b-2 border-[#FF6B00] pb-1 hover:text-[#FF6B00] transition-colors" to="/about">Learn more about our sustainable sourcing</Link>
@@ -181,8 +229,8 @@ export default function Landing() {
       <footer className="bg-[#111827] text-white py-16">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <span className="text-2xl font-bold tracking-tighter">BMSCE<span className="text-[#FF6B00]">MERCH</span></span>
-            <p className="mt-6 text-gray-400 max-w-sm">The official store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
+            <span className="text-2xl font-bold tracking-tighter">ALMA<span className="text-[#FF6B00]"> STORE</span></span>
+            <p className="mt-6 text-gray-400 max-w-sm">The official campus store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
           </div>
           <div>
             <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Quick Links</h4>
@@ -204,7 +252,7 @@ export default function Landing() {
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-xs text-gray-500 flex justify-between">
-          <p>BMSCE 2026</p>
+          <p>ALMA 2026</p>
           <p>Handcrafted by Souparno Chakraborty</p>
         </div>
       </footer>

@@ -366,7 +366,7 @@ export default function ResellBuyer() {
             Revault Marketplace
           </GradientText>
         </h2>
-        <p className="resell-buyer__subtitle">Authenticated BMSCE Campus Gear — Browse verified student listings</p>
+        <p className="resell-buyer__subtitle">Authenticated ALMA Campus Gear — Browse verified student listings</p>
       </div>
 
       <div className="resell-buyer__filters">

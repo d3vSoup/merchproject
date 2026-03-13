@@ -31,7 +31,7 @@ export default function SizeChartPage() {
       <FadeInSection className="legal-hero">
         <h1>Size Chart</h1>
         <p className="legal-intro">
-          Find the right fit for your BMSCE Merch. Measure yourself and compare with the chart below.
+          Find the right fit for your ALMA. Measure yourself and compare with the chart below.
         </p>
       </FadeInSection>
 

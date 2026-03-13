@@ -1,11 +1,11 @@
 /* src/pages/Landing.css */
 
-/* Slow fade transition for hero images */
+/* Faster fade transition for hero images */
 .fade-layer {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 2s ease-in-out;
+  transition: opacity 1.2s ease-in-out;
 }
 
 .fade-layer.active {
@@ -20,12 +20,6 @@
 .no-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none;    /* Firefox */
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-}
-
-.no-scrollbar > * {
-  scroll-snap-align: start;
 }
 
 /* Shaping the hero container based on user request/IMAGE_16 inspiration */
@@ -38,4 +32,106 @@
 /* Ensure smooth scrolling across the page */
 html {
   scroll-behavior: smooth;
+}
+
+/* ===== Product Marquee Rows ===== */
+.marquee-section {
+  padding: 3rem 0;
+  overflow: hidden;
+  background: #F9FAFB;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+/* Edge fade masks */
+.marquee-section::before,
+.marquee-section::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee-section::before {
+  left: 0;
+  background: linear-gradient(to right, #F9FAFB, transparent);
+}
+.marquee-section::after {
+  right: 0;
+  background: linear-gradient(to left, #F9FAFB, transparent);
+}
+
+.marquee-track {
+  overflow: hidden;
+  width: 100%;
+}
+
+.marquee-inner {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+}
+
+.marquee-track--right .marquee-inner {
+  animation: marquee-right 35s linear infinite;
+}
+
+.marquee-track--left .marquee-inner {
+  animation: marquee-left 35s linear infinite;
+}
+
+/* Hover anywhere in track pauses animation */
+.marquee-track:hover .marquee-inner {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  flex-shrink: 0;
+  width: 180px;
+  height: 220px;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.marquee-item:hover {
+  transform: scale(1.08) translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+  z-index: 3;
+}
+
+.marquee-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.marquee-item:hover img {
+  transform: scale(1.05);
+}
+
+@keyframes marquee-right {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-left {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .marquee-item {
+    width: 140px;
+    height: 170px;
+  }
+  .marquee-section {
+    padding: 2rem 0;
+  }
 }

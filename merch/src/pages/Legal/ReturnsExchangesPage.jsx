@@ -9,7 +9,7 @@ export default function ReturnsExchangesPage() {
       <FadeInSection className="legal-hero">
         <h1>Returns &amp; Exchanges</h1>
         <p className="legal-intro">
-          Our return and refund policy for BMSCE Merch orders.
+          Our return and refund policy for ALMA orders.
         </p>
       </FadeInSection>
 

@@ -12,6 +12,7 @@ import WishlistHeart from "../../components/WishlistHeart";
 import api from "../../api";
 import FadeInSection from "../../components/ui/FadeInSection";
 import GlareHover from "../../components/ui/GlareHover";
+import StaggeredMenu from "../../components/ui/StaggeredMenu";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -375,71 +376,78 @@ export default function ClubPage() {
 
   return (
     <section className="product-section event-page">
-      <div className="club-tabs-container">
-        <div className="club-main-tabs">
+      <div className="club-tabs-container" style={{ display: 'flex', justifyContent: 'center', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative', minHeight: '60px', marginBottom: '1rem' }}>
+        {/* Clubs StaggeredMenu - Left */}
+        <div style={{ position: 'relative', height: selectedClub ? 'auto' : '450px', width: '48%', minWidth: '280px' }}>
+          <StaggeredMenu
+            position="left"
+            items={CLUBS.map(c => ({ label: c, ariaLabel: `Select ${c}` }))}
+            displaySocials={false}
+            displayItemNumbering={true}
+            menuButtonColor="var(--c-text, #111)"
+            openMenuButtonColor="#fff"
+            changeMenuColorOnOpen={true}
+            colors={['#FF6B00', '#FF9F4A']}
+            accentColor="#FF6B00"
+            onItemClick={(item) => {
+              setActiveTab("clubs");
+              setSelectedClub(item.label);
+              setSelectedDept(null);
+              setIeeeSubclub(null);
+            }}
+            className="club-staggered-menu"
+          />
           <button
             className={`club-tab ${activeTab === "clubs" ? "is-active" : ""}`}
             onClick={() => { setActiveTab("clubs"); setSelectedClub(null); setSelectedDept(null); setIeeeSubclub(null); }}
+            style={{ display: 'block', margin: '0 auto', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}
           >
-            CLUBS
-          </button>
-          <button
-            className={`club-tab ${activeTab === "departments" ? "is-active" : ""}`}
-            onClick={() => { setActiveTab("departments"); setSelectedClub(null); setSelectedDept(null); setIeeeSubclub(null); }}
-          >
-            DEPARTMENTS
+            {selectedClub || "Select Club"}
           </button>
         </div>
 
-        {activeTab === "clubs" && (
-          <div className="club-selection club-selection--dropdown">
-            <label className="club-dropdown-label">
-              <span>Select Club</span>
-              <select
-                className="club-dropdown"
-                value={selectedClub || ""}
-                onChange={(e) => {
-                  const v = e.target.value || null;
-                  setSelectedClub(v);
-                  setIeeeSubclub(null);
-                }}
-              >
-                <option value="">-- Select a club --</option>
-                {CLUBS.map((club) => (
-                  <option key={club} value={club}>{club}</option>
-                ))}
-              </select>
-            </label>
-            {selectedClub === "IEEE" && (
-              <label className="club-dropdown-label">
-                <span>IEEE Subclub</span>
-                <select
-                  className="club-dropdown"
-                  value={ieeeSubclub || ""}
-                  onChange={(e) => setIeeeSubclub(e.target.value || null)}
-                >
-                  <option value="">-- Select IEEE subclub --</option>
-                  {IEEE_SUBCLUBS.map((subclub) => (
-                    <option key={subclub} value={subclub}>{subclub}</option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
-        )}
+        {/* Departments StaggeredMenu - Right */}
+        <div style={{ position: 'relative', height: selectedDept ? 'auto' : '450px', width: '48%', minWidth: '280px' }}>
+          <StaggeredMenu
+            position="right"
+            items={DEPARTMENTS.map(d => ({ label: d, ariaLabel: `Select ${d}` }))}
+            displaySocials={false}
+            displayItemNumbering={true}
+            menuButtonColor="var(--c-text, #111)"
+            openMenuButtonColor="#fff"
+            changeMenuColorOnOpen={true}
+            colors={['#5227FF', '#B19EEF']}
+            accentColor="#5227FF"
+            onItemClick={(item) => {
+              setActiveTab("departments");
+              setSelectedDept(item.label);
+              setSelectedClub(null);
+              setIeeeSubclub(null);
+            }}
+            className="dept-staggered-menu"
+          />
+          <button
+            className={`club-tab ${activeTab === "departments" ? "is-active" : ""}`}
+            onClick={() => { setActiveTab("departments"); setSelectedClub(null); setSelectedDept(null); setIeeeSubclub(null); }}
+            style={{ display: 'block', margin: '0 auto', fontSize: '1rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}
+          >
+            {selectedDept || "Select Department"}
+          </button>
+        </div>
 
-        {activeTab === "departments" && (
-          <div className="department-selection department-selection--dropdown">
+        {/* IEEE sub-club selector */}
+        {selectedClub === "IEEE" && (
+          <div className="club-selection club-selection--dropdown" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <label className="club-dropdown-label">
-              <span>Select Department</span>
+              <span>IEEE Subclub</span>
               <select
                 className="club-dropdown"
-                value={selectedDept || ""}
-                onChange={(e) => setSelectedDept(e.target.value || null)}
+                value={ieeeSubclub || ""}
+                onChange={(e) => setIeeeSubclub(e.target.value || null)}
               >
-                <option value="">-- Select a department --</option>
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>{dept}</option>
+                <option value="">-- Select IEEE subclub --</option>
+                {IEEE_SUBCLUBS.map((subclub) => (
+                  <option key={subclub} value={subclub}>{subclub}</option>
                 ))}
               </select>
             </label>
