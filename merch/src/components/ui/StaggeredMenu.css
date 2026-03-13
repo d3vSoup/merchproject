@@ -102,7 +102,7 @@
   flex-direction: column;
   padding: 4em 2em 2em 2em;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 9999;
   pointer-events: auto;
 }
 
@@ -119,7 +119,7 @@
   height: 100vh;
   width: clamp(260px, 38vw, 420px);
   pointer-events: none;
-  z-index: 999;
+  z-index: 9998;
 }
 
 [data-position='left'] .sm-prelayers {
@@ -249,8 +249,8 @@
   position: absolute;
   top: 0.1em;
   right: 2.8em;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--sm-accent, #5227ff);
   letter-spacing: 0;
   pointer-events: none;
@@ -260,25 +260,34 @@
 
 @media (max-width: 1024px) {
   .staggered-menu-panel {
-    width: 100%;
-    left: 0;
-    right: 0;
+    width: 65vw;
+    padding: 3.5rem 1.5rem 1.5rem 1.5rem;
+  }
+  .sm-prelayers {
+    width: 65vw;
   }
 
   .sm-panel-item {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
   }
 }
 
 @media (max-width: 640px) {
   .staggered-menu-panel {
-    width: 100%;
-    left: 0;
-    right: 0;
+    width: 75vw;
+    padding: 4rem 1.25rem 1.5rem 1.25rem;
+  }
+  .sm-prelayers {
+    width: 75vw;
   }
 
   .sm-panel-item {
-    font-size: 1.5rem;
-    letter-spacing: -0.5px;
+    font-size: 1.05rem;
+    letter-spacing: -0.2px;
+    padding-right: 2em;
+  }
+  
+  .sm-panel-list[data-numbering] .sm-panel-item::after {
+    right: 3.5em;
   }
 }

@@ -28,21 +28,21 @@ export default function CartPage() {
   const [deliveryMapsLink, setDeliveryMapsLink] = useState('');
 
   useEffect(() => {
+    let mounted = true;
     if (user) {
-      loadOverrides();
-      loadCart();
+      async function init() {
+        const overrides = await loadOverrides();
+        if (mounted) {
+          await loadCart(overrides);
+        }
+      }
+      init();
     } else {
       setCartItems([]);
       setLoading(false);
     }
+    return () => { mounted = false; };
   }, [user]);
-
-  // Reload cart when overrides change
-  useEffect(() => {
-    if (user && Object.keys(productOverrides).length > 0) {
-      loadCart();
-    }
-  }, [productOverrides]);
 
   async function loadOverrides() {
     try {
@@ -62,24 +62,27 @@ export default function CartPage() {
       }
       
       setProductOverrides(allOverrides);
+      return allOverrides;
     } catch (err) {
       console.error('Failed to load product overrides:', err);
+      return {};
     }
   }
 
-  async function loadCart() {
+  async function loadCart(currentOverrides = null) {
     if (!user) return;
     setLoading(true);
     try {
+      const overrides = currentOverrides || productOverrides;
       const cart = await getCart();
       const itemsToRemove = [];
-      const hasOverrides = Object.keys(productOverrides).length > 0;
+      const hasOverrides = Object.keys(overrides).length > 0;
       const items = cart
         .filter(item => {
           if (!hasOverrides) return true;
           const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
           const overrideKey = `${item.tab_key}:${item.product_id}`;
-          const override = productOverrides[overrideKey];
+          const override = overrides[overrideKey];
           if (override && (override.hidden === true || override.hidden === 'true')) {
             itemsToRemove.push(item);
             return false;
@@ -93,7 +96,7 @@ export default function CartPage() {
         .map(item => {
           const product = PRODUCT_CATALOG[item.tab_key]?.find(p => p.id === item.product_id);
           const overrideKey = `${item.tab_key}:${item.product_id}`;
-          const override = productOverrides[overrideKey];
+          const override = overrides[overrideKey];
           
           let price = product?.price || 0;
           if (override && override.price !== null && override.price !== undefined) {

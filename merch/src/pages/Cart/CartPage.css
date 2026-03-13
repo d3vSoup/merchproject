@@ -354,30 +354,40 @@
   margin-bottom: 24px;
 }
 
-/* Delivery toggle & address */
+/* Delivery section */
 .delivery-section {
-  margin-bottom: 24px;
-  padding: 16px;
-  background: rgba(255, 102, 0, 0.04);
-  border: 1px solid rgba(255, 102, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: white;
   border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 107, 0, 0.2);
+  margin-top: 24px;
 }
 
 .delivery-toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #111;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1a1a1a;
 }
 
 .delivery-toggle input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent, #ff6600);
+  width: 24px;
+  height: 24px;
+  accent-color: #ff6b00;
   cursor: pointer;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+}
+
+.delivery-toggle input[type="checkbox"]:focus {
+  outline: 2px solid rgba(255, 107, 0, 0.5);
+  outline-offset: 2px;
 }
 
 .delivery-fee-note {

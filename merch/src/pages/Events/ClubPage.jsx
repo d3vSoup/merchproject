@@ -13,6 +13,7 @@ import api from "../../api";
 import FadeInSection from "../../components/ui/FadeInSection";
 import GlareHover from "../../components/ui/GlareHover";
 import StaggeredMenu from "../../components/ui/StaggeredMenu";
+import TextType from "../../components/ui/TextType";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -111,6 +112,7 @@ export default function ClubPage() {
   const [productOverrides, setProductOverrides] = useState({});
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [trendingStatus, setTrendingStatus] = useState({});
 
   // Load sold-out status from backend only (no localStorage fallback)
 
@@ -221,9 +223,26 @@ export default function ClubPage() {
       }
     }
 
+    async function fetchTrendingStatus() {
+      if (!mounted) return;
+      try {
+        const res = await api.get('/api/catalog/overrides', { params: { tabKey: 'system' } });
+        if (!mounted) return;
+        const trendingOverride = res.data?.overrides?.find(o => o.product_id === 'trending_status');
+        if (trendingOverride && trendingOverride.description) {
+          try {
+            setTrendingStatus(JSON.parse(trendingOverride.description));
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.error('Failed to load trending status', err);
+      }
+    }
+
     // Initial load
     fetchSoldOutFromServer();
     fetchOverrides();
+    fetchTrendingStatus();
     
     return () => {
       mounted = false;
@@ -461,7 +480,19 @@ export default function ClubPage() {
       {currentCategory && (
         <>
           <div className="event-collection-header">
-            <h3 className="event-collection-title">{currentCategory} Merchandise</h3>
+            <h3 className="event-collection-title">
+              {currentCategory} Merchandise
+              {trendingStatus[currentCategory] && (
+                <TextType 
+                  text=" Trending 🔥" 
+                  as="span" 
+                  className="trending-tag"
+                  style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }} 
+                  typingSpeed={80}
+                  cursorClassName="text-red-500"
+                />
+              )}
+            </h3>
             <p className="event-collection-subtitle">Exclusive apparel for societies & teams.</p>
           </div>
           {displayProducts.length === 0 ? (

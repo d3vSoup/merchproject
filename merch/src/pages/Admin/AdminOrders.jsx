@@ -244,229 +244,176 @@ export default function AdminOrders() {
   }
 
   return (
-    <section className="admin-section">
-      <div className="section-heading">
-        Order Management
-        <Link to="/admin/dashboard" className="btn btn--ghost btn--sm">
-          ← Dashboard
-        </Link>
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <h1>Order Management</h1>
+        <p>Manage confirmed orders, carts, and resell listings.</p>
       </div>
-      <div className="admin-panel">
-        <div className="admin-orders-header">
-          <button className="btn" onClick={loadAllOrders} disabled={loading}>
-            {loading ? "Loading..." : "Refresh Orders"}
+
+      <div className="admin-orders-controls">
+        <div className="admin-orders-tabs">
+          <button 
+            className={`admin-tab ${activeTab === 'all' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            All <span className="admin-tab-count">{allOrders.length}</span>
           </button>
-          <div className="admin-orders-export">
-            <span className="admin-export-label">Export CSV:</span>
-            <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv(new Date().toISOString().slice(0, 10))}>
-              Today
-            </button>
-            <button className="btn btn--ghost btn--sm" onClick={() => {
-              const { startDate, endDate } = getWeekRange();
-              exportOrdersCsv(null, startDate, endDate);
-            }}>
-              This Week
-            </button>
-            <button className="btn btn--ghost btn--sm" onClick={() => exportOrdersCsv()}>
-              All
-            </button>
-          </div>
-          <div className="admin-orders-export" style={{ gap: '6px' }}>
-            <input type="date" value={csvStartDate} onChange={e => setCsvStartDate(e.target.value)} style={{ fontSize: '0.85rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)' }} />
-            <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>to</span>
-            <input type="date" value={csvEndDate} onChange={e => setCsvEndDate(e.target.value)} style={{ fontSize: '0.85rem', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)' }} />
-            <button 
-              className="btn btn--ghost btn--sm" 
-              disabled={!csvStartDate || !csvEndDate}
-              onClick={() => exportOrdersCsv(null, csvStartDate, csvEndDate)}
-            >
-              Export Range
-            </button>
-          </div>
-          <div className="admin-orders-tabs">
-            <button 
-              className={`btn ${activeTab === 'all' ? '' : 'btn--ghost'}`}
-              onClick={() => setActiveTab('all')}
-            >
-              All ({allOrders.length})
-            </button>
-            <button 
-              className={`btn ${activeTab === 'orders' ? '' : 'btn--ghost'}`}
-              onClick={() => setActiveTab('orders')}
-            >
-              Orders ({confirmedOrders.length})
-            </button>
-            <button 
-              className={`btn ${activeTab === 'cart' ? '' : 'btn--ghost'}`}
-              onClick={() => setActiveTab('cart')}
-            >
-              Cart ({cartItems.length})
-            </button>
-            <button 
-              className={`btn ${activeTab === 'resell' ? '' : 'btn--ghost'}`}
-              onClick={() => setActiveTab('resell')}
-            >
-              Resell Listings ({allOrders.filter(o => o.type === 'resell_listing').length})
-            </button>
-          </div>
+          <button 
+            className={`admin-tab ${activeTab === 'orders' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            Confirmed <span className="admin-tab-count">{confirmedOrders.length}</span>
+          </button>
+          <button 
+            className={`admin-tab ${activeTab === 'cart' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('cart')}
+          >
+            In Carts <span className="admin-tab-count">{cartItems.length}</span>
+          </button>
+          <button 
+            className={`admin-tab ${activeTab === 'resell' ? 'admin-tab--active' : ''}`}
+            onClick={() => setActiveTab('resell')}
+          >
+            Resell <span className="admin-tab-count">{resellListings.length}</span>
+          </button>
         </div>
 
-        {loading && allOrders.length === 0 ? (
-          <div style={{ padding: 24 }}><SkeletonList rows={5} /></div>
-        ) : displayOrders.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--muted)', padding: 24 }}>
-            No {activeTab === 'all' ? '' : activeTab} items found.
-          </p>
-        ) : (
-          <div className="orders-table">
-            <div className="orders-header-row">
-              <div>Name / Email</div>
-              <div>USN</div>
-              <div>Type</div>
-              <div>Items</div>
-              <div>Total</div>
-              <div>Payment</div>
-              <div>Actions</div>
-            </div>
-            {displayOrders.map((order, idx) => {
-              // Calculate total - for resell listings, use priceRange if available
-              let total = order.totalAmount;
-              if (!total || (order.type === 'resell_listing' && total === 0)) {
-                if (order.type === 'resell_listing' && order.items[0]?.priceRange) {
-                  // Parse price range for resell items
-                  const priceMatch = order.items[0].priceRange.match(/[\d,]+/g);
-                  if (priceMatch && priceMatch.length > 0) {
-                    total = parseFloat(priceMatch[0].replace(/,/g, '')) || 0;
-                  }
-                } else {
-                  total = order.items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-                }
-              }
-              const isSoldOut = order.paymentStatus === 'soldout' || order.type === 'soldout';
-              return (
-                <div 
-                  key={order.id || idx} 
-                  className={`order-card ${isSoldOut ? 'is-soldout' : ''}`}
-                  style={isSoldOut ? { opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' } : {}}
-                >
-                  <div className="orders-row">
-                    <div className="order-email">
-                      <div className="order-name">
-                        {order.name && order.name !== 'Unknown' && order.name.trim() ? order.name : (order.email ? order.email.split('@')[0] : 'Unknown')}
-                      </div>
-                      <div className="order-email-text">{order.email || 'No email'}</div>
-                    </div>
-                    <div className="order-usn">{order.usn && order.usn.trim() ? order.usn : '-'}</div>
-                    <div className="order-type">
-                      <span className={`type-badge type-${order.type === 'confirmed_order' ? 'order' : order.type === 'resell_listing' ? 'resell' : order.type}`}>
-                        {order.type === 'confirmed_order' ? 'Order' : order.type === 'resell_listing' ? 'Resell Listing' : order.type}
-                      </span>
-                      {order.orderNumber && <div className="order-number">{order.orderNumber}</div>}
-                      {order.type === 'resell_listing' && (() => {
-                        const itemStatus = order.items[0]?.status;
-                        const payStatus = order.paymentStatus;
-                        const isDeleted = payStatus === 'deleted' || itemStatus === 'deleted';
-                        const isExpired = payStatus === 'expired' || itemStatus === 'expired';
-                        return (
-                          <div className={`resell-status ${isDeleted ? 'deleted' : isExpired ? 'expired' : 'active'}`}>
-                            {isDeleted ? '🗑️ Deleted' : isExpired ? '⏱️ Expired' : '✓ Active'}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div className="order-items-summary">
-                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                      <span className="order-total-inline">{formatPrice(isNaN(total) ? 0 : total)}</span>
-                      {order.is_delivery && <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 600 }}>📦 Delivery</span>}
-                    </div>
-                    <div className="order-total">
-                    {order.type === 'resell_listing' ? (
-                      <span style={{ fontWeight: 500 }}>
-                        {order.items[0]?.priceRange || 'Price TBD'}
-                      </span>
-                    ) : (
-                      formatPrice(isNaN(total) ? 0 : total)
-                    )}
-                  </div>
-                  <div className="order-payment">
-                    {order.type === 'confirmed_order' ? (
-                      <select
-                        value={order.paymentStatus}
-                        onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                        <option value="refunded">Refunded</option>
-                        <option value="failed">Failed</option>
-                      </select>
-                    ) : (
-                      <span className="order-payment-na">N/A</span>
-                    )}
-                  </div>
-                  <div className="order-actions">
-                    {order.type === 'confirmed_order' && order.paymentStatus === 'paid' && (
-                      <button
-                        className="btn btn--ghost btn-refund"
-                        onClick={() => handleRefund(order.id, order.email)}
-                      >
-                        Refund
-                      </button>
-                    )}
-                    <button
-                      className="btn btn--ghost btn--sm"
-                      style={{ color: '#991b1b', fontSize: '0.8rem' }}
-                      onClick={() => deleteOrder(order.id, order.email)}
-                      title="Delete this order"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  </div>
-
-                  <details className="order-details-expand">
-                    <summary>View items</summary>
-                    <div className="order-items-grid">
-                      {order.items.map((item, i) => (
-                        <div key={i} className="order-item-card">
-                          <div className="order-item-name">
-                            {item.name || item.title}
-                            {item.variant && <span className="order-item-variant"> ({item.variant})</span>}
-                            {item.condition && <span> · {item.condition}</span>}
-                            {item.year && <span> ({item.year})</span>}
-                          </div>
-                          {order.type === 'resell_listing' ? (
-                            <div className="order-item-meta">
-                              {item.priceRange && <span>{item.priceRange}</span>}
-                              {item.pictures?.length > 0 && <span>{item.pictures.length} image{item.pictures.length !== 1 ? 's' : ''}</span>}
-                            </div>
-                          ) : (
-                            <div className="order-item-meta">
-                              Qty {item.quantity || 1} × {formatPrice(item.price || 0)} = <strong>{formatPrice((item.price || 0) * (item.quantity || 1))}</strong>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="order-summary-bar">
-                      <span>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</span>
-                      {order.is_delivery && (
-                        <span style={{ fontSize: '0.85rem', color: 'var(--accent)' }}>
-                          📦 Delivery — {order.delivery_address || 'No address'}
-                          {order.delivery_maps_link && (
-                            <> · <a href={order.delivery_maps_link} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Maps 🔗</a></>
-                          )}
-                        </span>
-                      )}
-                      <span className="order-summary-total">Total: {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}</span>
-                    </div>
-                  </details>
-                </div>
-              );
-            })}
+        <div className="admin-orders-actions">
+          <div className="admin-orders-export-group">
+            <span className="material-symbols-outlined">download</span>
+            <button onClick={() => exportOrdersCsv(new Date().toISOString().slice(0, 10))}>Today</button>
+            <button onClick={() => {
+              const { startDate, endDate } = getWeekRange();
+              exportOrdersCsv(null, startDate, endDate);
+            }}>Week</button>
+            <button onClick={() => exportOrdersCsv()}>All</button>
           </div>
-        )}
+          <button className="admin-icon-btn" onClick={loadAllOrders} disabled={loading} title="Refresh Data">
+            <span className={`material-symbols-outlined ${loading ? 'spin' : ''}`}>refresh</span>
+          </button>
+        </div>
       </div>
-    </section>
+
+      <div className="admin-orders-filter-bar">
+        <div className="admin-orders-search">
+          <span className="material-symbols-outlined">search</span>
+          <input type="text" placeholder="Search name, USN, email..." />
+        </div>
+        <div className="admin-orders-range">
+          <input type="date" value={csvStartDate} onChange={e => setCsvStartDate(e.target.value)} />
+          <span className="material-symbols-outlined">arrow_forward</span>
+          <input type="date" value={csvEndDate} onChange={e => setCsvEndDate(e.target.value)} />
+          <button 
+            className="admin-btn admin-btn--primary"
+            disabled={!csvStartDate || !csvEndDate}
+            onClick={() => exportOrdersCsv(null, csvStartDate, csvEndDate)}
+          >
+            Export Range
+          </button>
+        </div>
+      </div>
+
+{loading && allOrders.length === 0 ? (
+        <div style={{ padding: 24 }}><SkeletonList rows={5} /></div>
+      ) : displayOrders.length === 0 ? (
+        <p style={{ textAlign: 'center', color: 'var(--admin-text-muted)', padding: 24 }}>
+          No {activeTab === 'all' ? '' : activeTab} items found.
+        </p>
+      ) : (
+        <div className="admin-orders-table-wrapper">
+          <table className="admin-orders-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>USN</th>
+                <th>Type</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayOrders.map((order, idx) => {
+                let total = order.totalAmount;
+                if (!total || (order.type === 'resell_listing' && total === 0)) {
+                  if (order.type === 'resell_listing' && order.items[0]?.priceRange) {
+                    const priceMatch = order.items[0].priceRange.match(/[\d,]+/g);
+                    if (priceMatch && priceMatch.length > 0) {
+                      total = parseFloat(priceMatch[0].replace(/,/g, '')) || 0;
+                    }
+                  } else {
+                    total = order.items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+                  }
+                }
+                const isSoldOut = order.paymentStatus === 'soldout' || order.type === 'soldout';
+                
+                return (
+                  <tr key={order.id || idx} className={isSoldOut ? 'row-muted' : ''}>
+                    <td>
+                      <div className="admin-user-cell">
+                        <span className="admin-user-name">
+                          {order.name && order.name !== 'Unknown' && order.name.trim() ? order.name : (order.email ? order.email.split('@')[0] : 'Unknown')}
+                        </span>
+                        <span className="admin-user-email">{order.email || 'No email'}</span>
+                      </div>
+                    </td>
+                    <td>{order.usn && order.usn.trim() ? order.usn : '-'}</td>
+                    <td>
+                      <span className={`admin-type-badge type-${order.type}`}>
+                        {order.type === 'confirmed_order' ? 'Order' : order.type === 'resell_listing' ? 'Resell' : order.type}
+                      </span>
+                      {order.orderNumber && <div className="admin-order-id">#{order.orderNumber}</div>}
+                    </td>
+                    <td>
+                      <div className="admin-order-items-popover">
+                        <span className="admin-items-count">
+                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        </span>
+                        {order.is_delivery && <span className="admin-delivery-tag">📦 Delivery</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="admin-order-price">
+                        {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}
+                      </span>
+                    </td>
+                    <td>
+                      {order.type === 'confirmed_order' ? (
+                        <div className="admin-status-select">
+                          <select
+                            value={order.paymentStatus}
+                            onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
+                            className={`status-chip chip-${order.paymentStatus}`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="refunded">Refunded</option>
+                            <option value="failed">Failed</option>
+                          </select>
+                        </div>
+                      ) : (
+                        <span className="admin-text-muted">N/A</span>
+                      )}
+                    </td>
+                    <td>
+                      <div className="admin-row-actions">
+                        <button className="admin-icon-btn admin-icon-btn--sm" title="View Details">
+                          <span className="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button className="admin-icon-btn admin-icon-btn--sm admin-icon-btn--danger" onClick={() => deleteOrder(order.id, order.email)} title="Delete">
+                          <span className="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -9,6 +9,7 @@ import EventImagesManager from "../../components/admin/EventImagesManager";
 import SizeChartManager from "../../components/admin/SizeChartManager";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../../data/products";
 import toast from "react-hot-toast";
+import "./AdminItems.css";
 
 function toLocalDatetime(isoOrLocal) {
   if (!isoOrLocal) return '';
@@ -89,6 +90,7 @@ export default function AdminItems() {
   const [eventDetails, setEventDetails] = useState(null);
   const [eventDetailsDraft, setEventDetailsDraft] = useState({});
   const [savingEventDetails, setSavingEventDetails] = useState(false);
+  const [trendingStatus, setTrendingStatus] = useState({});
 
   // Persist to localStorage whenever changes are made
   useEffect(() => {
@@ -356,6 +358,16 @@ export default function AdminItems() {
           updated[tab] = updated[tab] ? [...updated[tab], customProduct] : [customProduct];
         }
       });
+      
+      const trendingOverride = overrides.find(o => o.tab_key === 'system' && o.product_id === 'trending_status');
+      if (trendingOverride && trendingOverride.description) {
+        try {
+          setTrendingStatus(JSON.parse(trendingOverride.description));
+        } catch (e) {
+          console.error("Failed to parse trending_status", e);
+        }
+      }
+      
       setEditableCatalog(updated);
     } catch (err) {
       console.error('Failed to load catalog overrides', err);
@@ -391,25 +403,33 @@ export default function AdminItems() {
     : currentProducts;
 
   return (
-    <section className="admin-section">
-      <div className="section-heading">
-        Item Management
-        <Link to="/admin/dashboard" className="btn btn--ghost btn--sm">
-          ← Dashboard
-        </Link>
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <h1>Catalog Management</h1>
+        <p>Manage products, hero banners, and event configurations.</p>
       </div>
-      <div className="admin-panel">
-        <div className="admin-tabs-row">
+
+      <div className="admin-orders-controls">
+        <div className="admin-orders-tabs">
           {TABS.map(tab => (
             <button
               key={tab.key}
-              className={`admin-tab ${selectedTab === tab.key ? "is-active" : ""}`}
+              className={`admin-tab ${selectedTab === tab.key ? "admin-tab--active" : ""}`}
               onClick={() => setSelectedTab(tab.key)}
             >
               {tab.label}
             </button>
           ))}
         </div>
+        <div className="admin-orders-actions">
+           <button className="admin-icon-btn" onClick={fetchOverrides} title="Refresh Catalog">
+            <span className="material-symbols-outlined">refresh</span>
+          </button>
+          <button className="admin-btn admin-btn--primary" onClick={() => setAddingProduct(true)}>
+            <span className="material-symbols-outlined">add</span> Add Item
+          </button>
+        </div>
+      </div>
 
         <div className="admin-event-status">
           <h4>Event Status{selectedTab === "club" && (ieeeSubclub || selectedClub || selectedDept) ? ` - ${ieeeSubclub || selectedClub || selectedDept}` : ""}</h4>
@@ -522,6 +542,37 @@ export default function AdminItems() {
                   }
                 }}
               />
+            )}
+            
+            {(selectedTab !== "system" && selectedTab !== "listed") && (
+              <div className="admin-trending-toggle">
+                <label className="trending-checkbox-wrapper">
+                  <input 
+                    type="checkbox"
+                    checked={!!trendingStatus[ieeeSubclub || selectedClub || selectedDept || selectedTab]}
+                    onChange={async (e) => {
+                      const isTrending = e.target.checked;
+                      const catKey = ieeeSubclub || selectedClub || selectedDept || selectedTab;
+                      const newStatus = { ...trendingStatus, [catKey]: isTrending };
+                      setTrendingStatus(newStatus);
+                      try {
+                        await saveCatalogOverride({
+                          tabKey: 'system',
+                          id: 'trending_status',
+                          name: 'Trending Flags',
+                          description: JSON.stringify(newStatus)
+                        });
+                        toast.success(`${catKey} is ${isTrending ? 'now marked as trending' : 'no longer trending'}`);
+                        await fetchOverrides();
+                      } catch (err) {
+                        toast.error('Failed to save trending status');
+                        setTrendingStatus(trendingStatus); // revert
+                      }
+                    }}
+                  />
+                  <span className="trending-text">Mark Collection as Trending 🔥</span>
+                </label>
+              </div>
             )}
           </div>
         </div>
@@ -1051,142 +1102,142 @@ export default function AdminItems() {
             )}
           </div>
         ) : (
-        <div className="admin-products-list">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h4 style={{ margin: 0 }}>Products{selectedClub || selectedDept || ieeeSubclub ? ` - ${ieeeSubclub || selectedClub || selectedDept}` : ''}</h4>
-            <button
-              className="btn btn--primary"
-              onClick={() => setAddingProduct({ tabKey: selectedTab, name: '', price: 0, imageUrl: '', description: '', images: [] })}
-            >
-              + Add Product
-            </button>
-          </div>
-          <div className="admin-products-grid">
-            {displayProducts.map((product) => {
-              const productKey = `${selectedTab}:${product.id}`;
-              const variantKey = `${selectedTab}:${product.id}:standard`;
-              const nullKey = `${selectedTab}:${product.id}:null`;
-              const isSoldOut = soldOutItems[productKey] || soldOutItems[variantKey] || soldOutItems[nullKey];
-              const currentCategory = ieeeSubclub || selectedClub || selectedDept;
-              const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
-              const isCategorySoldOut = currentCategory ? soldOutItems[categoryKey] : false;
-              const finalSoldOut = isCategorySoldOut || isSoldOut || eventStatuses[selectedTab]?.soldOut;
-              
-              const isHidden = !!product.hidden;
-              return (
-                <div key={product.id} className={`admin-product-card ${finalSoldOut ? "is-soldout" : ""} ${isHidden ? "is-hidden" : ""}`}>
-                  {isHidden && <div className="admin-product-hidden-badge">HIDDEN</div>}
-                  <div
-                    className="admin-product-preview"
-                    style={{
-                      background: product.imageUrl
-                        ? `url(${product.imageUrl}) center/cover`
-                        : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`
-                    }}
-                  >
-                    {finalSoldOut && !isHidden && <div className="sold-out-badge">UNAVAILABLE</div>}
-                  </div>
-                  <div className="admin-product-info">
-                    <div className="admin-product-name">{product.name}</div>
-                    <div className="admin-product-price">{formatPrice(product.price)}</div>
-                    <div className="admin-product-availability">
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={!finalSoldOut}
-                          disabled={isHidden || busyItems[product.id]}
-                          onChange={async (e) => {
-                            if (busyItems[product.id]) return;
-                            setBusyItems(prev => ({ ...prev, [product.id]: true }));
-                            
-                            const newSoldOut = !e.target.checked;
-                            const keyToUpdate = currentCategory ? categoryKey : productKey;
-                            const vKey = `${selectedTab}:${product.id}:standard`;
-                            
-                            setSoldOutItems(prev => {
-                              const updated = { ...prev };
-                              updated[keyToUpdate] = newSoldOut;
-                              if (!currentCategory) {
-                                updated[vKey] = newSoldOut;
-                              }
-                              return updated;
-                            });
-                            
-                            try {
-                              await saveSoldOutStatus(selectedTab, product.id, null, newSoldOut, currentCategory, null);
-                            } catch (err) {
-                              setSoldOutItems(prev => {
-                                const reverted = { ...prev };
-                                reverted[keyToUpdate] = !newSoldOut;
-                                if (!currentCategory) {
-                                  reverted[vKey] = !newSoldOut;
-                                }
-                                return reverted;
-                              });
-                            } finally {
-                              setBusyItems(prev => ({ ...prev, [product.id]: false }));
-                            }
-                          }}
-                        />
-                        {busyItems[product.id] ? 'Saving...' : 'Available'}
-                      </label>
+          <div className="admin-section">
+            <div className="admin-section-header">
+              <h2>Inventory {selectedClub || selectedDept || ieeeSubclub ? ` — ${ieeeSubclub || selectedClub || selectedDept}` : ''}</h2>
+              <div className="admin-section-actions">
+                <span className="admin-badge">{displayProducts.length} Products</span>
+              </div>
+            </div>
+
+            <div className="admin-items-grid">
+              {displayProducts.map((product) => {
+                const productKey = `${selectedTab}:${product.id}`;
+                const variantKey = `${selectedTab}:${product.id}:standard`;
+                const nullKey = `${selectedTab}:${product.id}:null`;
+                const isSoldOut = soldOutItems[productKey] || soldOutItems[variantKey] || soldOutItems[nullKey];
+                const currentCategory = ieeeSubclub || selectedClub || selectedDept;
+                const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
+                const isCategorySoldOut = currentCategory ? soldOutItems[categoryKey] : false;
+                const finalSoldOut = isCategorySoldOut || isSoldOut || eventStatuses[selectedTab]?.soldOut;
+                const isHidden = !!product.hidden;
+                
+                return (
+                  <div key={product.id} className={`admin-item-card ${isHidden ? 'is-hidden' : ''}`}>
+                    <div className="admin-item-card__image">
+                      {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} />
+                      ) : (
+                        <div style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          background: `linear-gradient(135deg, ${product.swatch?.[0] || '#eee'}, ${product.swatch?.[1] || '#ddd'})` 
+                        }} />
+                      )}
+                      {finalSoldOut && !isHidden && <span className="admin-item-card__badge admin-item-card__badge--soldout">SOLD OUT</span>}
+                      {isHidden && <span className="admin-item-card__badge">HIDDEN</span>}
                     </div>
-                    {currentCategory && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 4 }}>
-                        Category: {currentCategory}
+
+                    <div className="admin-item-card__content">
+                      <h3 className="admin-item-card__title">{product.name}</h3>
+                      <div className="admin-item-card__price">{formatPrice(product.price)}</div>
+                      
+                      <div className="admin-item-status-toggle">
+                        <label className="admin-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={!finalSoldOut}
+                            disabled={isHidden || busyItems[product.id]}
+                            onChange={async (e) => {
+                              if (busyItems[product.id]) return;
+                              setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                              
+                              const newSoldOut = !e.target.checked;
+                              const keyToUpdate = currentCategory ? categoryKey : productKey;
+                              const vKey = `${selectedTab}:${product.id}:standard`;
+                              
+                              setSoldOutItems(prev => {
+                                const updated = { ...prev };
+                                updated[keyToUpdate] = newSoldOut;
+                                if (!currentCategory) {
+                                  updated[vKey] = newSoldOut;
+                                }
+                                return updated;
+                              });
+                              
+                              try {
+                                await saveSoldOutStatus(selectedTab, product.id, null, newSoldOut, currentCategory, null);
+                              } catch (err) {
+                                setSoldOutItems(prev => {
+                                  const reverted = { ...prev };
+                                  reverted[keyToUpdate] = !newSoldOut;
+                                  if (!currentCategory) {
+                                    reverted[vKey] = !newSoldOut;
+                                  }
+                                  return reverted;
+                                });
+                              } finally {
+                                setBusyItems(prev => ({ ...prev, [product.id]: false }));
+                              }
+                            }}
+                          />
+                          <span>{busyItems[product.id] ? 'Saving...' : 'Available'}</span>
+                        </label>
                       </div>
-                    )}
+
+                      <div className="admin-item-card__footer">
+                        <button
+                          className="admin-icon-btn"
+                          disabled={busyItems[product.id]}
+                          onClick={() => setEditingProduct({ ...product, tabKey: selectedTab, productKey })}
+                          title="Edit Product"
+                        >
+                          <span className="material-symbols-outlined">edit</span>
+                        </button>
+
+                        <div className="admin-item-card__actions">
+                          {isHidden ? (
+                            <button
+                              className="admin-btn admin-btn--sm"
+                              disabled={busyItems[product.id]}
+                              onClick={async () => {
+                                if (busyItems[product.id]) return;
+                                setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                                try {
+                                  await restoreProduct(selectedTab, product.id);
+                                } finally {
+                                  setBusyItems(prev => ({ ...prev, [product.id]: false }));
+                                }
+                              }}
+                            >
+                              Restore
+                            </button>
+                          ) : (
+                            <button
+                              className="admin-icon-btn admin-icon-btn--danger"
+                              disabled={busyItems[product.id]}
+                              onClick={async () => {
+                                if (busyItems[product.id]) return;
+                                if (!window.confirm(`Remove "${product.name}" from this event?`)) return;
+                                setBusyItems(prev => ({ ...prev, [product.id]: true }));
+                                try {
+                                  await hideOrDeleteProduct(selectedTab, product.id);
+                                } finally {
+                                  setBusyItems(prev => ({ ...prev, [product.id]: false }));
+                                }
+                              }}
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button
-                      className="btn btn--ghost"
-                      disabled={busyItems[product.id]}
-                      onClick={() => setEditingProduct({ ...product, tabKey: selectedTab, productKey })}
-                    >
-                      Edit
-                    </button>
-                    {isHidden ? (
-                      <button
-                        className="btn btn--ghost"
-                        style={{ color: 'var(--accent)' }}
-                        disabled={busyItems[product.id]}
-                        onClick={async () => {
-                          if (busyItems[product.id]) return;
-                          setBusyItems(prev => ({ ...prev, [product.id]: true }));
-                          try {
-                            await restoreProduct(selectedTab, product.id);
-                          } finally {
-                            setBusyItems(prev => ({ ...prev, [product.id]: false }));
-                          }
-                        }}
-                      >
-                        {busyItems[product.id] ? 'Restoring...' : 'Restore'}
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn--ghost"
-                        style={{ color: '#dc2626' }}
-                        disabled={busyItems[product.id]}
-                        onClick={async () => {
-                          if (busyItems[product.id]) return;
-                          if (!window.confirm(`Remove "${product.name}" from this event? It will no longer appear in the merch lineup.`)) return;
-                          setBusyItems(prev => ({ ...prev, [product.id]: true }));
-                          try {
-                            await hideOrDeleteProduct(selectedTab, product.id);
-                          } finally {
-                            setBusyItems(prev => ({ ...prev, [product.id]: false }));
-                          }
-                        }}
-                      >
-                        {busyItems[product.id] ? 'Deleting...' : 'Delete'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
         )}
 
         {editingProduct && (
@@ -1196,48 +1247,66 @@ export default function AdminItems() {
               <div className="admin-edit-form">
                 <label>
                   Primary Image URL
-                  <input
-                    type="url"
-                    value={editingProduct.imageUrl || ""}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      value={editingProduct.imageUrl || ""}
+                      onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                      placeholder="https://..."
+                    />
+                    <label className="btn btn--ghost" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                      Upload
+                      <input 
+                        type="file" 
+                        style={{ display: 'none' }} 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingImage(true);
+                          try {
+                            const formData = new FormData();
+                            formData.append('image', file);
+                            const res = await api.post('/api/resell/upload-image', formData, {
+                              headers: { 'Content-Type': 'multipart/form-data' }
+                            });
+                            if (res.data?.url) {
+                              setEditingProduct({ ...editingProduct, imageUrl: res.data.url });
+                              toast.success('Image uploaded successfully');
+                            }
+                          } catch (err) {
+                            toast.error('Failed to upload image');
+                          } finally {
+                            setUploadingImage(false);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </label>
-                
                 <label>
-                  Upload Image from PC
+                  Name
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      
-                      setUploadingImage(true);
-                      try {
-                        const formData = new FormData();
-                        formData.append('image', file);
-                        
-                        const res = await api.post('/api/resell/upload-image', formData, {
-                          headers: { 'Content-Type': 'multipart/form-data' }
-                        });
-                        
-                        if (res.data?.url) {
-                          setEditingProduct({ ...editingProduct, imageUrl: res.data.url });
-                          toast.success('Image uploaded successfully');
-                        }
-                      } catch (err) {
-                        console.error('Failed to upload:', err);
-                        toast.error('Failed to upload image');
-                      } finally {
-                        setUploadingImage(false);
-                      }
-                    }}
-                    disabled={uploadingImage}
+                    type="text"
+                    value={editingProduct.name || ""}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                   />
-                  {uploadingImage && <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Uploading...</p>}
                 </label>
-
+                <label>
+                  Price (₹)
+                  <input
+                    type="number"
+                    value={editingProduct.price || 0}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
+                  />
+                </label>
+                <label>
+                  Description
+                  <textarea
+                    value={editingProduct.description || ""}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                  />
+                </label>
                 <label>
                   Additional Images (URLs, one per line)
                   <textarea
@@ -1247,53 +1316,35 @@ export default function AdminItems() {
                       setEditingProduct({ ...editingProduct, images: urls });
                     }}
                     rows={4}
-                    placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-                  />
-                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>
-                    Enter one URL per line. These will be shown in the product detail popup.
-                  </p>
-                </label>
-                <label>
-                  Name
-                  <input
-                    type="text"
-                    value={editingProduct.name}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Description
-                  <textarea
-                    value={editingProduct.description || ""}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                    rows={2}
-                    placeholder="Product description"
-                  />
-                </label>
-                <label>
-                  Price (₹)
-                  <input
-                    type="number"
-                    value={editingProduct.price}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseInt(e.target.value) || 0 })}
+                    placeholder="https://example.com/image1.jpg"
                   />
                 </label>
                 <div className="admin-edit-actions">
                   <button
-                    className="btn"
+                    className="btn btn--primary"
+                    disabled={uploadingImage}
                     onClick={async () => {
-                      const productToSave = { ...editingProduct };
                       try {
-                        await saveCatalogOverride(productToSave);
-                        await fetchOverrides();
+                        // Optimistic UI update
+                        setEditableCatalog(prev => {
+                          const updated = { ...prev };
+                          const tab = editingProduct.tabKey;
+                          updated[tab] = updated[tab].map(p => 
+                            p.id === editingProduct.id ? editingProduct : p
+                          );
+                          return updated;
+                        });
+                        
+                        await saveCatalogOverride(editingProduct);
+                        toast.success('Product updated');
                         setEditingProduct(null);
-                        toast.success("Product updated successfully!");
-                      } catch {
-                        toast.error("Failed to save changes");
+                        await fetchOverrides();
+                      } catch (err) {
+                        toast.error('Failed to save changes');
                       }
                     }}
                   >
-                    Save
+                    Save Changes
                   </button>
                   <button className="btn btn--ghost" onClick={() => setEditingProduct(null)}>
                     Cancel
@@ -1307,45 +1358,36 @@ export default function AdminItems() {
         {addingProduct && (
           <div className="admin-edit-modal">
             <div className="admin-edit-content">
-              <h3>Add New Product</h3>
+              <h3>Add New Product to {TABS.find(t => t.key === addingProduct.tabKey)?.label}</h3>
               <div className="admin-edit-form">
                 <label>
-                  Name *
+                  Name
                   <input
                     type="text"
-                    value={addingProduct.name}
+                    value={addingProduct.name || ""}
                     onChange={(e) => setAddingProduct({ ...addingProduct, name: e.target.value })}
-                    placeholder="e.g. Limited Edition Cap"
+                    placeholder="Product Name"
                   />
                 </label>
                 <label>
-                  Price (₹) *
+                  Price (₹)
                   <input
                     type="number"
-                    value={addingProduct.price || ''}
-                    onChange={(e) => setAddingProduct({ ...addingProduct, price: parseInt(e.target.value) || 0 })}
-                    placeholder="499"
+                    value={addingProduct.price || 0}
+                    onChange={(e) => setAddingProduct({ ...addingProduct, price: parseFloat(e.target.value) || 0 })}
                   />
                 </label>
                 <label>
-                  Primary Image URL
-                  <input
-                    type="url"
-                    value={addingProduct.imageUrl || ""}
-                    onChange={(e) => setAddingProduct({ ...addingProduct, imageUrl: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </label>
-                <label>
-                  Upload Image from PC
+                  Primary Image
                   <input
                     type="file"
                     accept="image/*"
+                    style={{ marginTop: '0.5rem' }}
                     onChange={async (e) => {
-                      const file = e.target.files[0];
+                      const file = e.target.files?.[0];
                       if (!file) return;
                       setUploadingImage(true);
-                      try {
+                       try {
                         const formData = new FormData();
                         formData.append('image', file);
                         const res = await api.post('/api/resell/upload-image', formData, {
@@ -1406,8 +1448,7 @@ export default function AdminItems() {
             </div>
           </div>
         )}
-      </div>
-    </section>
+    </div>
   );
 }
 

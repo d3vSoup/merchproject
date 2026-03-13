@@ -16,6 +16,7 @@ import FadeInSection from "../../components/ui/FadeInSection";
 import GlareHover from "../../components/ui/GlareHover";
 import RotatingText from "../../components/ui/RotatingText";
 import EventDetailsSection from "../../components/EventDetailsSection";
+import TextType from "../../components/ui/TextType";
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
@@ -40,6 +41,7 @@ export default function EventPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [eventDetails, setEventDetails] = useState(null);
   const [heroCarouselIdx, setHeroCarouselIdx] = useState(0);
+  const [trendingStatus, setTrendingStatus] = useState({});
 
   // Removed localStorage dependency - countdown is now fetched from backend
 
@@ -159,8 +161,24 @@ export default function EventPage() {
       }
     }
 
+    async function fetchTrendingStatus() {
+      try {
+        const res = await api.get('/api/catalog/overrides', { params: { tabKey: 'system' } });
+        if (cancelled) return;
+        const trendingOverride = res.data?.overrides?.find(o => o.product_id === 'trending_status');
+        if (trendingOverride && trendingOverride.description) {
+          try {
+            setTrendingStatus(JSON.parse(trendingOverride.description));
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.error('Failed to load trending status', err);
+      }
+    }
+
     fetchSoldOutFromServer();
     fetchOverrides();
+    fetchTrendingStatus();
 
     async function fetchEventDetails() {
       try {
@@ -485,13 +503,37 @@ export default function EventPage() {
               <span className="event-soldout">SOLD OUT</span>
             )}
           </div>
-          <p className="event-collection-subtitle">Exclusive apparel designed for the culture.</p>
+          <p className="event-collection-subtitle">
+            Exclusive apparel designed for the culture.
+            {trendingStatus[eventKey] && (
+              <TextType 
+                text=" Trending 🔥" 
+                as="span" 
+                className="trending-tag"
+                style={{ color: '#ef4444', fontSize: '1rem', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }} 
+                typingSpeed={80}
+                cursorClassName="text-red-500"
+              />
+            )}
+          </p>
         </div>
       )}
 
       {showCountdown && (
         <div className="event-collection-header event-collection-header--below-hero">
-          <h3 className="event-collection-title">The {eventTitle} Collection</h3>
+          <h3 className="event-collection-title">
+            The {eventTitle} Collection
+            {trendingStatus[eventKey] && (
+              <TextType 
+                text=" Trending 🔥" 
+                as="span" 
+                className="trending-tag"
+                style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }} 
+                typingSpeed={80}
+                cursorClassName="text-red-500"
+              />
+            )}
+          </h3>
           <p className="event-collection-subtitle">Exclusive apparel designed for the culture.</p>
         </div>
       )}

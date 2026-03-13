@@ -100,12 +100,12 @@ export default function Landing() {
     <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative flex flex-col w-full overflow-hidden" data-purpose="hero-top-curve-layout">
-          {/* Top Hero Image Container with Curved Bottom */}
-          <div className="w-full h-[60vh] md:h-[65vh] relative bg-gray-200" id="hero-carousel" style={{ borderBottomLeftRadius: '50% 15vw', borderBottomRightRadius: '50% 15vw', overflow: 'hidden' }}>
+        <section className="relative flex flex-col w-full min-h-[calc(100vh-80px)] overflow-hidden" data-purpose="hero-fullscreen-layout">
+          {/* Background Hero Image */}
+          <div className="absolute inset-0 w-full h-full bg-gray-900" id="hero-carousel">
             {/* Slides */}
             {heroSlides.length > 0 ? heroSlides.map((slide, idx) => (
-              <div key={idx} className={`fade-layer ${idx === currentSlide ? 'active' : ''}`}>
+              <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                 <img alt="ALMA Apparel" className="w-full h-full object-cover" src={slide} />
               </div>
             )) : (
@@ -113,21 +113,23 @@ export default function Landing() {
                 <span className="text-4xl font-black text-white/20">ALMA</span>
               </div>
             )}
-            {/* Overlay for contrast if needed */}
-            <div className="absolute inset-0 bg-black/10"></div>
+            {/* Overlay for contrast ensuring text is readable */}
+            <div className="absolute inset-0 bg-black/40 z-20"></div>
           </div>
           
-          {/* Bottom Centered Clean Typography */}
-          <div className="w-full max-w-4xl mx-auto px-6 py-12 md:py-20 flex flex-col items-center text-center z-10">
-            <span className="text-[#FF6B00] font-bold tracking-[0.2em] uppercase text-sm mb-6">Official Merchandise</span>
-            <h1 className="text-6xl md:text-8xl font-black leading-[1.05] tracking-tight mb-8">
+          {/* Center Overlay Typography */}
+          <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-[calc(100vh-80px)] text-center px-6">
+            <span className="bg-[#FF6B00] text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-sm mb-6 shadow-xl inline-block transform -rotate-2 border-2 border-white/20">
+              Official Merchandise
+            </span>
+            <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
               ALMA<br/><span className="text-[#FF6B00]">STORE</span>
             </h1>
-            <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+            <p className="text-gray-100 text-lg md:text-2xl max-w-3xl mx-auto mb-10 leading-relaxed font-semibold drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
             </p>
             <div>
-              <a className="inline-block bg-[#111827] text-white px-12 py-5 text-lg font-bold hover:bg-[#FF6B00] transition-colors duration-300" href="#events">
+              <a className="inline-block bg-white text-[#111827] px-14 py-5 text-xl font-bold hover:bg-[#FF6B00] hover:text-white transition-colors duration-300 shadow-2xl rounded-full" href="#events">
                 Shop Collection
               </a>
             </div>

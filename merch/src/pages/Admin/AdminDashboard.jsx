@@ -71,113 +71,143 @@ export default function AdminDashboard() {
   }
 
   return (
-    <section className="admin-dashboard">
-      <div className="admin-dashboard__header">
-        <h1 className="admin-dashboard__title">Admin Dashboard</h1>
-        <div className="admin-dashboard__nav">
-          <Link to="/admin/orders" className="btn btn--secondary">
-            Manage Orders
-          </Link>
-          <Link to="/admin/items" className="btn btn--secondary">
-            Manage Items
-          </Link>
-        </div>
+    <div className="admin-page">
+      <div className="admin-page-header">
+        <h1>Dashboard Overview</h1>
+        <p>Real-time insights and system activity.</p>
       </div>
 
       <div className="admin-dashboard__period">
-        <label>
-          Period:
+        <div className="admin-period-selector">
+          <span className="material-symbols-outlined">calendar_today</span>
           <select value={days} onChange={(e) => setDays(Number(e.target.value))}>
-            <option value={1}>Last 1 day</option>
-            <option value={7}>Last 7 days</option>
-            <option value={14}>Last 14 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
+            <option value={1}>Last 24 Hours</option>
+            <option value={7}>Last 7 Days</option>
+            <option value={14}>Last 14 Days</option>
+            <option value={30}>Last 30 Days</option>
+            <option value={90}>Last 3 Months</option>
           </select>
-        </label>
+        </div>
       </div>
 
-      <div className="admin-dashboard__section">
-        <h2>Site Analytics</h2>
-        <div className="admin-metrics-grid">
-          <div className="admin-metric-card">
-            <span className="admin-metric__value">{metrics?.pageViews ?? 0}</span>
+      <div className="admin-metrics-grid">
+        <div className="admin-metric-card">
+          <div className="admin-metric-icon" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}>
+            <span className="material-symbols-outlined">visibility</span>
+          </div>
+          <div className="admin-metric-info">
             <span className="admin-metric__label">Page Views</span>
+            <span className="admin-metric__value">{metrics?.pageViews ?? 0}</span>
           </div>
-          <div className="admin-metric-card">
+        </div>
+        
+        <div className="admin-metric-card">
+          <div className="admin-metric-icon" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+            <span className="material-symbols-outlined">category</span>
+          </div>
+          <div className="admin-metric-info">
+            <span className="admin-metric__label">Product Browsed</span>
             <span className="admin-metric__value">{metrics?.productViews ?? 0}</span>
-            <span className="admin-metric__label">Products Browsed</span>
           </div>
-          <div className="admin-metric-card">
-            <span className="admin-metric__value">{metrics?.cartAdds ?? 0}</span>
+        </div>
+
+        <div className="admin-metric-card">
+          <div className="admin-metric-icon" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+            <span className="material-symbols-outlined">add_shopping_cart</span>
+          </div>
+          <div className="admin-metric-info">
             <span className="admin-metric__label">Cart Adds</span>
+            <span className="admin-metric__value">{metrics?.cartAdds ?? 0}</span>
           </div>
-          <div className="admin-metric-card">
-            <span className="admin-metric__value">{metrics?.checkoutStarts ?? 0}</span>
+        </div>
+
+        <div className="admin-metric-card">
+          <div className="admin-metric-icon" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+            <span className="material-symbols-outlined">payments</span>
+          </div>
+          <div className="admin-metric-info">
             <span className="admin-metric__label">Checkout Starts</span>
+            <span className="admin-metric__value">{metrics?.checkoutStarts ?? 0}</span>
           </div>
-          <div className="admin-metric-card admin-metric-card--highlight">
-            <span className="admin-metric__value">{metrics?.ordersPlaced ?? 0}</span>
+        </div>
+
+        <div className="admin-metric-card admin-metric-card--featured">
+          <div className="admin-metric-icon">
+            <span className="material-symbols-outlined">check_circle</span>
+          </div>
+          <div className="admin-metric-info">
             <span className="admin-metric__label">Orders Placed</span>
+            <span className="admin-metric__value">{metrics?.ordersPlaced ?? 0}</span>
           </div>
-          <div className="admin-metric-card admin-metric-card--highlight">
+        </div>
+
+        <div className="admin-metric-card admin-metric-card--featured">
+          <div className="admin-metric-icon">
+            <span className="material-symbols-outlined">currency_rupee</span>
+          </div>
+          <div className="admin-metric-info">
+            <span className="admin-metric__label">Total Revenue</span>
             <span className="admin-metric__value">{formatPrice(metrics?.revenue)}</span>
-            <span className="admin-metric__label">Revenue (paid)</span>
-          </div>
-          <div className="admin-metric-card">
-            <span className="admin-metric__value">{metrics?.wishlistAdds ?? 0}</span>
-            <span className="admin-metric__label">Wishlist Adds</span>
           </div>
         </div>
       </div>
 
-      <div className="admin-dashboard__section">
-        <h2>Recent Admin Actions</h2>
-        <div className="admin-audit-list">
-          {auditLogs.length === 0 ? (
-            <p className="admin-audit-empty">No audit entries yet</p>
-          ) : (
-            auditLogs.map((log) => {
-              const actionLabel = formatAuditAction(log.action);
-              const isPositive = /approve|restore|create/.test(log.action);
-              const isNegative = /reject|delete|hide/.test(log.action);
-              return (
-                <div key={log.id} className={`admin-audit-card ${isPositive ? 'admin-audit-card--success' : ''} ${isNegative ? 'admin-audit-card--danger' : ''}`}>
-                  <div className="admin-audit-card__header">
-                    <span className="admin-audit-card__action">{actionLabel}</span>
-                    <time className="admin-audit-card__time">
-                      {log.created_at ? new Date(log.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
-                    </time>
-                  </div>
-                  <div className="admin-audit-card__body">
-                    <div className="admin-audit-card__meta">
-                      <span className="admin-audit-card__entity">{log.entity_type}</span>
-                      {log.entity_id && <span className="admin-audit-card__id">{log.entity_id}</span>}
-                    </div>
-                    {(log.old_value || log.new_value) && Object.keys(log.old_value || log.new_value || {}).length > 0 && (
-                      <div className="admin-audit-card__changes">
-                        {log.old_value && Object.keys(log.old_value).length > 0 && (
-                          <div className="admin-audit-card__change">
-                            <span className="admin-audit-card__change-label">Before</span>
-                            <span className="admin-audit-card__change-value">{formatAuditValue(log.old_value)}</span>
-                          </div>
-                        )}
-                        {log.new_value && Object.keys(log.new_value).length > 0 && (
-                          <div className="admin-audit-card__change">
-                            <span className="admin-audit-card__change-label">After</span>
-                            <span className="admin-audit-card__change-value">{formatAuditValue(log.new_value)}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    <div className="admin-audit-card__actor">{log.admin_email}</div>
-                  </div>
-                </div>
-              );
-            })
-          )}
+      <div className="admin-section">
+        <div className="admin-section-header">
+          <h2>Recent Activity</h2>
+          <Link to="/admin/audit" className="admin-link">View All</Link>
+        </div>
+        
+        <div className="admin-audit-table-wrapper">
+          <table className="admin-audit-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Admin</th>
+                <th>Date</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {auditLogs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="admin-table-empty">No activity logs recorded.</td>
+                </tr>
+              ) : (
+                auditLogs.map((log) => {
+                  const actionLabel = formatAuditAction(log.action);
+                  const isPositive = /approve|restore|create/.test(log.action);
+                  const isNegative = /reject|delete|hide/.test(log.action);
+                  
+                  return (
+                    <tr key={log.id}>
+                      <td>
+                        <span className={`admin-status-pill ${isPositive ? 'status-success' : isNegative ? 'status-danger' : 'status-info'}`}>
+                          {actionLabel}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="admin-entity-info">
+                          <span className="admin-entity-type">{log.entity_type}</span>
+                          <span className="admin-entity-id">{log.entity_id}</span>
+                        </div>
+                      </td>
+                      <td>{log.admin_email?.split('@')[0]}</td>
+                      <td>{log.created_at ? new Date(log.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                      <td>
+                        <button className="admin-icon-btn admin-icon-btn--sm" title="View Changes">
+                          <span className="material-symbols-outlined">info</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

@@ -18,6 +18,8 @@ import OrderHistory from "./pages/Orders/OrderHistory";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminOrders from "./pages/Admin/AdminOrders";
 import AdminItems from "./pages/Admin/AdminItems";
+import AdminThemeControl from "./pages/Admin/AdminThemeControl";
+import AdminLayout from "./pages/Admin/AdminLayout";
 import AboutPage from "./pages/About/AboutPage";
 import ContactPage from "./pages/Contact/ContactPage";
 import UseOfOurWebsitePage from "./pages/Legal/UseOfOurWebsitePage";
@@ -54,42 +56,18 @@ function AppContent() {
             path="/admin"
             element={
               user?.isAdmin ? (
-                <Navigate to="/admin/dashboard" replace />
+                <AdminLayout />
               ) : (
                 <Navigate to="/" replace />
               )
             }
-          />
-          <Route
-            path="/admin/dashboard"
-            element={
-              user?.isAdmin ? (
-                <AdminDashboard />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/admin/orders"
-            element={
-              user?.isAdmin ? (
-                <AdminOrders />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/admin/items"
-            element={
-              user?.isAdmin ? (
-                <AdminItems />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="items" element={<AdminItems />} />
+            <Route path="theme" element={<AdminThemeControl />} />
+          </Route>
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/use-of-our-website" element={<UseOfOurWebsitePage />} />

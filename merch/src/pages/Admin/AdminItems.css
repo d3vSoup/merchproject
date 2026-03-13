@@ -1,0 +1,158 @@
+/* src/pages/Admin/AdminItems.css */
+
+.admin-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.admin-item-card {
+  background-color: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -8px rgba(0,0,0,0.1);
+  border-color: var(--admin-primary);
+}
+
+.admin-item-card__image {
+  height: 200px;
+  background-color: var(--admin-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-item-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.admin-item-card:hover .admin-item-card__image img {
+  transform: scale(1.05);
+}
+
+.admin-item-card__badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--admin-text);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--admin-border);
+}
+
+.admin-item-card__badge--soldout {
+  background-color: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  border: none;
+}
+
+.admin-item-card__content {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-item-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: var(--admin-text);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.admin-item-card__price {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--admin-primary);
+  margin-bottom: 1rem;
+}
+
+.admin-item-card__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.admin-item-card__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-item-status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+/* Event Status Banner */
+.admin-event-status-banner {
+  background-color: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-event-status-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.admin-event-status-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Custom Checkbox for Trending */
+.trending-checkbox-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 1rem;
+  background-color: rgba(239, 68, 68, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.1);
+  cursor: pointer;
+}
+
+.trending-checkbox-wrapper input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ef4444;
+}
+
+.trending-text {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
