@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api";
 import { EVENT_CARDS } from "../data/eventCards";
 import { PRODUCT_CATALOG } from "../data/products";
-import ScrollFloat from "../components/ui/ScrollFloat";
+import PhilosophyCarousel from "../components/ui/PhilosophyCarousel";
 import "./Landing.css";
 
 const APPAREL_SLIDES = [];
@@ -221,23 +221,7 @@ export default function Landing() {
         </section>
 
         {/* BEGIN: AboutPreview */}
-        <section className="py-24 bg-[#F9FAFB]" id="about">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#FF6B00] mb-6">Our Philosophy</h2>
-            <ScrollFloat
-              animationDuration={1}
-              ease='back.inOut(2)'
-              scrollStart='center bottom+=50%'
-              scrollEnd='bottom bottom-=40%'
-              stagger={0.03}
-            >
-              {"\"ALMA isn't just clothing; it's a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.\""}
-            </ScrollFloat>
-            <div className="mt-12">
-              <Link className="font-bold border-b-2 border-[#FF6B00] pb-1 hover:text-[#FF6B00] transition-colors" to="/about">Learn more about our sustainable sourcing</Link>
-            </div>
-          </div>
-        </section>
+        <PhilosophyCarousel />
 
       </main>
       
@@ -245,7 +229,10 @@ export default function Landing() {
       <footer className="bg-[#111827] text-white py-16">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <span className="text-2xl font-bold tracking-tighter">ALMA<span className="text-[#FF6B00]"> STORE</span></span>
+            <div className="flex items-center gap-3 mb-6">
+              <img src="/assets/star-logo.jpeg" alt="Star Logo" className="w-10 h-10 mix-blend-screen mix-blend-lighten" style={{ filter: 'invert(1)' }} />
+              <span className="text-2xl font-bold tracking-tighter">ALMA<span className="text-[#FF6B00]"> STORE</span></span>
+            </div>
             <p className="mt-6 text-gray-400 max-w-sm">The official campus store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
           </div>
           <div>

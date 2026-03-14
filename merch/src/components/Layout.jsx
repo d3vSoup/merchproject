@@ -382,7 +382,8 @@ export default function Layout({ children, cartCount = 0 }) {
           ))}
         </nav>
 
-        <Link to="/" className="brand" style={{ position: 'relative' }}>
+        <Link to="/" className="brand" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/assets/star-logo.jpeg" alt="Star Logo" style={{ height: '32px', width: 'auto', mixBlendMode: 'multiply' }} />
           <VariableProximity
             label="ALMA"
             className="brand-variable"
