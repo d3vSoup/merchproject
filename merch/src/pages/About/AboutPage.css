@@ -84,6 +84,11 @@
   flex-shrink: 0;
 }
 
+.about-feature-icon .material-symbols-outlined {
+  font-size: 1.5rem;
+  color: #FF6B00;
+}
+
 .about-feature-card h3 {
   font-size: 1.05rem;
   font-weight: 700;
@@ -363,6 +368,24 @@
   margin-bottom: 0;
 }
 
+/* Developer section with ProfileCard */
+.about-developer-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.about-developer-section h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 2rem;
+}
+
+.about-developer-card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Footer text */
 .about-footer {
   text-align: center;
@@ -466,6 +489,9 @@
   }
   .about-dev-links a {
     font-size: 0.8rem;
+  }
+  .about-developer-section h2 {
+    font-size: 1.15rem;
   }
   .about-footer {
     margin-top: 28px;

@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./auth/AuthContext";
+import api from "./api";
 import { Analytics } from "./api/analytics";
 import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -39,6 +40,11 @@ function AppContent() {
   useEffect(() => {
     Analytics.pageView(location.pathname, document.title);
   }, [location.pathname]);
+
+  // Warm up backend (Render cold start)
+  useEffect(() => {
+    api.get("/api/health").catch(() => {});
+  }, []);
 
   return (
     <ErrorBoundary>

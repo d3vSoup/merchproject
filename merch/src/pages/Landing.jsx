@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../api";
 import { EVENT_CARDS } from "../data/eventCards";
 import { PRODUCT_CATALOG } from "../data/products";
+import ScrollFloat from "../components/ui/ScrollFloat";
 import "./Landing.css";
 
 const APPAREL_SLIDES = [];
@@ -216,9 +217,15 @@ export default function Landing() {
         <section className="py-24 bg-[#F9FAFB]" id="about">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#FF6B00] mb-6">Our Philosophy</h2>
-            <p className="text-3xl md:text-4xl font-medium leading-tight">
-              &quot;ALMA isn&apos;t just clothing; it&apos;s a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.&quot;
-            </p>
+            <ScrollFloat
+              animationDuration={1}
+              ease='back.inOut(2)'
+              scrollStart='center bottom+=50%'
+              scrollEnd='bottom bottom-=40%'
+              stagger={0.03}
+            >
+              {"\"ALMA isn't just clothing; it's a badge of honor. We craft garments that reflect the excellence of our institution and the ambition of its students.\""}
+            </ScrollFloat>
             <div className="mt-12">
               <Link className="font-bold border-b-2 border-[#FF6B00] pb-1 hover:text-[#FF6B00] transition-colors" to="/about">Learn more about our sustainable sourcing</Link>
             </div>
@@ -241,6 +248,7 @@ export default function Landing() {
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/shipping-policy">Shipping Policy</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/returns-exchanges">Returns &amp; Exchanges</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/size-chart">Size Guide</Link></li>
+              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/use-of-our-website">Terms &amp; Conditions</Link></li>
               <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/contact">Contact Us</Link></li>
             </ul>
           </div>

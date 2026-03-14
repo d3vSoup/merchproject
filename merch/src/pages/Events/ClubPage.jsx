@@ -113,6 +113,7 @@ export default function ClubPage() {
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [trendingStatus, setTrendingStatus] = useState({});
+  const [openMenu, setOpenMenu] = useState(null); // 'club' | 'dept' | null
 
   // Load sold-out status from backend only (no localStorage fallback)
 
@@ -397,57 +398,65 @@ export default function ClubPage() {
     <section className="product-section event-page">
       {/* Top selection bar serving as StaggeredMenu triggers */}
       <div className="club-selection-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0.75rem', marginBottom: '2rem' }}>
-        {/* Clubs Top Menu */}
-        <div style={{ position: 'relative' }}>
-          <StaggeredMenu
-            position="left"
-            items={CLUBS.map(c => ({ label: c, ariaLabel: `Select ${c}` }))}
-            displaySocials={false}
-            displayItemNumbering={true}
-            menuButtonColor="var(--c-text, #111)"
-            openMenuButtonColor="#111"
-            changeMenuColorOnOpen={true}
-            colors={['#FF6B00', '#FF9F4A']}
-            accentColor="#FF6B00"
-            isFixed={false}
-            menuLabel={selectedClub || "CLUBS"}
-            closeLabel="CLOSE"
-            iconPosition="left"
-            className="club-staggered-menu-top"
-            onItemClick={(item) => {
-              setActiveTab("clubs");
-              setSelectedClub(item.label);
-              setSelectedDept(null);
-              setIeeeSubclub(null);
-            }}
-          />
-        </div>
+        {/* Clubs Top Menu – hide when dept menu is open */}
+        {openMenu !== 'dept' && (
+          <div style={{ position: 'relative' }}>
+            <StaggeredMenu
+              position="left"
+              items={CLUBS.map(c => ({ label: c, ariaLabel: `Select ${c}` }))}
+              displaySocials={false}
+              displayItemNumbering={true}
+              menuButtonColor="var(--c-text, #111)"
+              openMenuButtonColor="#111"
+              changeMenuColorOnOpen={true}
+              colors={['#FF6B00', '#FF9F4A']}
+              accentColor="#FF6B00"
+              isFixed={false}
+              menuLabel={selectedClub || "CLUBS"}
+              closeLabel="CLOSE"
+              iconPosition="left"
+              className="club-staggered-menu-top"
+              onMenuOpen={() => setOpenMenu('club')}
+              onMenuClose={() => setOpenMenu(null)}
+              onItemClick={(item) => {
+                setActiveTab("clubs");
+                setSelectedClub(item.label);
+                setSelectedDept(null);
+                setIeeeSubclub(null);
+              }}
+            />
+          </div>
+        )}
 
-        {/* Depts Top Menu */}
-        <div style={{ position: 'relative' }}>
-          <StaggeredMenu
-            position="right"
-            items={DEPARTMENTS.map(d => ({ label: d, ariaLabel: `Select ${d}` }))}
-            displaySocials={false}
-            displayItemNumbering={true}
-            menuButtonColor="var(--c-text, #111)"
-            openMenuButtonColor="#111"
-            changeMenuColorOnOpen={true}
-            colors={['#5227FF', '#B19EEF']}
-            accentColor="#5227FF"
-            isFixed={false}
-            menuLabel={selectedDept || "DEPARTMENTS"}
-            closeLabel="CLOSE"
-            iconPosition="right"
-            className="dept-staggered-menu-top"
-            onItemClick={(item) => {
-              setActiveTab("departments");
-              setSelectedDept(item.label);
-              setSelectedClub(null);
-              setIeeeSubclub(null);
-            }}
-          />
-        </div>
+        {/* Depts Top Menu – hide when club menu is open */}
+        {openMenu !== 'club' && (
+          <div style={{ position: 'relative', marginLeft: openMenu === 'dept' ? '0' : 'auto' }}>
+            <StaggeredMenu
+              position="right"
+              items={DEPARTMENTS.map(d => ({ label: d, ariaLabel: `Select ${d}` }))}
+              displaySocials={false}
+              displayItemNumbering={true}
+              menuButtonColor="var(--c-text, #111)"
+              openMenuButtonColor="#111"
+              changeMenuColorOnOpen={true}
+              colors={['#5227FF', '#B19EEF']}
+              accentColor="#5227FF"
+              isFixed={false}
+              menuLabel={selectedDept || "DEPARTMENTS"}
+              closeLabel="CLOSE"
+              iconPosition="right"
+              className="dept-staggered-menu-top"
+              onMenuOpen={() => setOpenMenu('dept')}
+              onMenuClose={() => setOpenMenu(null)}
+              onItemClick={(item) => {
+                setActiveTab("departments");
+                setSelectedDept(item.label);
+                setSelectedClub(null);
+                setIeeeSubclub(null);
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* IEEE sub-club selector */}

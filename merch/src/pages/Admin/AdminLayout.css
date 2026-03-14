@@ -250,4 +250,22 @@
   .admin-topbar__search {
     display: none;
   }
+  .admin-topbar {
+    padding: 0 0.75rem;
+  }
+  .admin-content-area {
+    padding: 1rem 0.75rem;
+    overflow-x: hidden;
+  }
+  .admin-page-header h1 {
+    font-size: 1.25rem;
+  }
+  .admin-page-header p {
+    font-size: 0.85rem;
+  }
+  .admin-user-info {
+    gap: 0.5rem;
+    padding-left: 0.5rem;
+    margin-left: 0.25rem;
+  }
 }

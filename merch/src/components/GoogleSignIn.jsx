@@ -10,6 +10,7 @@ export default function GoogleSignIn({ onSuccess, onCancel }) {
   const [retryKey, setRetryKey] = useState(0);
   const [error, setError] = useState(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [wakingUp, setWakingUp] = useState(false);
   const initializedRef = useRef(false);
 
   const resetGoogleState = () => {
@@ -26,6 +27,7 @@ export default function GoogleSignIn({ onSuccess, onCancel }) {
   const forceReinitialize = () => {
     setError(null);
     setSigningIn(false);
+    setWakingUp(false);
     resetGoogleState();
     initializedRef.current = false;
     setRetryKey(prev => prev + 1);
@@ -43,36 +45,12 @@ export default function GoogleSignIn({ onSuccess, onCancel }) {
   };
 
   useEffect(() => {
-    const existing = document.getElementById("google-identity");
-    if (!existing) {
-      const s = document.createElement("script");
-      s.src = "https://accounts.google.com/gsi/client";
-      s.id = "google-identity";
-      s.async = true;
-      s.defer = true;
-      document.body.appendChild(s);
-      s.onload = init;
-    } else if (window.google?.accounts?.id) {
-      init();
-    } else {
-      const checkInterval = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(checkInterval);
-          init();
-        }
-      }, 100);
-      return () => clearInterval(checkInterval);
-    }
-
-    function init() {
+    let wakeupTimer;
+    
+    const init = () => {
       if (!window.google?.accounts?.id) return;
       if (!CLIENT_ID) {
         console.error("VITE_GOOGLE_CLIENT_ID is not set.");
-        return;
-      }
-
-      if (initializedRef.current) {
-        renderButton();
         return;
       }
 
@@ -81,31 +59,34 @@ export default function GoogleSignIn({ onSuccess, onCancel }) {
         callback: async (resp) => {
           setError(null);
           setSigningIn(true);
+          setWakingUp(false);
+          
+          // Show wakeup message if server takes too long (cold start)
+          wakeupTimer = setTimeout(() => {
+            setWakingUp(true);
+          }, 3500);
+
           try {
             const user = await signinWithGoogle(resp.credential);
+            clearTimeout(wakeupTimer);
             setSigningIn(false);
+            setWakingUp(false);
             onSuccess?.(user);
           } catch (err) {
+            clearTimeout(wakeupTimer);
             setSigningIn(false);
+            setWakingUp(false);
             console.error("Google sign-in failed", err);
             let errorMsg = err?.response?.data?.message || err.message || "Sign-in failed";
-            const isTimeout = errorMsg.includes("timeout") || err.code === "ECONNABORTED";
-            if (isTimeout) {
-              errorMsg = "Server is waking up. Please wait 30 seconds and try again.";
-            }
-
-            if (errorMsg.includes("origin_mismatch") || errorMsg.includes("OAuth 2.0 policy")) {
-              setError("OAuth configuration error. Contact the admin.");
-              return;
+            
+            if (errorMsg.toLowerCase().includes("timeout") || err.code === "ECONNABORTED") {
+              errorMsg = "Server is waking up. Please wait and try again in a moment.";
             }
 
             resetGoogleState();
             setError(errorMsg);
             initializedRef.current = false;
-
-            setTimeout(() => {
-              setRetryKey(prev => prev + 1);
-            }, 100);
+            setTimeout(() => setRetryKey(prev => prev + 1), 100);
           }
         },
         ux_mode: "popup",
@@ -116,27 +97,54 @@ export default function GoogleSignIn({ onSuccess, onCancel }) {
 
       initializedRef.current = true;
       renderButton();
+    };
+
+    // Script is now preloaded in index.html, so we just wait for it to be ready
+    if (window.google?.accounts?.id) {
+      init();
+    } else {
+      const checkInterval = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(checkInterval);
+          init();
+        }
+      }, 50);
+      return () => {
+        clearInterval(checkInterval);
+        clearTimeout(wakeupTimer);
+      };
     }
+
+    return () => clearTimeout(wakeupTimer);
   }, [signinWithGoogle, onSuccess, retryKey]);
 
   return (
     <div className="google-signin-wrapper">
       {signingIn && (
-        <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 8 }}>
-          Signing in...
+        <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 8, textAlign: 'center' }}>
+          {wakingUp ? "🚀 Server is waking up (Render cold start)..." : "Signing in..."}
         </div>
       )}
-      <div key={retryKey} ref={containerRef} style={{ opacity: signingIn ? 0.5 : 1, pointerEvents: signingIn ? 'none' : 'auto' }} />
+      <div 
+        key={retryKey} 
+        ref={containerRef} 
+        style={{ 
+          opacity: signingIn ? 0.5 : 1, 
+          pointerEvents: signingIn ? 'none' : 'auto',
+          display: 'flex',
+          justifyContent: 'center'
+        }} 
+      />
       {error && (
         <div className="signin-error" style={{ marginTop: 10 }}>
-          <p style={{ color: '#dc2626', fontSize: '0.85rem', margin: '0 0 8px' }}>{error}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <p style={{ color: '#dc2626', fontSize: '0.85rem', margin: '0 0 8px', textAlign: 'center' }}>{error}</p>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
             <button
               className="btn btn--primary btn--sm"
               onClick={forceReinitialize}
               style={{ fontSize: '0.8rem' }}
             >
-              Try Different Account
+              Try Again
             </button>
             {onCancel && (
               <button

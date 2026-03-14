@@ -1,35 +1,36 @@
 import React from "react";
 import FadeInSection from "../../components/ui/FadeInSection";
+import ProfileCard from "../../components/ui/ProfileCard";
 import "./AboutPage.css";
 
 const FEATURES = [
   {
-    icon: "🎨",
+    icon: "palette",
     title: "Exclusive Designs",
     desc: "Every drop features original artwork created specifically for campus events — limited edition, never repeated.",
   },
   {
-    icon: "🧵",
+    icon: "styler",
     title: "Premium Quality",
     desc: "Heavyweight cotton, vibrant DTG prints, and reinforced stitching so your merch outlasts your college years.",
   },
   {
-    icon: "🔄",
+    icon: "recycling",
     title: "Revault Marketplace",
     desc: "Missed a drop? Browse verified student listings to grab past-event merch in a safe, moderated marketplace.",
   },
   {
-    icon: "📦",
+    icon: "inventory_2",
     title: "On-Campus Pickup",
     desc: "No shipping headaches — collect your order right on campus during designated pickup windows.",
   },
   {
-    icon: "🔒",
+    icon: "lock",
     title: "Secure Payments",
     desc: "Industry-standard payment processing with full order tracking from checkout to collection.",
   },
   {
-    icon: "⚡",
+    icon: "bolt",
     title: "Real-Time Updates",
     desc: "Live countdown timers, stock status, and instant notifications keep you ahead of every drop.",
   },
@@ -49,6 +50,8 @@ const EVENTS = [
   { label: "Club & Dept", cls: "clubs" },
 ];
 
+const LINKEDIN_URL = "https://www.linkedin.com/in/souparno-chakraborty-ab932b351";
+
 export default function AboutPage() {
   return (
     <div className="about-page">
@@ -65,7 +68,9 @@ export default function AboutPage() {
       <FadeInSection className="about-features">
         {FEATURES.map((f) => (
           <div key={f.title} className="about-feature-card">
-            <div className="about-feature-icon">{f.icon}</div>
+            <div className="about-feature-icon">
+              <span className="material-symbols-outlined">{f.icon}</span>
+            </div>
             <h3>{f.title}</h3>
             <p>{f.desc}</p>
           </div>
@@ -108,7 +113,8 @@ export default function AboutPage() {
           rel="noreferrer"
           className="about-coffee-btn"
         >
-          ☕ Buy Me a Coffee
+          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: 6 }}>local_cafe</span>
+          Buy Me a Coffee
         </a>
       </FadeInSection>
 
@@ -126,18 +132,25 @@ export default function AboutPage() {
         </a>
       </FadeInSection>
 
-      <FadeInSection as="div" className="about-dev-card-wrapper">
-        <div className="about-dev-card">
-          <div className="about-dev-avatar">S</div>
-          <div className="about-dev-info">
-            <h3>Souparno</h3>
-            <p>Developer & maintainer of ALMA Store</p>
-            <div className="about-dev-links">
-              <a href="https://wa.me/919831219028" target="_blank" rel="noreferrer">WhatsApp</a>
-              <a href="tel:+919831219028">9831219028</a>
-              <a href="mailto:souparno.cs24@bmsce.ac.in">souparno.cs24@bmsce.ac.in</a>
-            </div>
-          </div>
+      <FadeInSection className="about-developer-section">
+        <h2>Meet the Developer</h2>
+        <div className="about-developer-card-container">
+          <ProfileCard
+            name="Souparno Chakraborty"
+            title="Developer & Creator"
+            handle="souparno"
+            status="BMSCE '28"
+            contactText="LinkedIn"
+            avatarUrl="/assets/souparno.png"
+            showUserInfo={true}
+            enableTilt={true}
+            enableMobileTilt={false}
+            onContactClick={() => window.open(LINKEDIN_URL, '_blank')}
+            behindGlowColor="rgba(255, 107, 0, 0.5)"
+            behindGlowEnabled
+            innerGradient="linear-gradient(145deg,#1a1a2e8c 0%,#FF6B0044 100%)"
+            linkedInUrl={LINKEDIN_URL}
+          />
         </div>
       </FadeInSection>
 
