@@ -131,7 +131,7 @@ export default function AboutPage() {
         </a>
       </FadeInSection>
 
-      <FadeInSection className="about-developer-section">
+      <section className="about-developer-section">
         <h2>Meet the Developer</h2>
         <div className="about-dev-card">
           <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" className="about-dev-avatar-link">
@@ -148,7 +148,7 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
-      </FadeInSection>
+      </section>
 
       <FadeInSection as="p" className="about-footer">Built with care at BMSCE</FadeInSection>
     </div>

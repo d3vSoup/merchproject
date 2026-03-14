@@ -251,98 +251,41 @@
 @media (max-width: 640px) {
   .admin-items-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
   .admin-item-card__image {
-    height: 160px;
+    height: 140px; /* Even smaller for more vertical density */
   }
   .admin-item-card__content {
-    padding: 0.75rem;
+    padding: 0.6rem;
   }
   .admin-item-card__title {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
   }
   .admin-item-card__price {
-    font-size: 0.95rem;
-  }
-  .admin-orders-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    font-size: 0.9rem;
   }
   .admin-tab {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
-    white-space: nowrap;
-    flex-shrink: 0;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
   }
   .admin-edit-content {
-    width: 95vw;
-    max-height: 90vh;
-    padding: 1rem;
+    width: calc(100vw - 1rem); /* Use almost full width but safe */
+    padding: 0.75rem;
     margin: 0.5rem;
-    border-radius: 12px;
-  }
-  .admin-edit-content h3 {
-    font-size: 1rem;
-  }
-  .admin-edit-form label {
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
   }
   .admin-edit-form input,
   .admin-edit-form textarea {
-    font-size: 0.85rem;
-    padding: 0.6rem 0.75rem;
-  }
-  .admin-event-details {
-    padding: 1rem;
-    border-radius: 12px;
-  }
-  .admin-event-details h4 {
-    font-size: 0.9rem;
-  }
-  .admin-event-details-note {
-    font-size: 0.75rem;
-  }
-  .admin-event-details-fields {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  .admin-event-details-fields label {
     font-size: 0.8rem;
+    padding: 0.5rem;
   }
   .admin-event-details-fields input {
-    font-size: 0.85rem;
-    padding: 0.6rem 0.75rem;
-    word-break: break-all;
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
   .admin-event-status-banner {
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-    border-radius: 12px;
-  }
-  .admin-event-status-controls {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .admin-event-status-controls select {
-    font-size: 0.8rem;
-  }
-  .trending-checkbox-wrapper {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-  }
-  .admin-orders-controls {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .admin-orders-actions {
-    justify-content: flex-end;
-  }
-  .club-tabs-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0.75rem;
   }
 }
 

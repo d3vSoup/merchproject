@@ -308,41 +308,46 @@
   }
   .admin-orders-table th,
   .admin-orders-table td {
-    padding: 0.6rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.7rem;
   }
   .admin-user-name {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   .admin-user-email {
-    font-size: 0.65rem;
-    word-break: break-all;
+    font-size: 0.6rem;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .admin-type-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+  }
+  .admin-order-id {
     font-size: 0.65rem;
-    padding: 0.15rem 0.4rem;
   }
   .admin-order-price {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
   .admin-status-select select {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.4rem;
+  }
+  .admin-orders-table {
+    min-width: 500px; /* Reduced min-width to better fit typical swipe area */
+  }
+  .admin-orders-table-wrapper {
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem;
+  }
+  .admin-orders-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .admin-orders-export-group button {
     font-size: 0.7rem;
-    padding: 0.3rem 0.5rem;
-  }
-  .admin-row-actions {
-    gap: 0.25rem;
-  }
-  .admin-icon-btn--sm {
-    padding: 0.3rem;
-  }
-  .admin-edit-content {
-    width: 95vw;
-    max-height: 90vh;
-    padding: 1rem;
-    margin: 0.5rem;
-    border-radius: 12px;
-  }
-  .admin-edit-content h3 {
-    font-size: 1rem;
+    padding: 0.2rem 0.4rem;
   }
 }

@@ -251,21 +251,33 @@
     display: none;
   }
   .admin-topbar {
-    padding: 0 0.75rem;
+    padding: 0 0.5rem;
+    height: 60px;
   }
   .admin-content-area {
-    padding: 1rem 0.75rem;
-    overflow-x: hidden;
+    padding: 0.75rem 0.5rem;
+    overflow-x: visible; /* Let children handle their own scroll */
+  }
+  .admin-layout {
+    overflow-x: hidden; /* Fallback for safe-guarding layout */
   }
   .admin-page-header h1 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    line-height: 1.2;
   }
   .admin-page-header p {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
   }
   .admin-user-info {
-    gap: 0.5rem;
-    padding-left: 0.5rem;
-    margin-left: 0.25rem;
+    gap: 0.25rem;
+    padding-left: 0.25rem;
+    margin-left: 0;
+    border: none;
+  }
+  .admin-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
   }
 }
