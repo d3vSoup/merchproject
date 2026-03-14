@@ -312,20 +312,31 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-.about-dev-avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.about-dev-avatar-link {
   flex-shrink: 0;
+  display: block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 102, 0, 0.2);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.about-dev-avatar-link:hover {
+  border-color: rgba(255, 102, 0, 0.5);
+  box-shadow: 0 0 20px rgba(255, 102, 0, 0.3), 0 0 40px rgba(255, 102, 0, 0.15);
+}
+
+.about-dev-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .about-dev-info {
@@ -335,7 +346,7 @@
 }
 
 .about-dev-info h3 {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
 }
@@ -349,18 +360,32 @@
 .about-dev-links {
   display: flex;
   gap: 14px;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
-.about-dev-links a {
+.about-dev-linkedin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.85rem;
-  color: var(--accent);
+  color: #0077b5;
   font-weight: 600;
   text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 119, 181, 0.2);
+  transition: all 0.25s ease;
 }
 
-.about-dev-links a:hover {
-  text-decoration: underline;
+.about-dev-linkedin-btn:hover {
+  background: rgba(0, 119, 181, 0.08);
+  border-color: rgba(0, 119, 181, 0.4);
+  box-shadow: 0 0 16px rgba(0, 119, 181, 0.2), 0 0 32px rgba(0, 119, 181, 0.1);
+  transform: translateY(-1px);
+}
+
+.about-dev-linkedin-btn svg {
+  flex-shrink: 0;
 }
 
 /* Dev card wrapper (for fade-in) */
@@ -368,7 +393,7 @@
   margin-bottom: 0;
 }
 
-/* Developer section with ProfileCard */
+/* Developer section */
 .about-developer-section {
   text-align: center;
   margin-bottom: 2rem;
@@ -378,12 +403,6 @@
   font-size: 1.4rem;
   font-weight: 700;
   margin: 0 0 2rem;
-}
-
-.about-developer-card-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 /* Footer text */
@@ -481,13 +500,18 @@
     flex-direction: column;
     text-align: center;
     padding: 22px 16px;
+    max-width: 100%;
+  }
+  .about-dev-avatar-link {
+    width: 70px;
+    height: 70px;
   }
   .about-dev-links {
     justify-content: center;
     flex-wrap: wrap;
     gap: 10px;
   }
-  .about-dev-links a {
+  .about-dev-linkedin-btn {
     font-size: 0.8rem;
   }
   .about-developer-section h2 {

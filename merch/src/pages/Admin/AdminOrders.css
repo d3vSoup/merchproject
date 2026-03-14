@@ -260,3 +260,89 @@
 .spin {
   animation: spin 1s linear infinite;
 }
+
+/* Mobile compact layout for phone screens */
+@media (max-width: 640px) {
+  .admin-orders-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .admin-orders-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+  }
+  .admin-tab {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .admin-orders-actions {
+    justify-content: flex-end;
+  }
+  .admin-orders-filter-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .admin-orders-search {
+    min-width: 0;
+    width: 100%;
+  }
+  .admin-orders-range {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .admin-orders-range input[type="date"] {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+  }
+  .admin-orders-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+  .admin-orders-table {
+    min-width: 580px;
+  }
+  .admin-orders-table th,
+  .admin-orders-table td {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  .admin-user-name {
+    font-size: 0.8rem;
+  }
+  .admin-user-email {
+    font-size: 0.65rem;
+    word-break: break-all;
+  }
+  .admin-type-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+  .admin-order-price {
+    font-size: 0.8rem;
+  }
+  .admin-status-select select {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+  }
+  .admin-row-actions {
+    gap: 0.25rem;
+  }
+  .admin-icon-btn--sm {
+    padding: 0.3rem;
+  }
+  .admin-edit-content {
+    width: 95vw;
+    max-height: 90vh;
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 12px;
+  }
+  .admin-edit-content h3 {
+    font-size: 1rem;
+  }
+}
