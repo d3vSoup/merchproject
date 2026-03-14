@@ -40,8 +40,8 @@
 }
 
 .admin-tab--active {
-  background-color: var(--admin-text);
-  color: var(--admin-bg);
+  background-color: var(--admin-primary);
+  color: #000;
   opacity: 1;
 }
 

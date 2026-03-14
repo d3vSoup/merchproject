@@ -3,19 +3,8 @@
 /* Hero curved bottom – CONVEX (hero bulges outward) */
 .hero-curved-bottom {
   position: relative;
-}
-.hero-curved-bottom::after {
-  content: '';
-  position: absolute;
-  bottom: -79px;
-  left: -5%;
-  right: -5%;
-  height: 80px;
-  background: white;
-  border-radius: 0 0 50% 50% / 0 0 100% 100%;
-  z-index: 40;
-  pointer-events: none;
-  transform: rotate(180deg);
+  width: 100dvw !important;
+  clip-path: ellipse(110% 100% at 50% 0%);
 }
 
 /* Faster fade transition for hero images */

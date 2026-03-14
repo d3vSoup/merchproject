@@ -640,6 +640,7 @@ export default function AdminItems() {
             <button
               type="button"
               className="btn btn--primary"
+              style={{ display: 'block', margin: '2rem auto 0', minWidth: '200px' }}
               disabled={savingEventDetails}
               onClick={async () => {
                 setSavingEventDetails(true);

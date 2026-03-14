@@ -101,7 +101,14 @@ export default function Landing() {
     <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
-        <section className="relative flex flex-col w-screen min-h-screen overflow-hidden hero-curved-bottom" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)', width: '100vw' }} data-purpose="hero-fullscreen-layout">
+        <section className="relative flex flex-col w-screen min-h-screen overflow-hidden hero-curved-bottom" 
+          style={{ 
+            marginLeft: '50%', 
+            transform: 'translateX(-50%)', 
+            width: '100vw', 
+            maxWidth: '100vw' 
+          }} 
+          data-purpose="hero-fullscreen-layout">
           {/* Background Hero Image */}
           <div className="absolute inset-0 w-full h-full bg-gray-900" id="hero-carousel">
             {/* Slides */}
@@ -120,7 +127,7 @@ export default function Landing() {
           
           {/* Center Overlay Typography */}
           <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-screen text-center px-6">
-            <span className="bg-white/10 backdrop-blur-md text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-sm mb-6 shadow-xl inline-block border border-white/30">
+            <span className="bg-white/20 backdrop-blur-xl text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-[10px] mb-6 shadow-2xl block mx-auto border border-white/40 text-center" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)', width: 'fit-content' }}>
               Official Merchandise
             </span>
             <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
