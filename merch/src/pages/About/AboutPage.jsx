@@ -135,7 +135,7 @@ export default function AboutPage() {
         <h2>Meet the Developer</h2>
         <div className="about-dev-card">
           <a href={LINKEDIN_URL} target="_blank" rel="noreferrer" className="about-dev-avatar-link">
-            <img src="/assets/souparno.png" alt="Souparno Chakraborty" className="about-dev-photo" />
+            <img src="/assets/souparno.jpeg" alt="Souparno Chakraborty" className="about-dev-photo" />
           </a>
           <div className="about-dev-info">
             <h3>Souparno Chakraborty</h3>
