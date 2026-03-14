@@ -396,7 +396,7 @@ export default function ClubPage() {
   return (
     <section className="product-section event-page">
       {/* Top selection bar serving as StaggeredMenu triggers */}
-      <div className="club-selection-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', marginBottom: '2rem' }}>
+      <div className="club-selection-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0.75rem', marginBottom: '2rem' }}>
         {/* Clubs Top Menu */}
         <div style={{ position: 'relative' }}>
           <StaggeredMenu

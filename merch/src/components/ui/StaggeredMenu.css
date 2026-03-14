@@ -100,9 +100,9 @@
   -webkit-backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
-  padding: 4em 2em 2em 2em;
+  padding: 5rem 2em 2em 2em;
   overflow-y: auto;
-  z-index: 9999;
+  z-index: 99999;
   pointer-events: auto;
 }
 
@@ -119,7 +119,7 @@
   height: 100vh;
   width: clamp(260px, 38vw, 420px);
   pointer-events: none;
-  z-index: 9998;
+  z-index: 99998;
 }
 
 [data-position='left'] .sm-prelayers {
@@ -244,24 +244,13 @@
 }
 
 .sm-panel-list[data-numbering] .sm-panel-item::after {
-  counter-increment: smItem;
-  content: counter(smItem, decimal-leading-zero);
-  position: absolute;
-  top: 0.1em;
-  right: 2.8em;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--sm-accent, #5227ff);
-  letter-spacing: 0;
-  pointer-events: none;
-  user-select: none;
-  opacity: var(--sm-num-opacity, 0);
+  display: none;
 }
 
 @media (max-width: 1024px) {
   .staggered-menu-panel {
     width: 65vw;
-    padding: 3.5rem 1.5rem 1.5rem 1.5rem;
+    padding: 5.5rem 1.5rem 1.5rem 1.5rem;
   }
   .sm-prelayers {
     width: 65vw;
@@ -275,7 +264,7 @@
 @media (max-width: 640px) {
   .staggered-menu-panel {
     width: 75vw;
-    padding: 4rem 1.25rem 1.5rem 1.25rem;
+    padding: 5rem 1.25rem 1.5rem 1.25rem;
   }
   .sm-prelayers {
     width: 75vw;
@@ -284,10 +273,6 @@
   .sm-panel-item {
     font-size: 1.05rem;
     letter-spacing: -0.2px;
-    padding-right: 2em;
-  }
-  
-  .sm-panel-list[data-numbering] .sm-panel-item::after {
-    right: 3.5em;
+    padding-right: 0.5em;
   }
 }

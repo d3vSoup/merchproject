@@ -1,20 +1,21 @@
 /* src/pages/Landing.css */
 
-/* Hero curved bottom */
+/* Hero curved bottom – CONVEX (hero bulges outward) */
 .hero-curved-bottom {
   position: relative;
 }
 .hero-curved-bottom::after {
   content: '';
   position: absolute;
-  bottom: -1px;
+  bottom: -79px;
   left: -5%;
   right: -5%;
   height: 80px;
   background: white;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
   z-index: 40;
   pointer-events: none;
+  transform: rotate(180deg);
 }
 
 /* Faster fade transition for hero images */
