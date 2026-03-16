@@ -10,10 +10,20 @@
 }
 
 .orders-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
   margin: 0 0 6px;
+  color: #1a1a1a;
+}
+
+.orders-title__gradient {
+  background: linear-gradient(to right, var(--accent, #ec5b13), #ff8c42);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .orders-subtitle {

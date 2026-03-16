@@ -69,9 +69,9 @@ export default function CartPage() {
     }
   }
 
-  async function loadCart(currentOverrides = null) {
+  async function loadCart(currentOverrides = null, hideLoading = false) {
     if (!user) return;
-    setLoading(true);
+    if (!hideLoading) setLoading(true);
     try {
       const overrides = currentOverrides || productOverrides;
       const cart = await getCart();
@@ -151,7 +151,7 @@ export default function CartPage() {
       const errorMsg = err.response?.data?.message || err.message || 'Failed to load cart';
       toast.error(errorMsg);
     } finally {
-      setLoading(false);
+      if (!hideLoading) setLoading(false);
     }
   }
 
@@ -162,10 +162,17 @@ export default function CartPage() {
     }
 
     const newQuantity = Math.max(0, item.quantity + delta);
+    // Optimistic UI update
+    setCartItems(prev => prev.map(cItem => 
+      (cItem.productId === item.productId && cItem.variant === item.variant) 
+        ? { ...cItem, quantity: newQuantity } 
+        : cItem
+    ).filter(cItem => cItem.quantity > 0));
+
     try {
       // Pass clubOrDept for club items
       await updateCartItem(item.tabKey, item.productId, item.variant, newQuantity, item.clubOrDept);
-      await loadCart();
+      await loadCart(null, true); // true = hideLoading
       triggerCartUpdate(); // Trigger cart count refresh
       if (newQuantity === 0) {
         toast.success("Removed from cart");
@@ -178,6 +185,7 @@ export default function CartPage() {
       console.error('Failed to update cart:', err);
       const errorMsg = err.message || err.response?.data?.message || 'Failed to update cart';
       toast.error(errorMsg);
+      await loadCart(null, true); // revert on failure
     }
   }
 
@@ -186,15 +194,22 @@ export default function CartPage() {
       toast.error("Please sign in");
       return;
     }
+    
+    // Optimistic UI update
+    setCartItems(prev => prev.filter(cItem => 
+      !(cItem.productId === item.productId && cItem.variant === item.variant)
+    ));
+
     try {
       // Pass clubOrDept for club items
       await updateCartItem(item.tabKey, item.productId, item.variant, 0, item.clubOrDept);
-      await loadCart();
+      await loadCart(null, true); // true = hideLoading
       triggerCartUpdate(); // Trigger cart count refresh
       toast.success("Removed from cart");
     } catch (err) {
       console.error('Failed to remove item:', err);
       toast.error('Failed to remove item');
+      await loadCart(null, true); // revert on failure
     }
   }
 

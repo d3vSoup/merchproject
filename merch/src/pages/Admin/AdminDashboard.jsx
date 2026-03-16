@@ -152,62 +152,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="admin-section">
-        <div className="admin-section-header">
-          <h2>Recent Activity</h2>
-          <Link to="/admin/audit" className="admin-link">View All</Link>
-        </div>
-        
-        <div className="admin-audit-table-wrapper">
-          <table className="admin-audit-table">
-            <thead>
-              <tr>
-                <th>Action</th>
-                <th>Entity</th>
-                <th>Admin</th>
-                <th>Date</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {auditLogs.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="admin-table-empty">No activity logs recorded.</td>
-                </tr>
-              ) : (
-                auditLogs.map((log) => {
-                  const actionLabel = formatAuditAction(log.action);
-                  const isPositive = /approve|restore|create/.test(log.action);
-                  const isNegative = /reject|delete|hide/.test(log.action);
-                  
-                  return (
-                    <tr key={log.id}>
-                      <td>
-                        <span className={`admin-status-pill ${isPositive ? 'status-success' : isNegative ? 'status-danger' : 'status-info'}`}>
-                          {actionLabel}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="admin-entity-info">
-                          <span className="admin-entity-type">{log.entity_type}</span>
-                          <span className="admin-entity-id">{log.entity_id}</span>
-                        </div>
-                      </td>
-                      <td>{log.admin_email?.split('@')[0]}</td>
-                      <td>{log.created_at ? new Date(log.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
-                      <td>
-                        <button className="admin-icon-btn admin-icon-btn--sm" title="View Changes">
-                          <span className="material-symbols-outlined">info</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }

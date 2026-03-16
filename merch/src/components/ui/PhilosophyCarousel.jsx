@@ -84,12 +84,7 @@ export default function PhilosophyCarousel() {
         ))}
       </div>
 
-      {/* Sustainable Sourcing Link */}
-      <div className="mt-16 text-center">
-        <a className="text-[#4b0082] font-semibold text-lg border-b-2 border-[#4b0082] pb-1 hover:opacity-75 transition-opacity" href="#sustainability">
-          Learn more about our sustainable sourcing
-        </a>
-      </div>
+      {/* Removed Sustainable Sourcing Link per request */}
     </section>
   );
 }

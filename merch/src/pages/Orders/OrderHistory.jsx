@@ -96,7 +96,7 @@ export default function OrderHistory() {
     return (
       <section className="orders-section">
         <div className="orders-header">
-          <h1 className="orders-title">Your Orders</h1>
+          <h1 className="orders-title">Your <br /><span className="orders-title__gradient">Orders</span></h1>
           <p className="orders-subtitle">Your order history will appear here</p>
         </div>
         <div className="orders-empty">
@@ -116,7 +116,7 @@ export default function OrderHistory() {
   return (
     <section className="orders-section">
       <div className="orders-header">
-        <h1 className="orders-title">Your Orders</h1>
+        <h1 className="orders-title">Your <br /><span className="orders-title__gradient">Orders</span></h1>
         <p className="orders-subtitle">{orders.length} order{orders.length !== 1 ? "s" : ""}</p>
       </div>
 

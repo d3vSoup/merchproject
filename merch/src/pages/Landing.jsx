@@ -230,7 +230,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <img src="/assets/star-logo.jpeg" alt="Star Logo" className="w-10 h-10 mix-blend-screen mix-blend-lighten" style={{ filter: 'invert(1)' }} />
+              <img src="/assets/star-logo.jpeg" alt="Star Logo" className="w-14 h-14 mix-blend-screen mix-blend-lighten" style={{ filter: 'invert(1)' }} />
               <span className="text-2xl font-bold tracking-tighter">ALMA<span className="text-[#FF6B00]"> STORE</span></span>
             </div>
             <p className="mt-6 text-gray-400 max-w-sm">The official campus store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
