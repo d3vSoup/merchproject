@@ -581,7 +581,6 @@ export default function ResellSeller() {
                   <div style={{ width: '100%', aspectRatio: '4/3', overflow: 'hidden', borderRadius: '20px 20px 0 0', background: 'rgba(0,0,0,0.04)', cursor: 'zoom-in', position: 'relative' }}
                        onClick={() => setLightboxImg(mainImage)}>
                     <img src={mainImage} alt={selectedItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <span style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: 6, padding: '3px 8px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ FULL</span>
                   </div>
                   {modalImages.length > 1 && (
                     <div style={{ display: 'flex', gap: 8, padding: '12px 24px', overflowX: 'auto' }}>

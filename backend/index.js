@@ -2744,14 +2744,14 @@ app.post('/api/admin/resell/items/:id/restore', authMiddleware, async (req, res)
     const { id } = req.params;
     const { error } = await supabaseAdmin
       .from('resell_items')
-      .update({ admin_hidden: false })
+      .update({ admin_hidden: false, moderation_status: 'pending' })
       .eq('id', id);
     if (error) {
       console.error('Restore resell item error:', error);
       return res.status(500).json({ message: 'Failed to restore item' });
     }
     const { logAudit } = require('./utils/audit');
-    await logAudit(req.auth.email, 'restore_resell_item', 'resell_item', id, { admin_hidden: true }, { admin_hidden: false });
+    await logAudit(req.auth.email, 'restore_resell_item', 'resell_item', id, { admin_hidden: true, moderation_status: 'approved' }, { admin_hidden: false, moderation_status: 'pending' });
     return res.json({ success: true });
   } catch (err) {
     console.error('Admin restore resell item error', err);

@@ -328,6 +328,7 @@ export default function AdminOrders() {
                 <th>Customer</th>
                 <th>USN</th>
                 <th>Type</th>
+                <th>Status</th>
                 <th>Items</th>
                 <th>Total</th>
                 <th>Payment</th>
@@ -365,6 +366,24 @@ export default function AdminOrders() {
                         {order.type === 'confirmed_order' ? 'Order' : order.type === 'resell_listing' ? 'Resell' : order.type}
                       </span>
                       {order.orderNumber && <div className="admin-order-id">#{order.orderNumber}</div>}
+                    </td>
+                    <td>
+                      {order.type === 'resell_listing' ? (
+                        <span className={`admin-type-badge type-resell-${(order.items[0]?.status || 'active').toLowerCase()}`} style={{
+                          background: order.items[0]?.status === 'deleted' ? 'rgba(220,38,38,0.1)' :
+                            order.items[0]?.status === 'expired' ? 'rgba(245,158,11,0.1)' :
+                            'rgba(34,197,94,0.1)',
+                          color: order.items[0]?.status === 'deleted' ? '#dc2626' :
+                            order.items[0]?.status === 'expired' ? '#d97706' :
+                            '#16a34a'
+                        }}>
+                          {order.items[0]?.status === 'deleted' ? '🗑 Deleted' :
+                           order.items[0]?.status === 'expired' ? '⏱ Expired' :
+                           '✓ Active'}
+                        </span>
+                      ) : (
+                        <span className="admin-text-muted">—</span>
+                      )}
                     </td>
                     <td>
                       <div className="admin-order-items-popover">

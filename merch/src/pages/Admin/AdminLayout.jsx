@@ -26,7 +26,6 @@ export default function AdminLayout() {
     { path: "/admin/dashboard", label: "Dashboard", icon: "dashboard" },
     { path: "/admin/orders", label: "Orders", icon: "shopping_bag" },
     { path: "/admin/items", label: "Manage Items", icon: "inventory_2" },
-    { path: "/admin/theme", label: "App Theme", icon: "palette" },
   ];
 
   const adminInitial = user?.email ? user.email.charAt(0).toUpperCase() : "A";
@@ -75,38 +74,6 @@ export default function AdminLayout() {
 
         {/* Main Content */}
         <main className="admin-main">
-          <header className="admin-topbar">
-            <div className="admin-topbar__search">
-              <span className="material-symbols-outlined">search</span>
-              <input type="text" placeholder="Search orders, items..." />
-            </div>
-
-            <div className="admin-topbar__actions">
-              <button 
-                className="admin-icon-btn" 
-                onClick={toggleTheme}
-                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              >
-                <span className="material-symbols-outlined">
-                  {isDarkMode ? "light_mode" : "dark_mode"}
-                </span>
-              </button>
-              
-              <button className="admin-icon-btn" title="Notifications">
-                <span className="material-symbols-outlined">notifications</span>
-              </button>
-
-              <div className="admin-user-info">
-                <div className="admin-user-avatar">
-                  {adminInitial}
-                </div>
-                <div className="admin-user-details" style={{ display: 'none' }}>
-                   {/* Hidden on small/medium screens but kept in DOM if needed later */}
-                </div>
-              </div>
-            </div>
-          </header>
-
           <div className="admin-content-area">
             <Outlet />
           </div>

@@ -500,7 +500,6 @@ export default function ResellBuyer() {
                 <>
                   <div className="resell-modal__gallery-main" style={{ cursor: 'zoom-in' }} onClick={() => setLightboxImg(mainImage)}>
                     <img src={mainImage} alt={selectedItem.title} />
-                    <span style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.5)', color: '#fff', borderRadius: 6, padding: '3px 8px', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.05em', pointerEvents: 'none' }}>⛶ FULL</span>
                   </div>
                   {modalImages.length > 1 && (
                     <div className="resell-modal__gallery-thumbs">

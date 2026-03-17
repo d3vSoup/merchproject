@@ -35,15 +35,15 @@ const TABS = [
 ];
 
 const CLUBS = [
-  "IEEE", "PENTAGRAM", "ROCKETRY CLUB", "TEAMCODELOCKED", "<CODE IO/>", "ACM CHAPTER",
-  "AQUILLA AEROSPACE", "AUGMENT.AI", "BIG FOUNDATION", "BMSCE ALUMNI NETWORK", "BULLZ RACING",
-  "CHIRANTANA", "DANZ ADDIX", "DSYNC", "EEEA", "ELSOC", "FINE ARTS CLUB", "FALCONS", "GDSC",
-  "GRADIENT", "THE GROOVE HOUSE", "IIC", "INKSANITY", "ISE STUDENT CLUB", "LEO SATVA",
-  "MANUSMARAN", "MELTON FOUNDATION", "MOUNTAINEERING CLUB", "MUNSOC", "NINAAD", "NSS",
-  "TEAM PANACHE", "PARAMVAH", "PROTOCOL", "PRAVRUTTHI", "QCAINE", "RESPAWN", "ROBOTICS",
-  "ROTARACT", "SAMSKRUTHI SAMBHRAMA", "SENSORED", "SINGULARITY", "SYNAPSE", "UPAGRAHA",
-  "BUSINESS INSIGHTS", "MECHANICAL ENGG ASSC", "VARIANCE", "VAK", "AERO BMSCE", "WAKAI OTAKU",
-  "NCC", "CORTECHS"
+  "ACM CHAPTER", "AERO BMSCE", "AQUILLA AEROSPACE", "AUGMENT.AI", "BIG FOUNDATION", 
+  "BMSCE ALUMNI NETWORK", "BULLZ RACING", "BUSINESS INSIGHTS", "CHIRANTANA", "<CODE IO/>", 
+  "CORTECHS", "DANZ ADDIX", "DSYNC", "EEEA", "ELSOC", "FALCONS", "FINE ARTS CLUB", "GDSC", 
+  "GRADIENT", "THE GROOVE HOUSE", "IEEE", "IIC", "INKSANITY", "ISE STUDENT CLUB", "LEO SATVA", 
+  "MANUSMARAN", "MECHANICAL ENGG ASSC", "MELTON FOUNDATION", "MOUNTAINEERING CLUB", 
+  "MUNSOC", "NCC", "NINAAD", "NSS", "PARAMVAH", "PENTAGRAM", "PRAVRUTTHI", "PROTOCOL", 
+  "QCAINE", "RESPAWN", "ROBOTICS", "ROCKETRY CLUB", "ROTARACT", "SAMSKRUTHI SAMBHRAMA", 
+  "SENSORED", "SINGULARITY", "SYNAPSE", "TEAM PANACHE", "TEAMCODELOCKED", "UPAGRAHA", 
+  "VAK", "VARIANCE", "WAKAI OTAKU"
 ];
 
 const IEEE_SUBCLUBS = [
@@ -52,8 +52,8 @@ const IEEE_SUBCLUBS = [
 ];
 
 const DEPARTMENTS = [
-  "CSE", "CS ALLIED", "AIML", "AI-DS", "ECE", "EEE", "AEROSPACE", "MECHANICAL",
-  "CIVIL", "BIOTECHNOLOGY", "CHEMICAL", "IEM"
+  "AEROSPACE", "AI-DS", "AIML", "BIOTECHNOLOGY", "CHEMICAL", "CIVIL", 
+  "CS ALLIED", "CSE", "ECE", "EEE", "IEM", "MECHANICAL"
 ];
 
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
@@ -1120,7 +1120,7 @@ export default function AdminItems() {
                 const currentCategory = ieeeSubclub || selectedClub || selectedDept;
                 const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
                 const isCategorySoldOut = currentCategory ? soldOutItems[categoryKey] : false;
-                const finalSoldOut = isCategorySoldOut || isSoldOut || eventStatuses[selectedTab]?.soldOut;
+                const finalSoldOut = isCategorySoldOut || isSoldOut || (!currentCategory && eventStatuses[selectedTab]?.soldOut);
                 const isHidden = !!product.hidden;
                 
                 return (
