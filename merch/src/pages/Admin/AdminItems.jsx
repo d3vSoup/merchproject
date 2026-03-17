@@ -79,6 +79,7 @@ export default function AdminItems() {
     })();
   });
   const [soldOutItems, setSoldOutItems] = useState({});
+  const [limitedItems, setLimitedItems] = useState({});
   const [editingProduct, setEditingProduct] = useState(null);
   const [addingProduct, setAddingProduct] = useState(false);
   const [resellItems, setResellItems] = useState([]);
@@ -109,7 +110,8 @@ export default function AdminItems() {
     
     try {
       const res = await api.get('/api/items/soldouts', { params: { tabKey: selectedTab } });
-      const map = {};
+      const soldMap = {};
+      const limitMap = {};
       
       // Sort by updated_at descending to get the most recent entry for each product
       const items = (res.data?.items || []).sort((a, b) => {
@@ -128,6 +130,7 @@ export default function AdminItems() {
         processed.add(uniqueId);
         
         const isSoldOut = item.sold_out === true;
+        const isLimited = item.limited === true;
         
         // Create multiple keys to ensure matching works with any variant format
         const productKey = `${selectedTab}:${item.product_id}`;
@@ -135,23 +138,27 @@ export default function AdminItems() {
         const nullKey = `${selectedTab}:${item.product_id}:null`;
         
         // Set all possible keys so checkbox can find the status
-        map[productKey] = isSoldOut;
-        map[standardKey] = isSoldOut;
-        map[nullKey] = isSoldOut;
+        soldMap[productKey] = isSoldOut;
+        soldMap[standardKey] = isSoldOut;
+        soldMap[nullKey] = isSoldOut;
+
+        limitMap[productKey] = isLimited;
+        limitMap[standardKey] = isLimited;
+        limitMap[nullKey] = isLimited;
         
         // Also set with club_or_dept if present
         if (item.club_or_dept) {
-          map[`${productKey}:${item.club_or_dept}`] = isSoldOut;
-          map[`${standardKey}:${item.club_or_dept}`] = isSoldOut;
+          soldMap[`${productKey}:${item.club_or_dept}`] = isSoldOut;
+          soldMap[`${standardKey}:${item.club_or_dept}`] = isSoldOut;
+
+          limitMap[`${productKey}:${item.club_or_dept}`] = isLimited;
+          limitMap[`${standardKey}:${item.club_or_dept}`] = isLimited;
         }
-        
-        console.log('Loaded item:', item.product_id, '- sold_out:', isSoldOut, '- updated_at:', item.updated_at);
       });
       
-      console.log('Loaded soldOutItems:', Object.keys(map).length, 'keys from', processed.size, 'unique products');
-      
       // Replace entire state with fresh data from server
-      setSoldOutItems(map);
+      setSoldOutItems(soldMap);
+      setLimitedItems(limitMap);
     } catch (err) {
       console.error('Failed to load sold-out status:', err);
     }
@@ -218,6 +225,27 @@ export default function AdminItems() {
       toast.success(`Item ${soldOut ? 'marked unavailable' : 'marked available'}`);
     } catch (err) {
       console.error('Failed to save sold-out status:', err);
+      toast.error('Failed to save to database');
+      throw err;
+    }
+  }
+
+  async function saveLimitedStatus(tabKey, productId, variant, limited, clubOrDept = null) {
+    if (!user || !user.isAdmin) return;
+    
+    try {
+      const payload = {
+        tabKey,
+        productId,
+        variant: variant || null,
+        limited,
+        clubOrDept
+      };
+      
+      await api.post('/api/admin/items/soldout', payload);
+      toast.success(`Item ${limited ? 'marked as Limited' : 'marked as standard'}`);
+    } catch (err) {
+      console.error('Failed to save limited status:', err);
       toast.error('Failed to save to database');
       throw err;
     }
@@ -1117,10 +1145,12 @@ export default function AdminItems() {
                 const variantKey = `${selectedTab}:${product.id}:standard`;
                 const nullKey = `${selectedTab}:${product.id}:null`;
                 const isSoldOut = soldOutItems[productKey] || soldOutItems[variantKey] || soldOutItems[nullKey];
+                const isItemLimited = limitedItems[productKey] || limitedItems[variantKey] || limitedItems[nullKey];
                 const currentCategory = ieeeSubclub || selectedClub || selectedDept;
                 const categoryKey = currentCategory ? `${productKey}:${currentCategory}` : productKey;
                 const isCategorySoldOut = currentCategory ? soldOutItems[categoryKey] : false;
                 const finalSoldOut = isCategorySoldOut || isSoldOut || (!currentCategory && eventStatuses[selectedTab]?.soldOut);
+                const finalLimited = currentCategory ? limitedItems[categoryKey] : isItemLimited;
                 const isHidden = !!product.hidden;
                 
                 return (
@@ -1181,8 +1211,51 @@ export default function AdminItems() {
                                 setBusyItems(prev => ({ ...prev, [product.id]: false }));
                               }
                             }}
-                          />
+                           />
                           <span>{busyItems[product.id] ? 'Saving...' : 'Available'}</span>
+                        </label>
+
+                        <label className="admin-checkbox-label" style={{ marginLeft: '12px' }}>
+                          <input
+                            type="checkbox"
+                            checked={finalLimited || false}
+                            disabled={isHidden || busyItems[`${product.id}_limit`]}
+                            onChange={async (e) => {
+                              if (busyItems[`${product.id}_limit`]) return;
+                              setBusyItems(prev => ({ ...prev, [`${product.id}_limit`]: true }));
+                              
+                              const newLimited = e.target.checked;
+                              const keyToUpdate = currentCategory ? categoryKey : productKey;
+                              const vKey = `${selectedTab}:${product.id}:standard`;
+                              
+                              setLimitedItems(prev => {
+                                const updated = { ...prev };
+                                updated[keyToUpdate] = newLimited;
+                                if (!currentCategory) {
+                                  updated[vKey] = newLimited;
+                                }
+                                return updated;
+                              });
+                              
+                              try {
+                                await saveLimitedStatus(selectedTab, product.id, null, newLimited, currentCategory);
+                              } catch (err) {
+                                setLimitedItems(prev => {
+                                  const reverted = { ...prev };
+                                  reverted[keyToUpdate] = !newLimited;
+                                  if (!currentCategory) {
+                                    reverted[vKey] = !newLimited;
+                                  }
+                                  return reverted;
+                                });
+                              } finally {
+                                setBusyItems(prev => ({ ...prev, [`${product.id}_limit`]: false }));
+                              }
+                            }}
+                          />
+                          <span style={{ color: finalLimited ? '#FF6B00' : 'inherit', fontWeight: finalLimited ? 'bold' : 'normal' }}>
+                            {busyItems[`${product.id}_limit`] ? 'Saving...' : 'Limited'}
+                          </span>
                         </label>
                       </div>
 

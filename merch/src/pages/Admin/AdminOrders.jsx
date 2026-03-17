@@ -397,12 +397,13 @@ export default function AdminOrders() {
                       </div>
                     </td>
                     <td>
-                      <span className="admin-order-price">
-                        {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : formatPrice(isNaN(total) ? 0 : total)}
+                      <span className="admin-order-price" style={order.is_delivery ? { color: '#ef4444', fontWeight: 'bold' } : {}}>
+                        {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : (
+                          order.is_delivery
+                            ? `${formatPrice((isNaN(total) ? 0 : total) - 100)} + 100`
+                            : formatPrice(isNaN(total) ? 0 : total)
+                        )}
                       </span>
-                      {order.is_delivery && order.delivery_charge != null && (
-                        <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '0.8rem', marginLeft: '4px', display: 'block' }}>+{formatPrice(order.delivery_charge)}</span>
-                      )}
                     </td>
                     <td>
                       {order.type === 'confirmed_order' ? (

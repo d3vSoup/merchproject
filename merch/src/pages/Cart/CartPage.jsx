@@ -223,8 +223,8 @@ export default function CartPage() {
       return;
     }
 
-    const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    Analytics.checkoutStart(cartItems.length, total);
+    const checkoutTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (wantsDelivery ? 100 : 0);
+    Analytics.checkoutStart(cartItems.length, checkoutTotal);
 
     const orderItems = cartItems.map(item => ({
       tabKey: item.tabKey,
@@ -245,9 +245,9 @@ export default function CartPage() {
         address: deliveryAddress.trim(),
         mapsLink: deliveryMapsLink.trim(),
       } : null;
-      const order = await createOrder(orderItems, total, wantsDelivery, deliveryInfo);
+      const order = await createOrder(orderItems, checkoutTotal, wantsDelivery, deliveryInfo);
       if (order) {
-        Analytics.orderPlaced(order?.id || order?.order_number, total);
+        Analytics.orderPlaced(order?.id || order?.order_number, checkoutTotal);
         toast.success("Order placed successfully!");
         await loadCart(); // Cart is cleared on backend
         navigate("/");

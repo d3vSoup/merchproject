@@ -18,58 +18,15 @@ import TextType from "../../components/ui/TextType";
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
 const CLUBS = [
-  "IEEE",
-  "PENTAGRAM",
-  "ROCKETRY CLUB",
-  "TEAMCODELOCKED",
-  "<CODE IO/>",
-  "ACM CHAPTER",
-  "AQUILLA AEROSPACE",
-  "AUGMENT.AI",
-  "BIG FOUNDATION",
-  "BMSCE ALUMNI NETWORK",
-  "BULLZ RACING",
-  "CHIRANTANA",
-  "DANZ ADDIX",
-  "DSYNC",
-  "EEEA",
-  "ELSOC",
-  "FINE ARTS CLUB",
-  "FALCONS",
-  "GDSC",
-  "GRADIENT",
-  "THE GROOVE HOUSE",
-  "IIC",
-  "INKSANITY",
-  "ISE STUDENT CLUB",
-  "LEO SATVA",
-  "MANUSMARAN",
-  "MELTON FOUNDATION",
-  "MOUNTAINEERING CLUB",
-  "MUNSOC",
-  "NINAAD",
-  "NSS",
-  "TEAM PANACHE",
-  "PARAMVAH",
-  "PROTOCOL",
-  "PRAVRUTTHI",
-  "QCAINE",
-  "RESPAWN",
-  "ROBOTICS",
-  "ROTARACT",
-  "SAMSKRUTHI SAMBHRAMA",
-  "SENSORED",
-  "SINGULARITY",
-  "SYNAPSE",
-  "UPAGRAHA",
-  "BUSINESS INSIGHTS",
-  "MECHANICAL ENGG ASSC",
-  "VARIANCE",
-  "VAK",
-  "AERO BMSCE",
-  "WAKAI OTAKU",
-  "NCC",
-  "CORTECHS",
+  "ACM CHAPTER", "AERO BMSCE", "AQUILLA AEROSPACE", "AUGMENT.AI", "BIG FOUNDATION", 
+  "BMSCE ALUMNI NETWORK", "BULLZ RACING", "BUSINESS INSIGHTS", "CHIRANTANA", "<CODE IO/>", 
+  "CORTECHS", "DANZ ADDIX", "DSYNC", "EEEA", "ELSOC", "FALCONS", "FINE ARTS CLUB", "GDSC", 
+  "GRADIENT", "THE GROOVE HOUSE", "IEEE", "IIC", "INKSANITY", "ISE STUDENT CLUB", "LEO SATVA", 
+  "MANUSMARAN", "MECHANICAL ENGG ASSC", "MELTON FOUNDATION", "MOUNTAINEERING CLUB", 
+  "MUNSOC", "NCC", "NINAAD", "NSS", "PARAMVAH", "PENTAGRAM", "PRAVRUTTHI", "PROTOCOL", 
+  "QCAINE", "RESPAWN", "ROBOTICS", "ROCKETRY CLUB", "ROTARACT", "SAMSKRUTHI SAMBHRAMA", 
+  "SENSORED", "SINGULARITY", "SYNAPSE", "TEAM PANACHE", "TEAMCODELOCKED", "UPAGRAHA", 
+  "VAK", "VARIANCE", "WAKAI OTAKU"
 ];
 
 const IEEE_SUBCLUBS = [
@@ -85,18 +42,8 @@ const IEEE_SUBCLUBS = [
 ];
 
 const DEPARTMENTS = [
-  "CSE",
-  "CS ALLIED",
-  "AIML",
-  "AI-DS",
-  "ECE",
-  "EEE",
-  "AEROSPACE",
-  "MECHANICAL",
-  "CIVIL",
-  "BIOTECHNOLOGY",
-  "CHEMICAL",
-  "IEM",
+  "AEROSPACE", "AI-DS", "AIML", "BIOTECHNOLOGY", "CHEMICAL", "CIVIL", 
+  "CS ALLIED", "CSE", "ECE", "EEE", "IEM", "MECHANICAL"
 ];
 
 export default function ClubPage() {
@@ -108,6 +55,7 @@ export default function ClubPage() {
   const [cartItems, setCartItems] = useState([]);
   const [productSelections, setProductSelections] = useState({});
   const [soldOutItems, setSoldOutItems] = useState({});
+  const [limitedItems, setLimitedItems] = useState({});
   const [clubStatuses, setClubStatuses] = useState({});
   const [productOverrides, setProductOverrides] = useState({});
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
@@ -132,6 +80,7 @@ export default function ClubPage() {
         if (!mounted) return;
         
         const map = {};
+        const limitMap = {};
         const statusMap = {};
         (res.data?.items || []).forEach(item => {
           // Item is unavailable if:
@@ -145,13 +94,14 @@ export default function ClubPage() {
           
           // Individual item sold_out flag
           const isItemSoldOut = item.sold_out === true;
+          const isItemLimited = item.limited === true;
           
           // Item is unavailable if:
           // - Event status makes it unavailable (soldout/over/no_new_releases), OR
           // - Item is individually marked as sold_out (regardless of event status)
           const isUnavailable = isEventUnavailable || isItemSoldOut;
           
-          if (!isUnavailable) return; // Skip if item is available
+          if (!isUnavailable && !isItemLimited) return; // Skip if item is available and not limited
           
           // Create multiple key variations to ensure matching works
           const variant = item.variant || null;
@@ -167,16 +117,32 @@ export default function ClubPage() {
           // If club/dept is specified, create keys with it
           if (clubOrDept) {
             // Keys with club/dept
-            map[`${baseKeyStandard}:${clubOrDept}`] = true;
-            map[`${baseKeyNull}:${clubOrDept}`] = true;
-            map[`${baseKeyVariant}:${clubOrDept}`] = true;
-            map[`${baseKeyNoVariant}:${clubOrDept}`] = true;
+            if (isUnavailable) {
+              map[`${baseKeyStandard}:${clubOrDept}`] = true;
+              map[`${baseKeyNull}:${clubOrDept}`] = true;
+              map[`${baseKeyVariant}:${clubOrDept}`] = true;
+              map[`${baseKeyNoVariant}:${clubOrDept}`] = true;
+            }
+            if (isItemLimited) {
+              limitMap[`${baseKeyStandard}:${clubOrDept}`] = true;
+              limitMap[`${baseKeyNull}:${clubOrDept}`] = true;
+              limitMap[`${baseKeyVariant}:${clubOrDept}`] = true;
+              limitMap[`${baseKeyNoVariant}:${clubOrDept}`] = true;
+            }
           } else {
             // Keys without club/dept (for non-club tabs or general items)
-            map[baseKeyStandard] = true;
-            map[baseKeyNull] = true;
-            map[baseKeyVariant] = true;
-            map[baseKeyNoVariant] = true;
+            if (isUnavailable) {
+              map[baseKeyStandard] = true;
+              map[baseKeyNull] = true;
+              map[baseKeyVariant] = true;
+              map[baseKeyNoVariant] = true;
+            }
+            if (isItemLimited) {
+              limitMap[baseKeyStandard] = true;
+              limitMap[baseKeyNull] = true;
+              limitMap[baseKeyVariant] = true;
+              limitMap[baseKeyNoVariant] = true;
+            }
           }
           
           // Store event status per club/dept
@@ -186,6 +152,7 @@ export default function ClubPage() {
         });
         if (mounted) {
           setSoldOutItems(map);
+          setLimitedItems(limitMap);
           setClubStatuses(statusMap);
         }
       } catch (err) {
@@ -193,11 +160,8 @@ export default function ClubPage() {
         // Set empty state on error to allow page to load
         if (mounted) {
           setSoldOutItems({});
+          setLimitedItems({});
           setClubStatuses({});
-        }
-      } finally {
-        if (mounted) {
-          setLoadingSoldOut(false);
         }
       }
     }
@@ -241,9 +205,15 @@ export default function ClubPage() {
     }
 
     // Initial load
-    fetchSoldOutFromServer();
-    fetchOverrides();
-    fetchTrendingStatus();
+    Promise.all([
+      fetchSoldOutFromServer(),
+      fetchOverrides(),
+      fetchTrendingStatus()
+    ]).finally(() => {
+      if (mounted) {
+        setLoadingSoldOut(false);
+      }
+    });
     
     return () => {
       mounted = false;
@@ -544,6 +514,15 @@ export default function ClubPage() {
                   clubStatuses[currentCategory] === "no_new_releases"
                 ))
               );
+              const isProductLimited = loadingSoldOut ? false : (
+                limitedItems[categoryKey] ||
+                limitedItems[nullVariantKey] ||
+                limitedItems[standardVariantKey] ||
+                limitedItems[baseCategoryKey] ||
+                limitedItems[baseItemKey] ||
+                limitedItems[baseNullKey] ||
+                limitedItems[baseStandardKey]
+              );
               const cartItem = findCartItem(product.id, variant);
               const quantity = cartItem?.quantity || 0;
 
@@ -576,6 +555,7 @@ export default function ClubPage() {
                     onClick={() => !isProductSoldOut && setSelectedProduct(product)}
                   >
                     {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
+                    {!isProductSoldOut && isProductLimited && <div className="limited-overlay" style={{ position: 'absolute', top: '10px', right: '10px', background: '#FF6B00', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 10, letterSpacing: '1px' }}>LIMITED</div>}
                     {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                     <WishlistHeart
                       tabKey="club"

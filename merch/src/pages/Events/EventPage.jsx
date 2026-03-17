@@ -35,6 +35,7 @@ export default function EventPage() {
   const [cartItems, setCartItems] = useState([]);
   const [productSelections, setProductSelections] = useState({});
   const [soldOutItems, setSoldOutItems] = useState({});
+  const [limitedItems, setLimitedItems] = useState({});
   const [eventStatus, setEventStatus] = useState({ type: "ongoing", countdown: null });
   const [productOverrides, setProductOverrides] = useState({});
   const [loadingSoldOut, setLoadingSoldOut] = useState(true); // Start as true - don't render until data loads
@@ -58,6 +59,7 @@ export default function EventPage() {
         const res = await api.get('/api/items/soldouts', { params: { tabKey: eventKey } });
         if (cancelled) return;
         const map = {};
+        const limitMap = {};
         let serverStatus = null;
         
         // Sort by updated_at descending to get the most recent entry for each product
@@ -87,6 +89,7 @@ export default function EventPage() {
           
           // Individual item sold_out takes precedence
           const isItemSoldOut = item.sold_out === true;
+          const isItemLimited = item.limited === true;
           
           if (isEventUnavailable || isItemSoldOut) {
             // Create multiple keys to ensure matching works
@@ -105,6 +108,21 @@ export default function EventPage() {
               map[`${standardKey}:${item.club_or_dept}`] = true;
             }
           }
+
+          if (isItemLimited) {
+            const baseKey = `${item.tab_key}:${item.product_id}:${item.variant || "standard"}`;
+            const standardKey = `${item.tab_key}:${item.product_id}:standard`;
+            const nullKey = `${item.tab_key}:${item.product_id}:null`;
+            
+            limitMap[baseKey] = true;
+            limitMap[standardKey] = true;
+            limitMap[nullKey] = true;
+            
+            if (item.club_or_dept) {
+              limitMap[`${baseKey}:${item.club_or_dept}`] = true;
+              limitMap[`${standardKey}:${item.club_or_dept}`] = true;
+            }
+          }
           
           // Track event-level status
           if (!serverStatus && item.tab_key === eventKey && item.event_status) {
@@ -116,6 +134,7 @@ export default function EventPage() {
         
         // Replace soldOutItems with server data (authoritative source)
         setSoldOutItems(map);
+        setLimitedItems(limitMap);
         
         // Update event status from server response (includes countdown date)
         if (res.data?.eventStatus) {
@@ -143,8 +162,6 @@ export default function EventPage() {
         }
       } catch (err) {
         console.error('Failed to load sold-out data from server', err);
-      } finally {
-        if (!cancelled) setLoadingSoldOut(false);
       }
     }
 
@@ -176,9 +193,13 @@ export default function EventPage() {
       }
     }
 
-    fetchSoldOutFromServer();
-    fetchOverrides();
-    fetchTrendingStatus();
+    Promise.all([
+      fetchSoldOutFromServer(),
+      fetchOverrides(),
+      fetchTrendingStatus()
+    ]).finally(() => {
+      if (!cancelled) setLoadingSoldOut(false);
+    });
 
     async function fetchEventDetails() {
       try {
@@ -387,6 +408,18 @@ export default function EventPage() {
     return false;
   };
 
+  const isLimited = (productKey) => {
+    if (loadingSoldOut) return false;
+    if (limitedItems[productKey]) return true;
+    const parts = productKey.split(':');
+    if (parts.length >= 2) {
+      const baseKey = `${parts[0]}:${parts[1]}:standard`;
+      const nullVariantKey = `${parts[0]}:${parts[1]}:null`;
+      if (limitedItems[baseKey] || limitedItems[nullVariantKey]) return true;
+    }
+    return false;
+  };
+
   // Collect all product images for the hero carousel (must be before early return to satisfy Rules of Hooks)
   const heroImages = eventProducts
     .flatMap(p => p.images?.length ? p.images : p.imageUrl ? [p.imageUrl] : [])
@@ -543,6 +576,7 @@ export default function EventPage() {
           const variant = selectedVariant;
           const itemKey = `${eventKey}:${product.id}:${variant || "standard"}`;
           const isProductSoldOut = isSoldOut(itemKey);
+          const isProductLimited = isLimited(itemKey);
           const cartItem = findCartItem(eventKey, product.id, variant);
           const quantity = cartItem?.quantity || 0;
           const showLimitedBadge = showCountdown && idx === 0 && !isProductSoldOut;
@@ -578,6 +612,7 @@ export default function EventPage() {
               >
                 {showLimitedBadge && <span className="product-card__badge-tag">Limited</span>}
                 {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
+                {!isProductSoldOut && isProductLimited && <div className="limited-overlay" style={{ position: 'absolute', top: '10px', right: '10px', background: '#FF6B00', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 10, letterSpacing: '1px' }}>LIMITED</div>}
                 {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                 <WishlistHeart
                   tabKey={eventKey}

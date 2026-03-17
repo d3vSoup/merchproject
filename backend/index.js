@@ -2485,7 +2485,7 @@ app.get('/api/admin/orders/export', authMiddleware, async (req, res) => {
         usn: o.user_usn || '',
         phone: o.user_phone || '',
         items: itemsStr,
-        total: o.total_amount,
+        total: o.is_delivery ? `${o.total_amount - 100} + 100` : o.total_amount,
         status: o.payment_status || 'pending',
         is_delivery: o.is_delivery ? 'Yes' : 'No',
         delivery_address: o.delivery_address || '',
@@ -2960,6 +2960,10 @@ app.get('/api/items/soldouts', async (req, res) => {
           soldOutMap[key] = true;
         }
 
+        if (item.limited) {
+          soldOutMap[`limited:${key}`] = true;
+        }
+
         // Extract event status and countdown date (use first item with status for the tab)
         // Prioritize items with countdown_date if status is "countdown"
         if (item.tab_key === tabKey && item.event_status) {
@@ -3036,6 +3040,10 @@ app.get('/api/admin/items/soldouts', authMiddleware, async (req, res) => {
           
         if (isUnavailable) {
           soldOutMap[key] = true;
+        }
+
+        if (item.limited) {
+          soldOutMap[`limited:${key}`] = true;
         }
       });
     }
@@ -3158,10 +3166,12 @@ app.post('/api/admin/items/soldout', authMiddleware, async (req, res) => {
       tab_key: tabKey,
       product_id: productId,
       variant: normVar,
-      sold_out: !!soldOut,
       updated_at: new Date().toISOString(),
       club_or_dept: normClub
     };
+
+    updateData.sold_out = req.body.soldOut !== undefined ? !!req.body.soldOut : (existing ? existing.sold_out : false);
+    updateData.limited = req.body.limited !== undefined ? !!req.body.limited : (existing ? existing.limited : false);
 
     // Preserve existing event_status if not explicitly provided
     if (eventStatus !== undefined && eventStatus !== null) {
