@@ -127,19 +127,17 @@ export default function Landing() {
           
           {/* Center Overlay Typography */}
           <div className="relative z-30 flex flex-col items-center justify-center w-full min-h-screen text-center px-6">
-            <span className="bg-white/20 backdrop-blur-xl text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-[10px] mb-6 shadow-2xl block mx-auto border border-white/40 text-center" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)', width: 'fit-content' }}>
+            <span className="bg-white/20 backdrop-blur-xl text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-[10px] mb-4 shadow-2xl block mx-auto border border-white/40 text-center" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)', width: 'fit-content' }}>
               Official Merchandise
             </span>
-            <div className="flex flex-col items-center justify-center relative">
-              <img 
-                src="/assets/star-logo.jpeg" 
-                alt="ALMA Check Sticker" 
-                className="absolute -top-16 -right-8 w-20 h-20 md:w-28 md:h-28 object-contain rounded-full shadow-2xl z-40 transform rotate-[15deg] border-[3px] border-white/90 drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]" 
-              />
-              <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
-                ALMA<br/><span className="text-[#FF6B00]">STORE</span>
-              </h1>
-            </div>
+            <img 
+              src="/assets/star-logo.jpeg" 
+              alt="ALMA Check Sticker" 
+              className="w-16 h-16 md:w-24 md:h-24 object-contain rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.6)] z-40 transform rotate-[15deg] border-[3px] border-white/90 mb-4 -mb-8 relative" 
+            />
+            <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative z-30">
+              ALMA<br/><span className="text-[#FF6B00]">STORE</span>
+            </h1>
             <p className="text-gray-100 text-lg md:text-2xl max-w-3xl mx-auto mb-10 leading-relaxed font-semibold drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
               Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
             </p>
