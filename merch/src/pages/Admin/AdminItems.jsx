@@ -92,6 +92,7 @@ export default function AdminItems() {
   const [eventDetailsDraft, setEventDetailsDraft] = useState({});
   const [savingEventDetails, setSavingEventDetails] = useState(false);
   const [trendingStatus, setTrendingStatus] = useState({});
+  const [deliveryAllowed, setDeliveryAllowed] = useState(true);
 
   // Persist to localStorage whenever changes are made
   useEffect(() => {
@@ -101,6 +102,13 @@ export default function AdminItems() {
   useEffect(() => {
     localStorage.setItem('admin_event_statuses', JSON.stringify(eventStatuses));
   }, [eventStatuses]);
+
+  // Fetch delivery setting
+  useEffect(() => {
+    api.get('/api/settings/delivery').then(res => {
+      setDeliveryAllowed(res.data?.allowed !== false);
+    }).catch(() => {});
+  }, []);
 
   // Removed localStorage for soldOutItems - now authoritative only from DB
 
@@ -836,6 +844,41 @@ export default function AdminItems() {
                 await fetchOverrides();
               }}
             />
+
+            {/* Delivery Toggle */}
+            <div style={{ background: '#fff', borderRadius: 16, padding: 24, marginTop: 24, border: '1px solid rgba(0,0,0,0.06)' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: 800 }}>Delivery Settings</h3>
+              <p style={{ margin: '0 0 16px', fontSize: '0.88rem', color: 'var(--admin-text-muted)' }}>Control whether users can opt for delivery at checkout.</p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  className={`admin-btn ${deliveryAllowed ? 'admin-btn--primary' : 'admin-btn--ghost'}`}
+                  onClick={async () => {
+                    try {
+                      await api.post('/api/admin/settings/delivery', { allowed: true });
+                      setDeliveryAllowed(true);
+                      toast.success('Delivery enabled');
+                    } catch (err) { toast.error('Failed to update'); }
+                  }}
+                >
+                  ✅ Allow Delivery
+                </button>
+                <button
+                  className={`admin-btn ${!deliveryAllowed ? 'admin-btn--danger' : 'admin-btn--ghost'}`}
+                  onClick={async () => {
+                    try {
+                      await api.post('/api/admin/settings/delivery', { allowed: false });
+                      setDeliveryAllowed(false);
+                      toast.success('Delivery disabled');
+                    } catch (err) { toast.error('Failed to update'); }
+                  }}
+                >
+                  🚫 Disallow Delivery
+                </button>
+              </div>
+              <p style={{ margin: '12px 0 0', fontSize: '0.82rem', color: deliveryAllowed ? '#16a34a' : '#dc2626', fontWeight: 700 }}>
+                Status: {deliveryAllowed ? 'Delivery is currently ALLOWED' : 'Delivery is currently DISABLED'}
+              </p>
+            </div>
           </>
         ) : selectedTab === 'listed' ? (
           <div className="admin-products-list">
@@ -1209,6 +1252,8 @@ export default function AdminItems() {
                                 });
                               } finally {
                                 setBusyItems(prev => ({ ...prev, [product.id]: false }));
+                                // Reload from server to sync state (fixes restored item toggle)
+                                loadSoldOutStatus();
                               }
                             }}
                            />

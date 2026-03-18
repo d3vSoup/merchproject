@@ -26,9 +26,14 @@ export default function CartPage() {
   const [wantsDelivery, setWantsDelivery] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryMapsLink, setDeliveryMapsLink] = useState('');
+  const [deliveryAllowed, setDeliveryAllowed] = useState(true);
 
   useEffect(() => {
     let mounted = true;
+    // Fetch delivery setting for everyone (including not signed in)
+    api.get('/api/settings/delivery').then(res => {
+      if (mounted) setDeliveryAllowed(res.data?.allowed !== false);
+    }).catch(() => {});
     if (user) {
       async function init() {
         const overrides = await loadOverrides();
@@ -172,7 +177,7 @@ export default function CartPage() {
     try {
       // Pass clubOrDept for club items
       await updateCartItem(item.tabKey, item.productId, item.variant, newQuantity, item.clubOrDept);
-      await loadCart(null, true); // true = hideLoading
+      await loadCart(productOverrides, true); // Pass overrides explicitly to avoid stale base prices
       triggerCartUpdate(); // Trigger cart count refresh
       if (newQuantity === 0) {
         toast.success("Removed from cart");
@@ -185,7 +190,7 @@ export default function CartPage() {
       console.error('Failed to update cart:', err);
       const errorMsg = err.message || err.response?.data?.message || 'Failed to update cart';
       toast.error(errorMsg);
-      await loadCart(null, true); // revert on failure
+      await loadCart(productOverrides, true); // revert on failure
     }
   }
 
@@ -203,13 +208,13 @@ export default function CartPage() {
     try {
       // Pass clubOrDept for club items
       await updateCartItem(item.tabKey, item.productId, item.variant, 0, item.clubOrDept);
-      await loadCart(null, true); // true = hideLoading
+      await loadCart(productOverrides, true); // Pass overrides explicitly
       triggerCartUpdate(); // Trigger cart count refresh
       toast.success("Removed from cart");
     } catch (err) {
       console.error('Failed to remove item:', err);
       toast.error('Failed to remove item');
-      await loadCart(null, true); // revert on failure
+      await loadCart(productOverrides, true); // revert on failure
     }
   }
 
@@ -416,17 +421,19 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="delivery-section">
+            <div className="delivery-section" style={!deliveryAllowed ? { opacity: 0.45, pointerEvents: 'none' } : {}}>
               <label className="delivery-toggle">
                 <input
                   type="checkbox"
                   checked={wantsDelivery}
+                  disabled={!deliveryAllowed}
                   onChange={(e) => setWantsDelivery(e.target.checked)}
                 />
-                <span>I want delivery</span>
+                <span>{deliveryAllowed ? 'I want delivery' : 'Delivery is unavailable'}</span>
               </label>
-              <p className="delivery-fee-note">Delivery fee: ₹100</p>
-              {wantsDelivery && (
+              {deliveryAllowed && <p className="delivery-fee-note">Delivery fee: ₹100</p>}
+              {!deliveryAllowed && <p className="delivery-fee-note" style={{ color: '#dc2626' }}>Delivery has been disabled by the admin.</p>}
+              {wantsDelivery && deliveryAllowed && (
                 <div className="delivery-address-input">
                   <textarea
                     placeholder="Enter your delivery address…"

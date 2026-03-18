@@ -1082,6 +1082,62 @@ app.delete('/api/resell/items/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// DELETE /api/resell/items/:id/permanent - Permanently delete a past resell listing (user)
+app.delete('/api/resell/items/:id/permanent', authMiddleware, async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ message: 'Supabase not configured on server' });
+    }
+
+    const itemId = req.params.id;
+    if (!itemId) {
+      return res.status(400).json({ message: 'Item ID is required' });
+    }
+
+    let supabaseId = req.auth.supabaseId;
+    if (!supabaseId) {
+      const ensured = await ensureSupabaseUserRecord(req.auth.email);
+      if (!ensured.id) return res.status(500).json({ message: 'Failed to get user ID' });
+      supabaseId = ensured.id;
+    }
+
+    // Verify the item belongs to the user and is a past item (deleted or expired)
+    const { data: item, error: fetchError } = await supabaseAdmin
+      .from('resell_items')
+      .select('user_id, deleted_at, expires_at')
+      .eq('id', itemId)
+      .single();
+
+    if (fetchError || !item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    if (item.user_id !== supabaseId) {
+      return res.status(403).json({ message: 'You can only delete your own listings' });
+    }
+
+    const isDeleted = !!item.deleted_at;
+    const isExpired = item.expires_at && new Date(item.expires_at) < new Date();
+    if (!isDeleted && !isExpired) {
+      return res.status(400).json({ message: 'Only past (deleted/expired) listings can be permanently removed' });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('resell_items')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Permanent delete resell item error:', error);
+      return res.status(500).json({ message: 'Failed to permanently delete listing' });
+    }
+
+    return res.json({ success: true, message: 'Listing permanently deleted' });
+  } catch (err) {
+    console.error('Permanent delete resell item error', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/resell/seller-info/:userId - Get seller contact info for buyers
 app.get('/api/resell/seller-info/:userId', authMiddleware, async (req, res) => {
   try {
@@ -2806,6 +2862,50 @@ app.get('/api/catalog/overrides', async (req, res) => {
     console.error('Catalog overrides error', err);
     // Return empty array instead of error to allow page to load
     return res.json({ overrides: [] });
+  }
+});
+
+// Public: GET /api/settings/delivery - check if delivery is allowed
+app.get('/api/settings/delivery', async (req, res) => {
+  try {
+    if (!supabaseAdmin) return res.json({ allowed: true });
+    const { data } = await supabaseAdmin
+      .from('product_overrides')
+      .select('description')
+      .eq('tab_key', 'system')
+      .eq('product_id', 'delivery_allowed')
+      .maybeSingle();
+    const allowed = data ? data.description === 'true' : true;
+    return res.json({ allowed });
+  } catch (err) {
+    console.error('Delivery setting error', err);
+    return res.json({ allowed: true });
+  }
+});
+
+// Admin: POST /api/admin/settings/delivery - toggle delivery allowed
+app.post('/api/admin/settings/delivery', authMiddleware, async (req, res) => {
+  try {
+    if (!isAdmin(req.auth.email)) return res.status(403).json({ message: 'Admin access required' });
+    if (!supabaseAdmin) return res.status(500).json({ message: 'Supabase not configured' });
+    const { allowed } = req.body;
+    const { error } = await supabaseAdmin
+      .from('product_overrides')
+      .upsert([{
+        tab_key: 'system',
+        product_id: 'delivery_allowed',
+        description: allowed ? 'true' : 'false',
+        name: 'Delivery Toggle',
+        updated_at: new Date().toISOString()
+      }], { onConflict: 'tab_key,product_id' });
+    if (error) {
+      console.error('Update delivery setting error:', error);
+      return res.status(500).json({ message: 'Failed to update' });
+    }
+    return res.json({ success: true, allowed: !!allowed });
+  } catch (err) {
+    console.error('Delivery toggle error', err);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 

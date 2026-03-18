@@ -198,10 +198,22 @@ export default function ResellSeller() {
     try {
       await api.delete(`/api/resell/items/${itemId}`);
       toast.success('Listing deleted successfully');
-      await loadItems();
+      loadItems();
     } catch (err) {
       console.error('Failed to delete listing:', err);
       toast.error(err.response?.data?.message || 'Failed to delete listing');
+    }
+  }
+
+  async function handlePermanentDelete(itemId) {
+    if (!window.confirm('Are you sure you want to PERMANENTLY delete this listing? This cannot be undone.')) return;
+    try {
+      await api.delete(`/api/resell/items/${itemId}/permanent`);
+      toast.success('Listing permanently deleted');
+      loadItems();
+    } catch (err) {
+      console.error('Failed to permanently delete listing:', err);
+      toast.error(err.response?.data?.message || 'Failed to permanently delete listing');
     }
   }
 
@@ -348,7 +360,7 @@ export default function ResellSeller() {
               <span style={{ fontSize: '0.6rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: 'var(--accent, #ec5b13)' }}>Your Marketplace</span>
             </div>
             <h2 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 0.95, textTransform: 'uppercase' }}>
-              My <span style={{ background: 'linear-gradient(to right, var(--accent, #ec5b13), #ff8c42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Listings</span>
+              My <span style={{ background: 'linear-gradient(to right, #1a1a1a, #6b7280)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Listings</span>
             </h2>
             <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
               {items.length} active · {pastItems.length} past
@@ -541,13 +553,22 @@ export default function ResellSeller() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    className="btn btn--primary"
-                    onClick={(e) => { e.stopPropagation(); handleRelist(item.id); }}
-                    style={{ position: 'absolute', top: 8, right: 8, padding: '4px 14px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 8, zIndex: 2 }}
-                  >
-                    Relist
-                  </button>
+                  <div className="listing-card-actions" style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 2 }}>
+                    <button
+                      className="btn btn--primary"
+                      onClick={(e) => { e.stopPropagation(); handleRelist(item.id); }}
+                      style={{ padding: '4px 14px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 8 }}
+                    >
+                      Relist
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handlePermanentDelete(item.id); }}
+                      style={{ padding: '4px 14px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 8, background: 'rgba(220,38,38,0.9)', color: '#fff', border: 'none', cursor: 'pointer' }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             );

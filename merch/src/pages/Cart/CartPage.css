@@ -62,7 +62,7 @@
 }
 
 .cart-title__gradient {
-  background: linear-gradient(to right, var(--accent, #ec5b13), #ff8c42);
+  background: linear-gradient(to right, #1a1a1a, #6b7280);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
