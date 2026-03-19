@@ -117,6 +117,8 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .acct-btn{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
 
 .main-content{display:flex;flex-direction:column;align-items:center;gap:24px;padding:32px 40px;width:100%;max-width:1320px;margin:0 auto;flex:1}
+.app-root.theme-default .main-content{padding:0 !important;gap:0 !important;max-width:100% !important;width:100% !important;margin:0 !important}
+.main-content--home{padding-top:0;gap:0;max-width:100%}
 
 .hero{background:var(--g-hero,linear-gradient(180deg,var(--hero-grad-start),var(--hero-grad-end)));border-radius:var(--r-md,12px);padding:36px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(16,24,40,0.04);position:relative;overflow:hidden}
 .hero-title{font-size:2rem;margin:0 0 8px;font-weight:700}

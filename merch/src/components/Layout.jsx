@@ -574,7 +574,7 @@ export default function Layout({ children, cartCount = 0 }) {
           </div>
       </header>
 
-      <main className="main-content">
+      <main className={`main-content ${location.pathname === "/" ? "main-content--home" : ""}`}>
         {children}
       </main>
 
