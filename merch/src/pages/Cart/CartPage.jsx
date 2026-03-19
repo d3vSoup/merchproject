@@ -36,7 +36,10 @@ export default function CartPage() {
 
   useEffect(() => {
     localStorage.setItem('cart_wants_delivery', wantsDelivery);
-  }, [wantsDelivery]);
+    if (user) {
+      api.post('/api/user/delivery-preference', { wantsDelivery }).catch(console.warn);
+    }
+  }, [wantsDelivery, user]);
 
   useEffect(() => {
     localStorage.setItem('cart_delivery_address', deliveryAddress);

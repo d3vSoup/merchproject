@@ -2365,7 +2365,9 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
           ? cart.name
           : (email !== 'Unknown' ? email.split('@')[0] : 'Unknown');
         const usn = (cart.usn && cart.usn.trim()) ? cart.usn : null;
-        
+        const userRec = usersMap[cart.userId];
+        const wantsDelivery = userRec ? userRec.wants_delivery : false;
+
         allOrders.push({
           id: `cart-${cart.userId}`, // Unique ID per user
           type: 'cart',
@@ -2374,6 +2376,8 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
           name,
           usn,
           items: cart.items,
+          is_delivery: wantsDelivery,
+          delivery_charge: wantsDelivery ? 100 : 0,
           paymentStatus: 'pending',
           createdAt: new Date().toISOString()
         });

@@ -579,7 +579,8 @@ export default function EventPage() {
           const isProductLimited = isLimited(itemKey);
           const cartItem = findCartItem(eventKey, product.id, variant);
           const quantity = cartItem?.quantity || 0;
-          const showLimitedBadge = showCountdown && idx === 0 && !isProductSoldOut;
+          const showFeaturedLayout = showCountdown && idx === 0 && !isProductSoldOut;
+          const showBlackLimitedBadge = isProductLimited && !isProductSoldOut;
 
           return (
             <FadeInSection key={productKey} as="div" className="product-grid__card">
@@ -596,7 +597,7 @@ export default function EventPage() {
               className="product-card-glare"
             >
             <article
-              className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showLimitedBadge ? "product-card--featured" : ""}`}
+              className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showFeaturedLayout ? "product-card--featured" : ""}`}
               data-product-key={productKey}
               style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
             >
@@ -608,11 +609,9 @@ export default function EventPage() {
                     : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`,
                   cursor: isProductSoldOut ? 'not-allowed' : 'pointer'
                 }}
-                onClick={() => !isProductSoldOut && setSelectedProduct(product)}
               >
-                {showLimitedBadge && <span className="product-card__badge-tag">Limited</span>}
+                {showBlackLimitedBadge && <span className="product-card__badge-tag" style={{ textTransform: 'uppercase' }}>LIMITED</span>}
                 {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
-                {!isProductSoldOut && isProductLimited && <div className="limited-overlay" style={{ position: 'absolute', top: '10px', right: '10px', background: '#FF6B00', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 10, letterSpacing: '1px' }}>LIMITED</div>}
                 {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                 <WishlistHeart
                   tabKey={eventKey}

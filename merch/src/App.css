@@ -440,12 +440,13 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .admin-product-name{font-weight:700;font-size:0.95rem}
 .admin-product-price{font-size:0.9rem;color:var(--muted)}
 .admin-product-availability label{display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer}
-.admin-edit-modal{position:fixed;inset:0;background:transparent;display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;pointer-events:none}
+.admin-edit-modal{position:fixed;inset:0;background:transparent;display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;pointer-events:auto}
 .admin-edit-content{background:#fff;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;pointer-events:auto;box-shadow:0 32px 64px -12px rgba(0,0,0,0.25),0 0 0 1px rgba(0,0,0,0.06)}
 .admin-edit-content h3{margin:0 0 20px;font-size:1.2rem;font-weight:700}
 .admin-edit-form{display:flex;flex-direction:column;gap:16px}
 .admin-edit-form label{display:flex;flex-direction:column;gap:6px;font-size:0.9rem;font-weight:600}
 .admin-edit-form input{padding:10px 12px;border:1px solid rgba(0,0,0,0.1);border-radius:8px;font-size:0.9rem}
+.admin-page input[type="checkbox"], .admin-edit-modal input[type="checkbox"] { outline: 1.5px solid black; cursor: pointer; }
 .admin-edit-actions{display:flex;gap:12px;margin-top:8px}
 .admin-orders-header{display:flex;gap:12px;margin-bottom:20px;align-items:center}
 .admin-orders-tabs{display:flex;gap:8px;margin-left:auto}

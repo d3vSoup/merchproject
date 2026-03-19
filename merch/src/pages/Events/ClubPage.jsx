@@ -554,8 +554,8 @@ export default function ClubPage() {
                     }}
                     onClick={() => !isProductSoldOut && setSelectedProduct(product)}
                   >
+                    {isProductLimited && !isProductSoldOut && <span className="product-card__badge-tag" style={{ textTransform: 'uppercase' }}>LIMITED</span>}
                     {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
-                    {!isProductSoldOut && isProductLimited && <div className="limited-overlay" style={{ position: 'absolute', top: '10px', right: '10px', background: '#FF6B00', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 10, letterSpacing: '1px' }}>LIMITED</div>}
                     {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
                     <WishlistHeart
                       tabKey="club"

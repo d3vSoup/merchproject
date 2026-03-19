@@ -132,8 +132,9 @@ export default function Landing() {
             </span>
             <img 
               src="/assets/star-logo.jpeg" 
-              alt="ALMA Check Sticker" 
-              className="w-24 h-24 md:w-36 md:h-36 object-contain z-40 transform rotate-[15deg] mix-blend-screen opacity-90 drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] mb-0 -mb-12 relative" 
+              alt="ALMA Star Logo" 
+              className="w-24 h-24 md:w-32 md:h-32 object-contain z-40 mix-blend-lighten opacity-90 drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] rounded-full mx-auto mb-4 relative" 
+              style={{ filter: 'invert(1)' }}
             />
             <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative z-30">
               ALMA<br/><span className="text-[#FF6B00]">STORE</span>
