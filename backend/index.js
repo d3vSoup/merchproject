@@ -268,7 +268,7 @@ function normVariant(v) {
 
 // -------------- Auth helpers --------------
 function signJwt(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' });
 }
 
 // Enhanced auth middleware: verifies JWT and loads Supabase user ID
@@ -2059,6 +2059,7 @@ const { data: confirmedOrder, error: orderErr } = await supabaseAdmin
       user_usn: sbUser?.usn || "-",
       user_phone: sbUser?.phone || "-",
       is_delivery: isDelivery || false,
+      delivery_charge: isDelivery ? 100 : 0,
       delivery_address: isDelivery ? (typeof deliveryAddress === 'object' ? (deliveryAddress?.address || null) : (deliveryAddress || null)) : null,
       delivery_maps_link: isDelivery && typeof deliveryAddress === 'object' ? (deliveryAddress?.mapsLink || null) : null,
     }
@@ -2124,7 +2125,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
     // Get all confirmed orders - fetch separately and join manually
     const { data: confirmedOrders, error: confirmedError } = await supabaseAdmin
       .from('confirmed_orders')
-      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address, delivery_maps_link')
+      .select('id, order_number, items, total_amount, payment_status, created_at, user_id, user_name, user_email, user_usn, user_phone, is_delivery, delivery_address, delivery_maps_link, delivery_charge')
       .order('created_at', { ascending: false });
 
     // Get all cart items (dummy orders) - fetch separately and join manually
@@ -2284,6 +2285,7 @@ app.get('/api/admin/orders', authMiddleware, async (req, res) => {
           is_delivery: order.is_delivery || false,
           delivery_address: order.delivery_address || null,
           delivery_maps_link: order.delivery_maps_link || null,
+          delivery_charge: order.delivery_charge != null ? order.delivery_charge : (order.is_delivery ? 100 : 0),
         });
       });
     }

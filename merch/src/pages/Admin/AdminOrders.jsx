@@ -118,10 +118,20 @@ export default function AdminOrders() {
             description
           };
         });
+        // For confirmed orders, use the total_amount from DB (already includes delivery)
+        // For cart items, recalculate from item prices
+        const isConfirmedOrder = order.type === 'confirmed_order';
+        const deliveryCharge = order.delivery_charge != null ? order.delivery_charge : (order.is_delivery ? 100 : 0);
+        const itemsTotal = enrichedItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+        const totalAmount = isConfirmedOrder
+          ? order.totalAmount // Use the stored DB total (includes delivery)
+          : itemsTotal;
         return {
           ...order,
           items: enrichedItems,
-          totalAmount: enrichedItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0)
+          totalAmount,
+          itemsTotal,   // items-only total for display breakdown
+          delivery_charge: deliveryCharge,
         };
       };
       
@@ -399,8 +409,11 @@ export default function AdminOrders() {
                     <td>
                       <span className="admin-order-price" style={order.is_delivery ? { color: '#ef4444', fontWeight: 'bold' } : {}}>
                         {order.type === 'resell_listing' ? (order.items[0]?.priceRange || 'TBD') : (
-                          order.is_delivery
-                            ? `${formatPrice((isNaN(total) ? 0 : total) - 100)} + 100`
+                          order.is_delivery && order.delivery_charge > 0
+                            ? <span>
+                                {formatPrice(isNaN(order.itemsTotal) ? (total - (order.delivery_charge || 100)) : order.itemsTotal)}
+                                <span style={{ color: '#ef4444' }}> + {formatPrice(order.delivery_charge || 100)}</span>
+                              </span>
                             : formatPrice(isNaN(total) ? 0 : total)
                         )}
                       </span>

@@ -445,6 +445,48 @@ export default function AdminItems() {
         <p>Manage products, hero banners, and event configurations.</p>
       </div>
 
+      {/* Global Delivery Toggle */}
+      <div className="admin-delivery-toggle-banner" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '16px',
+        padding: '14px 20px',
+        background: deliveryAllowed ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+        border: `1px solid ${deliveryAllowed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+        borderRadius: '12px',
+        marginBottom: '16px',
+      }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: deliveryAllowed ? '#16a34a' : '#dc2626' }}>
+            {deliveryAllowed ? '🚚 Delivery is currently ENABLED' : '🚫 Delivery is currently DISABLED'}
+          </div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)', marginTop: '2px' }}>
+            {deliveryAllowed
+              ? 'Users can select delivery at checkout. Toggle off to grey out the delivery option for all users.'
+              : 'The delivery checkbox is greyed out for all users. Toggle on to re-enable.'}
+          </div>
+        </div>
+        <button
+          className={`admin-btn ${deliveryAllowed ? 'admin-btn--danger' : 'admin-btn--primary'}`}
+          style={{ flexShrink: 0, minWidth: 130 }}
+          onClick={async () => {
+            const newValue = !deliveryAllowed;
+            const prev = deliveryAllowed;
+            setDeliveryAllowed(newValue);
+            try {
+              await api.post('/api/admin/settings/delivery', { allowed: newValue });
+              toast.success(newValue ? 'Delivery enabled for all users' : 'Delivery disabled for all users');
+            } catch (err) {
+              setDeliveryAllowed(prev);
+              toast.error('Failed to update delivery setting');
+            }
+          }}
+        >
+          {deliveryAllowed ? 'Disable Delivery' : 'Enable Delivery'}
+        </button>
+      </div>
+
       <div className="admin-orders-controls">
         <div className="admin-orders-tabs">
           {TABS.map(tab => (
