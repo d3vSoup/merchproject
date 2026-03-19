@@ -23,10 +23,28 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [productOverrides, setProductOverrides] = useState({});
   const [sortBy, changeSort] = useSortPreference('cart_sort', 'price_asc');
-  const [wantsDelivery, setWantsDelivery] = useState(false);
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryMapsLink, setDeliveryMapsLink] = useState('');
+  const [wantsDelivery, setWantsDelivery] = useState(() => {
+    return localStorage.getItem('cart_wants_delivery') === 'true';
+  });
+  const [deliveryAddress, setDeliveryAddress] = useState(() => {
+    return localStorage.getItem('cart_delivery_address') || '';
+  });
+  const [deliveryMapsLink, setDeliveryMapsLink] = useState(() => {
+    return localStorage.getItem('cart_delivery_maps') || '';
+  });
   const [deliveryAllowed, setDeliveryAllowed] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem('cart_wants_delivery', wantsDelivery);
+  }, [wantsDelivery]);
+
+  useEffect(() => {
+    localStorage.setItem('cart_delivery_address', deliveryAddress);
+  }, [deliveryAddress]);
+
+  useEffect(() => {
+    localStorage.setItem('cart_delivery_maps', deliveryMapsLink);
+  }, [deliveryMapsLink]);
 
   useEffect(() => {
     let mounted = true;
@@ -169,7 +187,7 @@ export default function CartPage() {
     const newQuantity = Math.max(0, item.quantity + delta);
     // Optimistic UI update
     setCartItems(prev => prev.map(cItem => 
-      (cItem.productId === item.productId && cItem.variant === item.variant) 
+      (cItem.tabKey === item.tabKey && cItem.productId === item.productId && cItem.variant === item.variant && cItem.clubOrDept === item.clubOrDept) 
         ? { ...cItem, quantity: newQuantity } 
         : cItem
     ).filter(cItem => cItem.quantity > 0));
@@ -202,7 +220,7 @@ export default function CartPage() {
     
     // Optimistic UI update
     setCartItems(prev => prev.filter(cItem => 
-      !(cItem.productId === item.productId && cItem.variant === item.variant)
+      !(cItem.tabKey === item.tabKey && cItem.productId === item.productId && cItem.variant === item.variant && cItem.clubOrDept === item.clubOrDept)
     ));
 
     try {

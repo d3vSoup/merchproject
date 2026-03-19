@@ -319,7 +319,7 @@ export default function Layout({ children, cartCount = 0 }) {
                 }}
               >
                 {(tab.catalogKey || tab.key === "resell") ? (
-                  <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
+                  <GradientText colors={["#1a1a1a", "#6b7280", "#9ca3af"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
                     {tab.label}
                   </GradientText>
                 ) : (
@@ -366,7 +366,7 @@ export default function Layout({ children, cartCount = 0 }) {
                 className={`tab ${activeTab === tab.key ? "tab--active" : ""}`}
               >
                 {(tab.catalogKey || tab.key === "resell") ? (
-                  <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
+                  <GradientText colors={["#1a1a1a", "#6b7280", "#9ca3af"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
                     {tab.label}
                   </GradientText>
                 ) : (

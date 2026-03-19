@@ -362,7 +362,7 @@ export default function ResellBuyer() {
     <div className="resell-buyer">
       <div className="resell-buyer__header">
         <h2 className="resell-buyer__title">
-          <GradientText colors={["#1a1a1a", "#4b5563", "#9ca3af"]} animationSpeed={8} showBorder={false}>
+          <GradientText colors={["#5227FF", "#FF9FFC", "#B19EEF"]} animationSpeed={8} showBorder={false}>
             Revault Marketplace
           </GradientText>
         </h2>
