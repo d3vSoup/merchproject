@@ -130,12 +130,6 @@ export default function Landing() {
             <span className="bg-white/20 backdrop-blur-xl text-white px-5 py-2 rounded-full font-bold tracking-[0.2em] uppercase text-[10px] mb-4 shadow-2xl block mx-auto border border-white/40 text-center" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)', width: 'fit-content' }}>
               Official Merchandise
             </span>
-            <img 
-              src="/assets/star-logo.jpeg" 
-              alt="ALMA Star Logo" 
-              className="w-24 h-24 md:w-32 md:h-32 object-contain z-40 mix-blend-lighten opacity-90 drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)] rounded-full mx-auto mb-4 relative" 
-              style={{ filter: 'invert(1)' }}
-            />
             <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative z-30">
               ALMA<br/><span className="text-[#FF6B00]">STORE</span>
             </h1>
