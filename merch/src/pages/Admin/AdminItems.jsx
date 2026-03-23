@@ -103,6 +103,21 @@ export default function AdminItems() {
     localStorage.setItem('admin_event_statuses', JSON.stringify(eventStatuses));
   }, [eventStatuses]);
 
+  // Handle edit popover collision detection (flip left if no right space)
+  useEffect(() => {
+    if (editingProduct) {
+      setTimeout(() => {
+        const popover = document.querySelector('.admin-edit-popover');
+        if (popover) {
+          const rect = popover.getBoundingClientRect();
+          if (rect.right > (window.innerWidth || document.documentElement.clientWidth)) {
+            popover.classList.add('popover-left');
+          }
+        }
+      }, 50);
+    }
+  }, [editingProduct]);
+
   // Fetch delivery setting
   useEffect(() => {
     api.get('/api/settings/delivery').then(res => {
@@ -1153,10 +1168,12 @@ export default function AdminItems() {
                 const finalSoldOut = isCategorySoldOut || isSoldOut || (!currentCategory && eventStatuses[selectedTab]?.soldOut);
                 const finalLimited = currentCategory ? limitedItems[categoryKey] : isItemLimited;
                 const isHidden = !!product.hidden;
+                const isEditingThis = editingProduct?.id === product.id;
                 
                 return (
-                  <div key={product.id} className={`admin-item-card ${isHidden ? 'is-hidden' : ''}`}>
-                    <div className="admin-item-card__image">
+                  <div key={product.id} className="admin-item-card-wrapper">
+                    <div className={`admin-item-card ${isHidden ? 'is-hidden' : ''} ${isEditingThis ? 'is-editing' : ''}`}>
+                      <div className="admin-item-card__image">
                       {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.name} />
                       ) : (
@@ -1309,7 +1326,83 @@ export default function AdminItems() {
                           )}
                         </div>
                       </div>
+                      </div>
                     </div>
+                    
+                    {isEditingThis && (
+                      <div className="admin-edit-popover" onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Edit Product</h3>
+                          <button className="admin-icon-btn" onClick={() => setEditingProduct(null)}>
+                            <span className="material-symbols-outlined">close</span>
+                          </button>
+                        </div>
+                        <div className="admin-edit-form">
+                          <label>
+                            Primary Image URL
+                            <input
+                              type="text"
+                              value={editingProduct.imageUrl || ""}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
+                              placeholder="https://..."
+                            />
+                          </label>
+                          <label>
+                            Name
+                            <input
+                              type="text"
+                              value={editingProduct.name || ""}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Price (₹)
+                            <input
+                              type="number"
+                              value={editingProduct.price || 0}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
+                            />
+                          </label>
+                          <label>
+                            Description
+                            <textarea
+                              value={editingProduct.description || ""}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                              rows={3}
+                            />
+                          </label>
+                          <div className="admin-edit-actions" style={{ marginTop: '12px' }}>
+                            <button
+                              className="btn btn--primary"
+                              disabled={uploadingImage}
+                              style={{ width: '100%', justifyContent: 'center' }}
+                              onClick={async () => {
+                                try {
+                                  // Optimistic UI update
+                                  setEditableCatalog(prev => {
+                                    const updated = { ...prev };
+                                    const tab = editingProduct.tabKey;
+                                    updated[tab] = updated[tab].map(p => 
+                                      p.id === editingProduct.id ? editingProduct : p
+                                    );
+                                    return updated;
+                                  });
+                                  
+                                  await saveCatalogOverride(editingProduct);
+                                  toast.success('Product updated');
+                                  setEditingProduct(null);
+                                  await fetchOverrides();
+                                } catch (err) {
+                                  toast.error('Failed to save changes');
+                                }
+                              }}
+                            >
+                              Save Changes
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1317,120 +1410,7 @@ export default function AdminItems() {
           </div>
         )}
 
-        {editingProduct && (
-          <div className="admin-edit-modal" onClick={() => setEditingProduct(null)}>
-            <div className="admin-edit-content" onClick={(e) => e.stopPropagation()}>
-              <h3>Edit Product</h3>
-              <div className="admin-edit-form">
-                <label>
-                  Primary Image URL
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="text"
-                      value={editingProduct.imageUrl || ""}
-                      onChange={(e) => setEditingProduct({ ...editingProduct, imageUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                    <label className="btn btn--ghost" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                      Upload
-                      <input 
-                        type="file" 
-                        style={{ display: 'none' }} 
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingImage(true);
-                          try {
-                            const formData = new FormData();
-                            formData.append('image', file);
-                            const res = await api.post('/api/resell/upload-image', formData, {
-                              headers: { 'Content-Type': 'multipart/form-data' }
-                            });
-                            if (res.data?.url) {
-                              setEditingProduct({ ...editingProduct, imageUrl: res.data.url });
-                              toast.success('Image uploaded successfully');
-                            }
-                          } catch (err) {
-                            toast.error('Failed to upload image');
-                          } finally {
-                            setUploadingImage(false);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </label>
-                <label>
-                  Name
-                  <input
-                    type="text"
-                    value={editingProduct.name || ""}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Price (₹)
-                  <input
-                    type="number"
-                    value={editingProduct.price || 0}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) || 0 })}
-                  />
-                </label>
-                <label>
-                  Description
-                  <textarea
-                    value={editingProduct.description || ""}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
-                  />
-                </label>
-                <label>
-                  Additional Images (URLs, one per line)
-                  <textarea
-                    value={(editingProduct.images || []).join('\n')}
-                    onChange={(e) => {
-                      const urls = e.target.value.split('\n').filter(url => url.trim());
-                      setEditingProduct({ ...editingProduct, images: urls });
-                    }}
-                    rows={4}
-                    placeholder="https://example.com/image1.jpg"
-                  />
-                </label>
-                <div className="admin-edit-actions">
-                  <button
-                    className="btn btn--primary"
-                    disabled={uploadingImage}
-                    onClick={async () => {
-                      try {
-                        // Optimistic UI update
-                        setEditableCatalog(prev => {
-                          const updated = { ...prev };
-                          const tab = editingProduct.tabKey;
-                          updated[tab] = updated[tab].map(p => 
-                            p.id === editingProduct.id ? editingProduct : p
-                          );
-                          return updated;
-                        });
-                        
-                        await saveCatalogOverride(editingProduct);
-                        toast.success('Product updated');
-                        setEditingProduct(null);
-                        await fetchOverrides();
-                      } catch (err) {
-                        toast.error('Failed to save changes');
-                      }
-                    }}
-                  >
-                    Save Changes
-                  </button>
-                  <button className="btn btn--ghost" onClick={() => setEditingProduct(null)}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {addingProduct && (
           <div className="admin-edit-modal" onClick={() => setAddingProduct(false)}>

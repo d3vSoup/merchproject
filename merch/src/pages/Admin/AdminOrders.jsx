@@ -1,5 +1,5 @@
 // src/pages/Admin/AdminOrders.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api";
 import toast from "react-hot-toast";
@@ -17,7 +17,19 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(false);
   const [productOverrides, setProductOverrides] = useState({});
   const [selectedOrder, setSelectedOrder] = useState(null);
-  
+  const expandedRowRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (selectedOrder && expandedRowRef.current && !expandedRowRef.current.contains(e.target)) {
+        if (e.target.closest('.admin-icon-btn[title="View Details"]')) return;
+        setSelectedOrder(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedOrder]);
+
   // Auto-load orders on mount
   useEffect(() => {
     loadProductOverrides();
@@ -361,7 +373,8 @@ export default function AdminOrders() {
                 const isSoldOut = order.paymentStatus === 'soldout' || order.type === 'soldout';
                 
                 return (
-                  <tr key={order.id || idx} className={isSoldOut ? 'row-muted' : ''}>
+                  <React.Fragment key={order.id || idx}>
+                    <tr className={isSoldOut ? 'row-muted' : ''}>
                     <td>
                       <div className="admin-user-cell">
                         <span className="admin-user-name">
@@ -441,9 +454,11 @@ export default function AdminOrders() {
                         <button 
                           className="admin-icon-btn admin-icon-btn--sm" 
                           title="View Details"
-                          onClick={() => setSelectedOrder(order)}
+                          onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
                         >
-                          <span className="material-symbols-outlined">visibility</span>
+                          <span className="material-symbols-outlined">
+                            {selectedOrder?.id === order.id ? 'expand_less' : 'visibility'}
+                          </span>
                         </button>
                         <button className="admin-icon-btn admin-icon-btn--sm admin-icon-btn--danger" onClick={() => deleteOrder(order.id, order.email)} title="Delete">
                           <span className="material-symbols-outlined">delete</span>
@@ -451,89 +466,85 @@ export default function AdminOrders() {
                       </div>
                     </td>
                   </tr>
-                );
+                  
+                  {selectedOrder?.id === order.id && (
+                    <tr className="admin-order-expanded-row" ref={expandedRowRef}>
+                      <td colSpan={8} style={{ padding: 0, borderBottom: '1px solid var(--admin-border)' }}>
+                        <div className="admin-order-expanded-content" style={{ padding: '1.5rem', backgroundColor: '#fafafa', animation: 'slideDown 0.2s ease-out' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) minmax(250px, 1fr)', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid var(--admin-border)' }}>
+                            <div>
+                              <p style={{ margin: '0 0 0.5rem 0', color: 'var(--admin-text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>CUSTOMER INFO</p>
+                              <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{selectedOrder.name || 'Unknown'}</p>
+                              <p style={{ margin: '0 0 0.25rem 0' }}>{selectedOrder.email}</p>
+                              {selectedOrder.usn && <p style={{ margin: 0, color: 'var(--admin-text-muted)' }}>USN: {selectedOrder.usn}</p>}
+                              {selectedOrder.phone && <p style={{ margin: '0.25rem 0 0 0', color: 'var(--admin-text-muted)' }}>Phone: {selectedOrder.phone}</p>}
+                            </div>
+                            <div>
+                              <p style={{ margin: '0 0 0.5rem 0', color: 'var(--admin-text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>ORDER INFO</p>
+                              <p style={{ margin: '0 0 0.25rem 0' }}>Type: <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{selectedOrder.type.replace('_', ' ')}</span></p>
+                              {selectedOrder.orderNumber && <p style={{ margin: '0 0 0.25rem 0' }}>Order #: <strong>{selectedOrder.orderNumber}</strong></p>}
+                              <p style={{ margin: '0 0 0.25rem 0' }}>Payment: <span style={{ textTransform: 'capitalize' }}>{selectedOrder.paymentStatus || 'N/A'}</span></p>
+                              {selectedOrder.created_at && <p style={{ margin: 0, color: 'var(--admin-text-muted)' }}>Date: {new Date(selectedOrder.created_at).toLocaleString()}</p>}
+                            </div>
+                          </div>
+
+                          {selectedOrder.is_delivery && (
+                            <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
+                              <p style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>📦 DELIVERY ORDER</p>
+                              {selectedOrder.delivery_address && <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}><strong>Address:</strong> {selectedOrder.delivery_address}</p>}
+                              {selectedOrder.delivery_charge != null && <p style={{ margin: 0, fontSize: '0.9rem', color: '#ef4444', fontWeight: 700 }}>Delivery Charge: +{formatPrice(selectedOrder.delivery_charge)}</p>}
+                            </div>
+                          )}
+
+                          <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.5rem' }}>Items ({selectedOrder.items.length})</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {selectedOrder.items.map((item, i) => (
+                              <div key={i} style={{ display: 'flex', gap: '1rem', padding: '1rem', backgroundColor: '#ffffff', border: '1px dashed var(--admin-border)', borderRadius: '8px', alignItems: 'center' }}>
+                                <div style={{ width: '60px', height: '60px', backgroundColor: 'var(--admin-bg)', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
+                                  {item.imageUrl ? (
+                                    <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--admin-text-muted)' }}>
+                                      <span className="material-symbols-outlined">image</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                  <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{item.name || 'Unknown Product'}</p>
+                                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>
+                                    Variant: {item.variant || 'Standard'} | Event: {item.tabKey || 'N/A'}
+                                  </p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                  <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{formatPrice(item.price)}</p>
+                                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>Qty: {item.quantity || 1}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {selectedOrder.is_delivery && selectedOrder.delivery_charge != null && (
+                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--admin-border)', display: 'flex', justifyContent: 'flex-end', gap: '2rem', alignItems: 'center' }}>
+                              <span style={{ color: '#ef4444', fontWeight: 700 }}>+{formatPrice(selectedOrder.delivery_charge)} delivery</span>
+                            </div>
+                          )}
+                          
+                          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button className="btn btn--ghost" onClick={() => setSelectedOrder(null)}>Hide Details</button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
               })}
             </tbody>
           </table>
         </div>
       )}
 
-      {selectedOrder && (
-        <div className="admin-edit-modal" onClick={() => setSelectedOrder(null)}>
-          <div className="admin-edit-content" style={{ maxWidth: '700px' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0 }}>Order Details</h3>
-              <button className="admin-icon-btn" onClick={() => setSelectedOrder(null)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--admin-bg)', borderRadius: '12px', border: '1px solid var(--admin-border)' }}>
-              <div>
-                <p style={{ margin: '0 0 0.5rem 0', color: 'var(--admin-text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>CUSTOMER INFO</p>
-                <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{selectedOrder.name || 'Unknown'}</p>
-                <p style={{ margin: '0 0 0.25rem 0' }}>{selectedOrder.email}</p>
-                {selectedOrder.usn && <p style={{ margin: 0, color: 'var(--admin-text-muted)' }}>USN: {selectedOrder.usn}</p>}
-                {selectedOrder.phone && <p style={{ margin: '0.25rem 0 0 0', color: 'var(--admin-text-muted)' }}>Phone: {selectedOrder.phone}</p>}
-              </div>
-              <div>
-                <p style={{ margin: '0 0 0.5rem 0', color: 'var(--admin-text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>ORDER INFO</p>
-                <p style={{ margin: '0 0 0.25rem 0' }}>Type: <span style={{ textTransform: 'capitalize', fontWeight: 600 }}>{selectedOrder.type.replace('_', ' ')}</span></p>
-                {selectedOrder.orderNumber && <p style={{ margin: '0 0 0.25rem 0' }}>Order #: <strong>{selectedOrder.orderNumber}</strong></p>}
-                <p style={{ margin: '0 0 0.25rem 0' }}>Payment: <span style={{ textTransform: 'capitalize' }}>{selectedOrder.paymentStatus || 'N/A'}</span></p>
-                {selectedOrder.created_at && <p style={{ margin: 0, color: 'var(--admin-text-muted)' }}>Date: {new Date(selectedOrder.created_at).toLocaleString()}</p>}
-              </div>
-            </div>
 
-            {/* Delivery Info */}
-            {selectedOrder.is_delivery && (
-              <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.15)' }}>
-                <p style={{ margin: '0 0 0.5rem 0', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>📦 DELIVERY ORDER</p>
-                {selectedOrder.delivery_address && <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}><strong>Address:</strong> {selectedOrder.delivery_address}</p>}
-                {selectedOrder.delivery_charge != null && <p style={{ margin: 0, fontSize: '0.9rem', color: '#ef4444', fontWeight: 700 }}>Delivery Charge: +{formatPrice(selectedOrder.delivery_charge)}</p>}
-              </div>
-            )}
-
-            <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.5rem' }}>Items ({selectedOrder.items.length})</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {selectedOrder.items.map((item, i) => (
-                <div key={i} style={{ display: 'flex', gap: '1rem', padding: '1rem', border: '1px dashed var(--admin-border)', borderRadius: '8px', alignItems: 'center' }}>
-                  <div style={{ width: '60px', height: '60px', backgroundColor: 'var(--admin-bg)', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--admin-text-muted)' }}>
-                        <span className="material-symbols-outlined">image</span>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{item.name || 'Unknown Product'}</p>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>
-                      Variant: {item.variant || 'Standard'} | Event: {item.tabKey || 'N/A'}
-                    </p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ margin: '0 0 0.25rem 0', fontWeight: 600 }}>{formatPrice(item.price)}</p>
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--admin-text-muted)' }}>Qty: {item.quantity || 1}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Total with delivery */}
-            {selectedOrder.is_delivery && selectedOrder.delivery_charge != null && (
-              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid var(--admin-border)', display: 'flex', justifyContent: 'flex-end', gap: '2rem', alignItems: 'center' }}>
-                <span style={{ color: '#ef4444', fontWeight: 700 }}>+{formatPrice(selectedOrder.delivery_charge)} delivery</span>
-              </div>
-            )}
-
-            <div className="admin-edit-actions">
-              <button className="btn btn--ghost" onClick={() => setSelectedOrder(null)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
