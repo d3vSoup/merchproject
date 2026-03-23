@@ -1,0 +1,47 @@
+.border-glow-container {
+  position: relative;
+  border-radius: var(--br, 16px);
+  padding: 1px; /* border width essentially */
+  overflow: hidden;
+  background: rgba(0,0,0,0.05); /* base border color if no hover */
+  isolation: isolate;
+  display: flex;
+}
+
+.border-glow-spotlight {
+  position: absolute;
+  inset: -2px; /* Slight overflow to ensure full coverage */
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.border-glow-inner {
+  position: relative;
+  background: var(--bg, transparent);
+  border-radius: calc(var(--br, 16px) - 1px);
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Optional animated border rotation if animated=true is passed */
+.border-glow-animated::before {
+  content: "";
+  position: absolute;
+  width: 250%;
+  height: 250%;
+  top: -75%;
+  left: -75%;
+  z-index: -2;
+  background: conic-gradient(from 0deg, transparent, rgba(192, 132, 252, 0.4), transparent 30%);
+  animation: bgRotate 4s linear infinite;
+}
+
+@keyframes bgRotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
