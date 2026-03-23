@@ -273,10 +273,15 @@
   }
   .admin-content-area {
     padding: 1rem 0.75rem;
-    overflow-x: visible;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
   }
   .admin-layout {
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
   .admin-page-header {
     margin-bottom: 1.25rem;

@@ -269,11 +269,14 @@
     gap: 0.75rem;
   }
   .admin-orders-tabs {
+    display: flex;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     gap: 0;
     border-radius: 16px;
     padding: 0.25rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   .admin-tab {
     font-size: 0.72rem;
@@ -286,20 +289,25 @@
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 0.5rem;
+    width: 100%;
   }
   .admin-orders-filter-bar {
+    display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    width: 100%;
   }
   .admin-orders-search {
-    min-width: 0;
     width: 100%;
+    box-sizing: border-box;
     border-radius: 16px;
     padding: 0.75rem 1rem;
   }
   .admin-orders-range {
+    display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    width: 100%;
   }
   .admin-orders-range input[type="date"] {
     font-size: 0.8rem;
