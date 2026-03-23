@@ -599,7 +599,8 @@ export default function EventPage() {
             <article
               className={`product-card ${isProductSoldOut ? "is-soldout" : ""} ${showFeaturedLayout ? "product-card--featured" : ""}`}
               data-product-key={productKey}
-              style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : {}}
+              style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : { cursor: 'pointer' }}
+              onClick={() => !isProductSoldOut && setSelectedProduct(product)}
             >
               <div
                 className="product-card__preview"
@@ -621,19 +622,31 @@ export default function EventPage() {
                 />
               </div>
               <div className="product-card__meta">
-                <h3 
-                  style={{ cursor: isProductSoldOut ? 'not-allowed' : 'pointer' }}
-                  onClick={() => !isProductSoldOut && setSelectedProduct(product)}
-                >
-                  {product.name}
-                </h3>
+                <h3>{product.name}</h3>
                 <p>{product.description}</p>
                 <div className="product-card__price-row">
                   <span className="product-card__price">{formatPrice(product.price)}</span>
                   <span className="product-card__badge">{currentTabLabel}</span>
+                  <button
+                    className="share-btn"
+                    type="button"
+                    title="Share"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const url = `${window.location.origin}/event/${eventKey}?product=${product.id}`;
+                      if (navigator.share) {
+                        navigator.share({ title: product.name, text: `Check out ${product.name} on ALMA Store!`, url });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        toast.success('Link copied!');
+                      }
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  </button>
                 </div>
                 {product.sleeveOptions && product.sleeveOptions.length > 1 && (
-                  <div className="variant-toggle" role="group" aria-label={`${product.name} sleeve`}>
+                  <div className="variant-toggle" role="group" aria-label={`${product.name} sleeve`} onClick={(e) => e.stopPropagation()}>
                     {product.sleeveOptions.map((opt) => (
                       <button
                         key={opt}
@@ -648,7 +661,7 @@ export default function EventPage() {
                   </div>
                 )}
               </div>
-              <div className="product-card__controls">
+              <div className="product-card__controls" onClick={(e) => e.stopPropagation()}>
                 <div className="qty-control">
                   <button
                     type="button"

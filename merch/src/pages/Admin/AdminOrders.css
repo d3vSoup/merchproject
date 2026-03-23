@@ -261,7 +261,7 @@
   animation: spin 1s linear infinite;
 }
 
-/* Mobile compact layout for phone screens */
+/* Mobile card layout — inspired by ALMA admin design */
 @media (max-width: 640px) {
   .admin-orders-controls {
     flex-direction: column;
@@ -272,15 +272,20 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     gap: 0;
+    border-radius: 16px;
+    padding: 0.25rem;
   }
   .admin-tab {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
+    font-size: 0.72rem;
+    padding: 0.5rem 0.75rem;
     white-space: nowrap;
     flex-shrink: 0;
+    border-radius: 12px;
   }
   .admin-orders-actions {
-    justify-content: flex-end;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
   .admin-orders-filter-bar {
     flex-direction: column;
@@ -289,6 +294,8 @@
   .admin-orders-search {
     min-width: 0;
     width: 100%;
+    border-radius: 16px;
+    padding: 0.75rem 1rem;
   }
   .admin-orders-range {
     flex-wrap: wrap;
@@ -296,58 +303,132 @@
   }
   .admin-orders-range input[type="date"] {
     font-size: 0.8rem;
-    padding: 0.4rem 0.5rem;
-  }
-  .admin-orders-table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0.6rem;
     border-radius: 12px;
   }
-  .admin-orders-table {
-    min-width: 580px;
+  .admin-orders-export-group {
+    border-radius: 12px;
   }
-  .admin-orders-table th,
-  .admin-orders-table td {
-    padding: 0.6rem 0.4rem;
+  .admin-orders-export-group button {
     font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  /* Transform table into card stack */
+  .admin-orders-table-wrapper {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+  .admin-orders-table {
+    min-width: 0;
+    width: 100%;
+    display: block;
+  }
+  .admin-orders-table thead {
+    display: none; /* hide column headers */
+  }
+  .admin-orders-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .admin-orders-table tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--admin-card-bg);
+    border-radius: 20px;
+    padding: 1rem 1rem 0.75rem;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.06);
+    border: 1px solid var(--admin-border);
+    gap: 0.5rem;
+    position: relative;
+  }
+  .admin-orders-table tr.row-muted {
+    opacity: 0.5;
+  }
+  .admin-orders-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    border: none;
+    font-size: 0.82rem;
+  }
+  .admin-orders-table td::before {
+    content: attr(data-label);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--admin-text-muted);
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  /* First cell (Customer) — large font, stacked */
+  .admin-orders-table td:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .admin-orders-table td:first-child::before {
+    display: none;
+  }
+  .admin-user-cell {
+    gap: 0.15rem;
   }
   .admin-user-name {
-    font-size: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 700;
   }
   .admin-user-email {
-    font-size: 0.6rem;
-    max-width: 120px;
+    font-size: 0.7rem;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .admin-type-badge {
-    font-size: 0.6rem;
-    padding: 0.1rem 0.35rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
   }
   .admin-order-id {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
   .admin-order-price {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 800;
   }
   .admin-status-select select {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+  }
+  .admin-items-count {
+    font-size: 0.8rem;
+  }
+  .admin-delivery-tag {
     font-size: 0.65rem;
-    padding: 0.25rem 0.4rem;
   }
-  .admin-orders-table {
-    min-width: 500px; /* Reduced min-width to better fit typical swipe area */
+  /* Actions row — spanning full width */
+  .admin-orders-table td:last-child {
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid var(--admin-border);
   }
-  .admin-orders-table-wrapper {
-    margin: 0 -0.5rem;
-    padding: 0 0.5rem;
+  .admin-orders-table td:last-child::before {
+    display: none;
   }
-  .admin-orders-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .admin-row-actions {
+    width: 100%;
+    justify-content: flex-end;
     gap: 0.5rem;
   }
-  .admin-orders-export-group button {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.4rem;
+  .admin-icon-btn--sm {
+    padding: 0.5rem;
+    border-radius: 10px;
   }
 }

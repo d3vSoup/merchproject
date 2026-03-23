@@ -38,10 +38,16 @@ export function AuthProvider({ children }) {
       const res = await api.get("/api/me");
       if (res?.data?.user) setUser(res.data.user);
     } catch (err) {
-      // token invalid or expired: sign out locally
-      console.warn("Failed to load /api/me", err?.response?.data || err.message || err);
-      setUser(null);
-      setToken(null);
+      // Only sign out if server explicitly says 401 (token invalid/expired)
+      // For network errors or 500s, keep the user signed in (fixes multi-device sign-in)
+      const status = err?.response?.status;
+      if (status === 401) {
+        console.warn("Token invalid/expired, signing out");
+        setUser(null);
+        setToken(null);
+      } else {
+        console.warn("Failed to load /api/me (keeping session)", err?.response?.data || err.message || err);
+      }
     } finally {
       setLoading(false);
     }
@@ -58,12 +64,20 @@ export function AuthProvider({ children }) {
       const res = await api.post("/api/auth/google", { id_token });
       const newToken = res.data.token;
       setToken(newToken);
-    setUser(res.data.user);
+      setUser(res.data.user);
       
-      // Profile is already loaded from backend (includes full Supabase profile)
-      // No need to call loadMe() again as the user object already has all profile data
+      // Fetch full profile from Supabase to get saved data from other devices
+      // This ensures name/usn/sem saved on device A appear on device B
+      try {
+        const meRes = await api.get("/api/me", {
+          headers: { Authorization: `Bearer ${newToken}` }
+        });
+        if (meRes?.data?.user) setUser(meRes.data.user);
+      } catch (meErr) {
+        console.warn('Could not fetch full profile after sign-in:', meErr.message);
+      }
       
-    return res.data.user;
+      return res.data.user;
     } catch (err) {
       console.error('Sign-in error:', err);
       throw err;

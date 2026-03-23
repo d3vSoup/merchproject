@@ -16,10 +16,10 @@ export default function ProfileCompletionPopup({ onOpenProfile }) {
     const dismissedKey = `profile_popup_dismissed_${user.email}`;
     const wasDismissed = localStorage.getItem(dismissedKey) === "true";
     
-    // Calculate profile percent from actual data (same logic as backend)
-    const profilePercent = (user.name && user.usn && user.sem) ? 100 : 50;
+    // Use server-provided profilePercent (authoritative, works across devices)
+    const profilePercent = user.profilePercent || 50;
     
-    // Only show for new users (profile < 100%) who haven't dismissed it
+    // Only show for users with incomplete profiles who haven't dismissed it
     if (profilePercent < 100 && !wasDismissed) {
       // Small delay to make it feel natural
       const timer = setTimeout(() => {
