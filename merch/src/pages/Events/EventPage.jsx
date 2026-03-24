@@ -465,7 +465,23 @@ export default function EventPage() {
     farouche: "Farouche",
   };
   const eventTitle = eventTitles[eventKey] || currentTabLabel;
-  const showCountdown = eventStatus.type === "countdown" && eventStatus.countdown;
+
+  // Auto-transition from countdown to ongoing when the time hits zero
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (eventStatus.type === "countdown" && eventStatus.countdown) {
+      const msLeft = new Date(eventStatus.countdown).getTime() - Date.now();
+      if (msLeft > 0) {
+        const timer = setTimeout(() => {
+          setNow(Date.now()); // Force re-render exactly when time runs out
+        }, msLeft);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [eventStatus]);
+
+  const isCountdownPast = eventStatus.type === "countdown" && eventStatus.countdown && new Date(eventStatus.countdown).getTime() <= now;
+  const showCountdown = eventStatus.type === "countdown" && eventStatus.countdown && !isCountdownPast;
   const isEventSoldOut = eventStatus.type === "soldout" || eventStatus.type === "over" || eventStatus.type === "no_new_releases";
 
   const mainStageHeadlines = [

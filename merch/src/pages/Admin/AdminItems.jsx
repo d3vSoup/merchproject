@@ -104,6 +104,26 @@ export default function AdminItems() {
     localStorage.setItem('admin_event_statuses', JSON.stringify(eventStatuses));
   }, [eventStatuses]);
 
+  // Auto-transition events from countdown to ongoing when their time hits zero
+  useEffect(() => {
+    const activeTimeouts = [];
+    Object.entries(eventStatuses).forEach(([tabKey, status]) => {
+      if (status.type === 'countdown' && status.countdown) {
+        const msLeft = new Date(status.countdown).getTime() - Date.now();
+        if (msLeft > 0) {
+          const t = setTimeout(() => {
+            setEventStatuses(prev => ({
+              ...prev,
+              [tabKey]: { ...prev[tabKey], type: 'ongoing' }
+            }));
+          }, msLeft);
+          activeTimeouts.push(t);
+        }
+      }
+    });
+    return () => activeTimeouts.forEach(clearTimeout);
+  }, [eventStatuses]);
+
   // Handle edit popover collision detection (flip left if no right space)
   useEffect(() => {
     if (editingProduct) {
@@ -187,12 +207,15 @@ export default function AdminItems() {
       // Sync event status from server so admin dropdown matches reality
       if (res.data?.eventStatus) {
         const serverEvt = res.data.eventStatus;
+        const isCountdownPast = serverEvt.type === 'countdown' && serverEvt.countdown && new Date(serverEvt.countdown) <= new Date();
+        const finalType = isCountdownPast ? 'ongoing' : (serverEvt.type || 'ongoing');
+        
         setEventStatuses(prev => ({
           ...prev,
           [selectedTab]: {
-            type: serverEvt.type || 'ongoing',
+            type: finalType,
             countdown: serverEvt.countdown || null,
-            soldOut: serverEvt.type === 'soldout' || serverEvt.type === 'over' || serverEvt.type === 'no_new_releases'
+            soldOut: finalType === 'soldout' || finalType === 'over' || finalType === 'no_new_releases'
           }
         }));
       }
