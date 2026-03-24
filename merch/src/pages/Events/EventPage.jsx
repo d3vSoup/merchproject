@@ -1,5 +1,5 @@
 // src/pages/Events/EventPage.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
@@ -44,6 +44,7 @@ export default function EventPage() {
   const [eventDetails, setEventDetails] = useState(null);
   const [heroCarouselIdx, setHeroCarouselIdx] = useState(0);
   const [trendingStatus, setTrendingStatus] = useState({});
+  const hasAutoOpened = useRef(false);
 
   // Removed localStorage dependency - countdown is now fetched from backend
 
@@ -350,13 +351,15 @@ export default function EventPage() {
 
   // Handle Deep Linking (Auto-open modal)
   useEffect(() => {
-    if (!loadingSoldOut && eventProducts.length > 0) {
+    if (!loadingSoldOut && eventProducts.length > 0 && !hasAutoOpened.current) {
       const params = new URLSearchParams(location.search);
       const productId = params.get('product');
       if (productId && !selectedProduct) {
         const item = eventProducts.find(p => String(p.id) === String(productId));
         if (item) {
           setSelectedProduct(item);
+          hasAutoOpened.current = true;
+          window.history.replaceState({}, '', window.location.pathname);
         }
       }
     }

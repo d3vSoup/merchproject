@@ -1,5 +1,5 @@
 // src/pages/Events/ClubPage.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
@@ -64,6 +64,7 @@ export default function ClubPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [trendingStatus, setTrendingStatus] = useState({});
   const [openMenu, setOpenMenu] = useState(null); // 'club' | 'dept' | null
+  const hasAutoOpened = useRef(false);
 
   // Load sold-out status from backend only (no localStorage fallback)
 
@@ -359,7 +360,7 @@ export default function ClubPage() {
 
   // Handle Deep Linking (Auto-open modal & select tab/category)
   useEffect(() => {
-    if (!loadingSoldOut && PRODUCT_CATALOG.club?.length > 0) {
+    if (!loadingSoldOut && PRODUCT_CATALOG.club?.length > 0 && !hasAutoOpened.current) {
       const params = new URLSearchParams(location.search);
       const tab = params.get('tab');
       const category = params.get('category');
@@ -386,6 +387,8 @@ export default function ClubPage() {
         const item = PRODUCT_CATALOG.club.find(p => String(p.id) === String(productId));
         if (item) {
           setSelectedProduct(item);
+          hasAutoOpened.current = true;
+          window.history.replaceState({}, '', window.location.pathname);
         }
       }
     }

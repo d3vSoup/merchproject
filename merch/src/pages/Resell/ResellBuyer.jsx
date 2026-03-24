@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import toast from "react-hot-toast";
@@ -135,6 +135,7 @@ function FeedbackItem({
 export default function ResellBuyer() {
   const { user } = useAuth();
   const location = useLocation();
+  const hasAutoOpened = useRef(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -198,13 +199,15 @@ export default function ResellBuyer() {
 
   // Handle Deep Linking (Auto-open modal)
   useEffect(() => {
-    if (!loading && items.length > 0) {
+    if (!loading && items.length > 0 && !hasAutoOpened.current) {
       const params = new URLSearchParams(location.search);
       const itemId = params.get('item');
       if (itemId && (!selectedItem || String(selectedItem.id) !== String(itemId))) {
         const item = items.find(i => String(i.id) === String(itemId));
         if (item) {
           handleItemClick(item);
+          hasAutoOpened.current = true;
+          window.history.replaceState({}, '', window.location.pathname);
         }
       }
     }
