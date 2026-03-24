@@ -19,14 +19,14 @@ import TextType from "../../components/ui/TextType";
 const formatPrice = (amount) => `₹${amount.toLocaleString("en-IN")}`;
 
 const CLUBS = [
-  "ACM CHAPTER", "AERO BMSCE", "AQUILLA AEROSPACE", "AUGMENT.AI", "BIG FOUNDATION", 
-  "BMSCE ALUMNI NETWORK", "BULLZ RACING", "BUSINESS INSIGHTS", "CHIRANTANA", "<CODE IO/>", 
-  "CORTECHS", "DANZ ADDIX", "DSYNC", "EEEA", "ELSOC", "FALCONS", "FINE ARTS CLUB", "GDSC", 
-  "GRADIENT", "THE GROOVE HOUSE", "IEEE", "IIC", "INKSANITY", "ISE STUDENT CLUB", "LEO SATVA", 
-  "MANUSMARAN", "MECHANICAL ENGG ASSC", "MELTON FOUNDATION", "MOUNTAINEERING CLUB", 
-  "MUNSOC", "NCC", "NINAAD", "NSS", "PARAMVAH", "PENTAGRAM", "PRAVRUTTHI", "PROTOCOL", 
-  "QCAINE", "RESPAWN", "ROBOTICS", "ROCKETRY CLUB", "ROTARACT", "SAMSKRUTHI SAMBHRAMA", 
-  "SENSORED", "SINGULARITY", "SYNAPSE", "TEAM PANACHE", "TEAMCODELOCKED", "UPAGRAHA", 
+  "ACM CHAPTER", "AERO BMSCE", "AQUILLA AEROSPACE", "AUGMENT.AI", "BIG FOUNDATION",
+  "BMSCE ALUMNI NETWORK", "BULLZ RACING", "BUSINESS INSIGHTS", "CHIRANTANA", "<CODE IO/>",
+  "CORTECHS", "DANZ ADDIX", "DSYNC", "EEEA", "ELSOC", "FALCONS", "FINE ARTS CLUB", "GDSC",
+  "GRADIENT", "THE GROOVE HOUSE", "IEEE", "IIC", "INKSANITY", "ISE STUDENT CLUB", "LEO SATVA",
+  "MANUSMARAN", "MECHANICAL ENGG ASSC", "MELTON FOUNDATION", "MOUNTAINEERING CLUB",
+  "MUNSOC", "NCC", "NINAAD", "NSS", "PARAMVAH", "PENTAGRAM", "PRAVRUTTHI", "PROTOCOL",
+  "QCAINE", "RESPAWN", "ROBOTICS", "ROCKETRY CLUB", "ROTARACT", "SAMSKRUTHI SAMBHRAMA",
+  "SENSORED", "SINGULARITY", "SYNAPSE", "TEAM PANACHE", "TEAMCODELOCKED", "UPAGRAHA",
   "VAK", "VARIANCE", "WAKAI OTAKU"
 ];
 
@@ -43,7 +43,7 @@ const IEEE_SUBCLUBS = [
 ];
 
 const DEPARTMENTS = [
-  "AEROSPACE", "AI-DS", "AIML", "BIOTECHNOLOGY", "CHEMICAL", "CIVIL", 
+  "AEROSPACE", "AI-DS", "AIML", "BIOTECHNOLOGY", "CHEMICAL", "CIVIL",
   "CS ALLIED", "CSE", "ECE", "EEE", "IEM", "MECHANICAL"
 ];
 
@@ -74,14 +74,14 @@ export default function ClubPage() {
     const fallbackTimer = setTimeout(() => {
       if (mounted) setLoadingSoldOut(false);
     }, maxWait);
-    
+
     async function fetchSoldOutFromServer() {
       if (!mounted) return;
       setLoadingSoldOut(true);
       try {
         const res = await api.get('/api/items/soldouts', { params: { tabKey: "club" } });
         if (!mounted) return;
-        
+
         const map = {};
         const limitMap = {};
         const statusMap = {};
@@ -90,33 +90,33 @@ export default function ClubPage() {
           // 1. Event status is soldout/over/no_new_releases (whole event unavailable for that club/dept)
           // 2. OR individual item is marked sold_out (even if event is ongoing)
           const eventStatus = item.event_status || 'ongoing';
-          const isEventUnavailable = 
-            eventStatus === "soldout" || 
-            eventStatus === "over" || 
+          const isEventUnavailable =
+            eventStatus === "soldout" ||
+            eventStatus === "over" ||
             eventStatus === "no_new_releases";
-          
+
           // Individual item sold_out flag
           const isItemSoldOut = item.sold_out === true;
           const isItemLimited = item.limited === true;
-          
+
           // Item is unavailable if:
           // - Event status makes it unavailable (soldout/over/no_new_releases), OR
           // - Item is individually marked as sold_out (regardless of event status)
           const isUnavailable = isEventUnavailable || isItemSoldOut;
-          
+
           if (!isUnavailable && !isItemLimited) return; // Skip if item is available and not limited
-          
+
           // Create multiple key variations to ensure matching works
           const variant = item.variant || null;
           const variantStr = variant || "standard";
           const clubOrDept = item.club_or_dept;
-          
+
           // Base keys (without club/dept)
           const baseKeyStandard = `club:${item.product_id}:standard`;
           const baseKeyNull = `club:${item.product_id}:null`;
           const baseKeyVariant = `club:${item.product_id}:${variantStr}`;
           const baseKeyNoVariant = `club:${item.product_id}`;
-          
+
           // If club/dept is specified, create keys with it
           if (clubOrDept) {
             // Keys with club/dept
@@ -147,7 +147,7 @@ export default function ClubPage() {
               limitMap[baseKeyNoVariant] = true;
             }
           }
-          
+
           // Store event status per club/dept
           if (clubOrDept && eventStatus !== "ongoing" && eventStatus !== "countdown") {
             statusMap[clubOrDept] = eventStatus;
@@ -174,7 +174,7 @@ export default function ClubPage() {
       try {
         const res = await api.get('/api/catalog/overrides', { params: { tabKey: 'club' } });
         if (!mounted) return;
-        
+
         const map = {};
         (res.data?.overrides || []).forEach((item) => {
           map[item.product_id] = item;
@@ -200,7 +200,7 @@ export default function ClubPage() {
         if (trendingOverride && trendingOverride.description) {
           try {
             setTrendingStatus(JSON.parse(trendingOverride.description));
-          } catch(e) {}
+          } catch (e) { }
         }
       } catch (err) {
         console.error('Failed to load trending status', err);
@@ -217,7 +217,7 @@ export default function ClubPage() {
         setLoadingSoldOut(false);
       }
     });
-    
+
     return () => {
       mounted = false;
       clearTimeout(fallbackTimer);
@@ -320,10 +320,10 @@ export default function ClubPage() {
 
     // Include club/dept in the cart item match
     const existing = cartItems.find(
-      item => item.tabKey === "club" && 
-              item.productId === product.id && 
-              (item.variant || null) === (variant || null) &&
-              (item.club_or_dept || null) === (currentCategory || null)
+      item => item.tabKey === "club" &&
+        item.productId === product.id &&
+        (item.variant || null) === (variant || null) &&
+        (item.club_or_dept || null) === (currentCategory || null)
     );
     const newQuantity = Math.max(0, (existing?.quantity || 0) + delta);
 
@@ -351,10 +351,10 @@ export default function ClubPage() {
   function findCartItem(productId, variant) {
     // Match including club/dept
     return cartItems.find(
-      item => item.tabKey === "club" && 
-              item.productId === productId && 
-              (item.variant || null) === (variant || null) &&
-              (item.club_or_dept || null) === (currentCategory || null)
+      item => item.tabKey === "club" &&
+        item.productId === productId &&
+        (item.variant || null) === (variant || null) &&
+        (item.club_or_dept || null) === (currentCategory || null)
     );
   }
 
@@ -489,7 +489,7 @@ export default function ClubPage() {
 
       {!currentCategory && (
         <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#6B7280', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.02))', borderRadius: '24px', margin: '2rem auto', maxWidth: '600px', border: '1px dashed rgba(0,0,0,0.1)' }}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#9CA3AF' }}><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#9CA3AF' }}><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /><rect width="20" height="14" x="2" y="6" rx="2" /></svg>
           <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#111827', margin: 0 }}>Select an Organization</h3>
           <p style={{ fontSize: '1.05rem', margin: 0, lineHeight: 1.6, maxWidth: '400px' }}>Use the <strong>CLUBS</strong> menu on the left or the <strong>DEPTS</strong> menu on the right to browse their exclusive merchandise collections.</p>
         </div>
@@ -501,9 +501,9 @@ export default function ClubPage() {
             <h3 className="event-collection-title">
               {currentCategory} Merchandise
               {trendingStatus[currentCategory] && (
-                <span 
+                <span
                   className="trending-tag"
-                  style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', display: 'inline-block', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} 
+                  style={{ color: '#ef4444', fontSize: 'clamp(1rem, 2vw, 1.3rem)', marginLeft: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', display: 'inline-block', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
                 >
                   Trending 🔥
                 </span>
@@ -516,170 +516,170 @@ export default function ClubPage() {
               <p>No products available for this category yet.</p>
             </div>
           ) : (
-          <div className="product-grid-wrapper">
-            <div className="product-grid">
-            {displayProducts.map((product) => {
-              const defaultVariant = product.sleeveOptions?.[0] || null;
-              const productKey = `club:${product.id}`;
-              const selectedVariant = productSelections[productKey] || defaultVariant;
-              const variant = selectedVariant;
-              
-              // Create multiple possible keys to check
-              const variantStr = variant || "standard";
-              const nullVariantKey = `club:${product.id}:null:${currentCategory}`;
-              const standardVariantKey = `club:${product.id}:standard:${currentCategory}`;
-              const actualVariantKey = `club:${product.id}:${variantStr}:${currentCategory}`;
-              const categoryKey = actualVariantKey;
-              
-              // Also check without variant
-              const baseCategoryKey = `club:${product.id}:${currentCategory}`;
-              const baseItemKey = `club:${product.id}:${variantStr}`;
-              const baseNullKey = `club:${product.id}:null`;
-              const baseStandardKey = `club:${product.id}:standard`;
-              
-              // Check if loading to avoid flashing
-              // Priority: category-specific keys > base keys > event status
-              const isProductSoldOut = loadingSoldOut ? false : (
-                soldOutItems[categoryKey] ||
-                soldOutItems[nullVariantKey] ||
-                soldOutItems[standardVariantKey] ||
-                soldOutItems[baseCategoryKey] ||
-                soldOutItems[baseItemKey] ||
-                soldOutItems[baseNullKey] ||
-                soldOutItems[baseStandardKey] ||
-                (clubStatuses[currentCategory] && (
-                  clubStatuses[currentCategory] === "soldout" || 
-                  clubStatuses[currentCategory] === "over" || 
-                  clubStatuses[currentCategory] === "no_new_releases"
-                ))
-              );
-              const isProductLimited = loadingSoldOut ? false : (
-                limitedItems[categoryKey] ||
-                limitedItems[nullVariantKey] ||
-                limitedItems[standardVariantKey] ||
-                limitedItems[baseCategoryKey] ||
-                limitedItems[baseItemKey] ||
-                limitedItems[baseNullKey] ||
-                limitedItems[baseStandardKey]
-              );
-              const cartItem = findCartItem(product.id, variant);
-              const quantity = cartItem?.quantity || 0;
+            <div className="product-grid-wrapper">
+              <div className="product-grid">
+                {displayProducts.map((product) => {
+                  const defaultVariant = product.sleeveOptions?.[0] || null;
+                  const productKey = `club:${product.id}`;
+                  const selectedVariant = productSelections[productKey] || defaultVariant;
+                  const variant = selectedVariant;
 
-              return (
-                <FadeInSection key={productKey} as="div" className="product-grid__card">
-                <GlareHover
-                  fill
-                  width="100%"
-                  height="100%"
-                  borderRadius="20px"
-                  glareColor="#ffffff"
-                  glareOpacity={0.3}
-                  glareAngle={-30}
-                  glareSize={300}
-                  transitionDuration={800}
-                  className="product-card-glare"
-                >
-                <article 
-                  className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
-                  style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : { cursor: 'pointer' }}
-                  onClick={() => !isProductSoldOut && setSelectedProduct(product)}
-                >
-                  <div
-                    className="product-card__preview"
-                    style={{
-                      background: product.imageUrl
-                        ? `url(${product.imageUrl}) center/cover`
-                        : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`,
-                      cursor: isProductSoldOut ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {isProductLimited && !isProductSoldOut && <span className="product-card__badge-tag" style={{ textTransform: 'uppercase' }}>LIMITED</span>}
-                    {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
-                    {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
-                    <WishlistHeart
-                      tabKey="club"
-                      productId={product.id}
-                      variant={selectedVariant}
-                      productName={product.name}
-                    />
-                  </div>
-                  <div className="product-card__meta">
-                    <h3>{product.name}</h3>
-                    <p>{product.description}</p>
-                    <div className="product-card__price-row">
-                      <span className="product-card__price">{formatPrice(product.price)}</span>
-                      <span className="product-card__badge">{currentCategory}</span>
-                      <button
-                        className="share-btn"
-                        type="button"
-                        title="Share"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const url = `${window.location.origin}/event/club?tab=${activeTab}&category=${encodeURIComponent(currentCategory)}&product=${product.id}`;
-                          if (navigator.share) {
-                            navigator.share({ title: product.name, text: `Check out ${product.name} on ALMA Store!`, url });
-                          } else {
-                            navigator.clipboard.writeText(url);
-                            toast.success('Link copied!');
-                          }
-                        }}
+                  // Create multiple possible keys to check
+                  const variantStr = variant || "standard";
+                  const nullVariantKey = `club:${product.id}:null:${currentCategory}`;
+                  const standardVariantKey = `club:${product.id}:standard:${currentCategory}`;
+                  const actualVariantKey = `club:${product.id}:${variantStr}:${currentCategory}`;
+                  const categoryKey = actualVariantKey;
+
+                  // Also check without variant
+                  const baseCategoryKey = `club:${product.id}:${currentCategory}`;
+                  const baseItemKey = `club:${product.id}:${variantStr}`;
+                  const baseNullKey = `club:${product.id}:null`;
+                  const baseStandardKey = `club:${product.id}:standard`;
+
+                  // Check if loading to avoid flashing
+                  // Priority: category-specific keys > base keys > event status
+                  const isProductSoldOut = loadingSoldOut ? false : (
+                    soldOutItems[categoryKey] ||
+                    soldOutItems[nullVariantKey] ||
+                    soldOutItems[standardVariantKey] ||
+                    soldOutItems[baseCategoryKey] ||
+                    soldOutItems[baseItemKey] ||
+                    soldOutItems[baseNullKey] ||
+                    soldOutItems[baseStandardKey] ||
+                    (clubStatuses[currentCategory] && (
+                      clubStatuses[currentCategory] === "soldout" ||
+                      clubStatuses[currentCategory] === "over" ||
+                      clubStatuses[currentCategory] === "no_new_releases"
+                    ))
+                  );
+                  const isProductLimited = loadingSoldOut ? false : (
+                    limitedItems[categoryKey] ||
+                    limitedItems[nullVariantKey] ||
+                    limitedItems[standardVariantKey] ||
+                    limitedItems[baseCategoryKey] ||
+                    limitedItems[baseItemKey] ||
+                    limitedItems[baseNullKey] ||
+                    limitedItems[baseStandardKey]
+                  );
+                  const cartItem = findCartItem(product.id, variant);
+                  const quantity = cartItem?.quantity || 0;
+
+                  return (
+                    <FadeInSection key={productKey} as="div" className="product-grid__card">
+                      <GlareHover
+                        fill
+                        width="100%"
+                        height="100%"
+                        borderRadius="20px"
+                        glareColor="#ffffff"
+                        glareOpacity={0.3}
+                        glareAngle={-30}
+                        glareSize={300}
+                        transitionDuration={800}
+                        className="product-card-glare"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                      </button>
-                    </div>
-                    {product.sleeveOptions && product.sleeveOptions.length > 1 && (
-                      <div className="variant-toggle" onClick={(e) => e.stopPropagation()}>
-                        {product.sleeveOptions.map((opt) => (
-                          <button
-                            key={opt}
-                            type="button"
-                            className={`variant-chip ${selectedVariant === opt ? "is-active" : ""}`}
-                            onClick={() => setProductSelections(prev => ({ ...prev, [productKey]: opt }))}
+                        <article
+                          className={`product-card ${isProductSoldOut ? "is-soldout" : ""}`}
+                          style={isProductSoldOut ? { pointerEvents: 'none', opacity: 0.5, cursor: 'not-allowed' } : { cursor: 'pointer' }}
+                          onClick={() => !isProductSoldOut && setSelectedProduct(product)}
+                        >
+                          <div
+                            className="product-card__preview"
+                            style={{
+                              background: product.imageUrl
+                                ? `url(${product.imageUrl}) center/cover`
+                                : `linear-gradient(135deg, ${product.swatch[0]}, ${product.swatch[1]})`,
+                              cursor: isProductSoldOut ? 'not-allowed' : 'pointer'
+                            }}
                           >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="product-card__controls" onClick={(e) => e.stopPropagation()}>
-                    <div className="qty-control">
-                      <button
-                        type="button"
-                        className="qty-btn"
-                        onClick={() => adjustCart(product, variant, -1)}
-                        disabled={quantity === 0 || isProductSoldOut}
-                        aria-label={`Remove one ${product.name}`}
-                      >
-                        -
-                      </button>
-                      <span className="qty-count">{quantity}</span>
-                      <button
-                        type="button"
-                        className="qty-btn"
-                        onClick={() => adjustCart(product, variant, 1)}
-                        disabled={isProductSoldOut}
-                        aria-label={`Add one ${product.name}`}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <button
-                      className="btn btn--ghost"
-                      type="button"
-                      onClick={() => adjustCart(product, variant, 1)}
-                      disabled={isProductSoldOut}
-                    >
-                        {isProductSoldOut ? "Unavailable" : "Add to cart"}
-                    </button>
-                  </div>
-                </article>
-                </GlareHover>
-                </FadeInSection>
-              );
-            })}
+                            {isProductLimited && !isProductSoldOut && <span className="product-card__badge-tag" style={{ textTransform: 'uppercase' }}>LIMITED</span>}
+                            {isProductSoldOut && <div className="sold-out-overlay">UNAVAILABLE</div>}
+                            {!product.imageUrl && <span>{product.previewLabel || product.name}</span>}
+                            <WishlistHeart
+                              tabKey="club"
+                              productId={product.id}
+                              variant={selectedVariant}
+                              productName={product.name}
+                            />
+                          </div>
+                          <div className="product-card__meta">
+                            <h3>{product.name}</h3>
+                            <p>{product.description}</p>
+                            <div className="product-card__price-row">
+                              <span className="product-card__price">{formatPrice(product.price)}</span>
+                              <span className="product-card__badge">{currentCategory}</span>
+                              <button
+                                className="share-btn"
+                                type="button"
+                                title="Share"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const url = `${window.location.origin}/event/club?tab=${activeTab}&category=${encodeURIComponent(currentCategory)}&product=${product.id}`;
+                                  if (navigator.share) {
+                                    navigator.share({ title: product.name, text: `Check out ${product.name} on ALMA Store!`, url });
+                                  } else {
+                                    navigator.clipboard.writeText(url);
+                                    toast.success('Link copied!');
+                                  }
+                                }}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></svg>
+                              </button>
+                            </div>
+                            {product.sleeveOptions && product.sleeveOptions.length > 1 && (
+                              <div className="variant-toggle" onClick={(e) => e.stopPropagation()}>
+                                {product.sleeveOptions.map((opt) => (
+                                  <button
+                                    key={opt}
+                                    type="button"
+                                    className={`variant-chip ${selectedVariant === opt ? "is-active" : ""}`}
+                                    onClick={() => setProductSelections(prev => ({ ...prev, [productKey]: opt }))}
+                                  >
+                                    {opt}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="product-card__controls" onClick={(e) => e.stopPropagation()}>
+                            <div className="qty-control">
+                              <button
+                                type="button"
+                                className="qty-btn"
+                                onClick={() => adjustCart(product, variant, -1)}
+                                disabled={quantity === 0 || isProductSoldOut}
+                                aria-label={`Remove one ${product.name}`}
+                              >
+                                -
+                              </button>
+                              <span className="qty-count">{quantity}</span>
+                              <button
+                                type="button"
+                                className="qty-btn"
+                                onClick={() => adjustCart(product, variant, 1)}
+                                disabled={isProductSoldOut}
+                                aria-label={`Add one ${product.name}`}
+                              >
+                                +
+                              </button>
+                            </div>
+                            <button
+                              className="btn btn--ghost"
+                              type="button"
+                              onClick={() => adjustCart(product, variant, 1)}
+                              disabled={isProductSoldOut}
+                            >
+                              {isProductSoldOut ? "Unavailable" : "Add to cart"}
+                            </button>
+                          </div>
+                        </article>
+                      </GlareHover>
+                    </FadeInSection>
+                  );
+                })}
+              </div>
             </div>
-          </div>
           )}
         </>
       )}
@@ -695,15 +695,15 @@ export default function ClubPage() {
         const variantStr = variant || "standard";
         const categoryKey = `club:${selectedProduct.id}:${variantStr}:${currentCategory}`;
         const baseKey = `club:${selectedProduct.id}:${variantStr}`;
-        const isModalSoldOut = soldOutItems[categoryKey] || 
-                               soldOutItems[`club:${selectedProduct.id}:null:${currentCategory}`] ||
-                               soldOutItems[`club:${selectedProduct.id}:standard:${currentCategory}`] ||
-                               soldOutItems[baseKey] ||
-                               (clubStatuses[currentCategory] && (
-                                 clubStatuses[currentCategory] === "soldout" || 
-                                 clubStatuses[currentCategory] === "over" || 
-                                 clubStatuses[currentCategory] === "no_new_releases"
-                               ));
+        const isModalSoldOut = soldOutItems[categoryKey] ||
+          soldOutItems[`club:${selectedProduct.id}:null:${currentCategory}`] ||
+          soldOutItems[`club:${selectedProduct.id}:standard:${currentCategory}`] ||
+          soldOutItems[baseKey] ||
+          (clubStatuses[currentCategory] && (
+            clubStatuses[currentCategory] === "soldout" ||
+            clubStatuses[currentCategory] === "over" ||
+            clubStatuses[currentCategory] === "no_new_releases"
+          ));
         return (
           <ProductModal
             product={selectedProduct}

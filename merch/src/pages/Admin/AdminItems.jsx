@@ -93,6 +93,7 @@ export default function AdminItems() {
   const [savingEventDetails, setSavingEventDetails] = useState(false);
   const [trendingStatus, setTrendingStatus] = useState({});
   const [deliveryAllowed, setDeliveryAllowed] = useState(true);
+  const [eventCardLabels, setEventCardLabels] = useState({});
 
   // Persist to localStorage whenever changes are made
   useEffect(() => {
@@ -182,6 +183,19 @@ export default function AdminItems() {
       // Replace entire state with fresh data from server
       setSoldOutItems(soldMap);
       setLimitedItems(limitMap);
+
+      // Sync event status from server so admin dropdown matches reality
+      if (res.data?.eventStatus) {
+        const serverEvt = res.data.eventStatus;
+        setEventStatuses(prev => ({
+          ...prev,
+          [selectedTab]: {
+            type: serverEvt.type || 'ongoing',
+            countdown: serverEvt.countdown || null,
+            soldOut: serverEvt.type === 'soldout' || serverEvt.type === 'over' || serverEvt.type === 'no_new_releases'
+          }
+        }));
+      }
     } catch (err) {
       console.error('Failed to load sold-out status:', err);
     }
@@ -416,6 +430,16 @@ export default function AdminItems() {
           setTrendingStatus(JSON.parse(trendingOverride.description));
         } catch (e) {
           console.error("Failed to parse trending_status", e);
+        }
+      }
+
+      // Parse event card labels
+      const labelsOverride = overrides.find(o => o.tab_key === 'system' && o.product_id === 'event_card_labels');
+      if (labelsOverride && labelsOverride.description) {
+        try {
+          setEventCardLabels(JSON.parse(labelsOverride.description));
+        } catch (e) {
+          console.error("Failed to parse event_card_labels", e);
         }
       }
       
@@ -879,6 +903,7 @@ export default function AdminItems() {
                 });
                 return map;
               })()}
+              eventCardLabels={eventCardLabels}
               onSave={async (eventKey, images) => {
                 await saveCatalogOverride({
                   tabKey: 'system',
@@ -887,6 +912,23 @@ export default function AdminItems() {
                   images
                 });
                 await fetchOverrides();
+              }}
+              onSaveLabel={async (eventKey, label) => {
+                const newLabels = { ...eventCardLabels, [eventKey]: label };
+                setEventCardLabels(newLabels);
+                try {
+                  await saveCatalogOverride({
+                    tabKey: 'system',
+                    id: 'event_card_labels',
+                    name: 'Event Card Labels',
+                    description: JSON.stringify(newLabels)
+                  });
+                  toast.success(`Label updated for ${eventKey}`);
+                  await fetchOverrides();
+                } catch (err) {
+                  toast.error('Failed to save label');
+                  setEventCardLabels(eventCardLabels);
+                }
               }}
             />
             <SizeChartManager
@@ -1339,7 +1381,37 @@ export default function AdminItems() {
                         </div>
                         <div className="admin-edit-form">
                           <label>
-                            Primary Image URL
+                            Upload Image
+                            <input
+                              type="file"
+                              accept="image/*,.heic"
+                              style={{ marginTop: '0.5rem' }}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setUploadingImage(true);
+                                try {
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+                                  const res = await api.post('/api/resell/upload-image', formData, {
+                                    headers: { 'Content-Type': 'multipart/form-data' }
+                                  });
+                                  if (res.data?.url) {
+                                    setEditingProduct(prev => ({ ...prev, imageUrl: res.data.url }));
+                                    toast.success('Image uploaded');
+                                  }
+                                } catch (err) {
+                                  toast.error('Failed to upload image');
+                                } finally {
+                                  setUploadingImage(false);
+                                }
+                              }}
+                              disabled={uploadingImage}
+                            />
+                            {uploadingImage && <p style={{ fontSize: '0.85rem', color: 'var(--muted)', margin: '4px 0 0' }}>Uploading...</p>}
+                          </label>
+                          <label>
+                            Or Image URL
                             <input
                               type="text"
                               value={editingProduct.imageUrl || ""}

@@ -3,7 +3,7 @@ import api from "../../api";
 import toast from "react-hot-toast";
 import { EVENT_CARDS } from "../../data/eventCards";
 
-export default function EventImagesManager({ eventImages = {}, onSave }) {
+export default function EventImagesManager({ eventImages = {}, eventCardLabels = {}, onSave, onSaveLabel }) {
   const [localImages, setLocalImages] = useState(() => {
     const map = {};
     EVENT_CARDS.forEach((ev) => {
@@ -17,6 +17,21 @@ export default function EventImagesManager({ eventImages = {}, onSave }) {
   const [urlInputs, setUrlInputs] = useState({});
   const [expandedHistory, setExpandedHistory] = useState({});
   const fileInputRefs = useRef({});
+  const [labelInputs, setLabelInputs] = useState(() => {
+    const map = {};
+    EVENT_CARDS.forEach((ev) => {
+      map[ev.key] = eventCardLabels[ev.key] || ev.status;
+    });
+    return map;
+  });
+
+  React.useEffect(() => {
+    const map = {};
+    EVENT_CARDS.forEach((ev) => {
+      map[ev.key] = eventCardLabels[ev.key] || ev.status;
+    });
+    setLabelInputs(map);
+  }, [eventCardLabels]);
 
   React.useEffect(() => {
     const map = {};
@@ -135,7 +150,26 @@ export default function EventImagesManager({ eventImages = {}, onSave }) {
             <div key={ev.key} className="event-image-card">
               <div className="event-image-header">
                 <h5>{ev.label}</h5>
-                <span className="event-image-badge">{ev.status}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="text"
+                    value={labelInputs[ev.key] || ''}
+                    onChange={(e) => setLabelInputs(prev => ({ ...prev, [ev.key]: e.target.value }))}
+                    onBlur={() => {
+                      const val = (labelInputs[ev.key] || '').trim();
+                      if (val && val !== (eventCardLabels[ev.key] || ev.status) && onSaveLabel) {
+                        onSaveLabel(ev.key, val);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.target.blur();
+                      }
+                    }}
+                    className="event-label-input"
+                    style={{ width: '120px', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '3px 8px', border: '1px solid #ddd', borderRadius: '4px', textAlign: 'center' }}
+                  />
+                </div>
               </div>
               <div className="event-image-preview-wrap">
                 <img src={currentUrl} alt={ev.label} className="event-image-preview" />

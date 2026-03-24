@@ -15,6 +15,7 @@ export default function Landing() {
   const [heroLoaded, setHeroLoaded] = useState(false);
 
   const [eventImages, setEventImages] = useState({});
+  const [eventCardLabels, setEventCardLabels] = useState({});
 
   // Fetch dynamic hero images and event images from Admin Overrides
   useEffect(() => {
@@ -35,6 +36,14 @@ export default function Landing() {
           }
         });
         if (mounted) setEventImages(map);
+
+        // Parse event card labels
+        const labelsOverride = overrides.find(o => o.tab_key === 'system' && o.product_id === 'event_card_labels');
+        if (mounted && labelsOverride && labelsOverride.description) {
+          try {
+            setEventCardLabels(JSON.parse(labelsOverride.description));
+          } catch (e) {}
+        }
       } catch (e) {
         console.error("Failed to fetch overrides:", e);
       }
@@ -211,7 +220,7 @@ export default function Landing() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                     <div className="absolute bottom-8 left-8">
                       <h3 className="text-white text-4xl font-black italic tracking-tighter mb-2">{ev.label}</h3>
-                      <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">{ev.status}</span>
+                      <span className="bg-white text-[#111827] px-4 py-1 text-xs font-bold uppercase tracking-widest">{eventCardLabels[ev.key] || ev.status}</span>
                     </div>
                   </div>
                 </Link>
