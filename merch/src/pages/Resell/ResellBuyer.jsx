@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import toast from "react-hot-toast";
 import api from "../../api";
@@ -133,6 +134,7 @@ function FeedbackItem({
 
 export default function ResellBuyer() {
   const { user } = useAuth();
+  const location = useLocation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -193,6 +195,20 @@ export default function ResellBuyer() {
   useEffect(() => {
     if (user) loadItems();
   }, [user, loadItems]);
+
+  // Handle Deep Linking (Auto-open modal)
+  useEffect(() => {
+    if (!loading && items.length > 0) {
+      const params = new URLSearchParams(location.search);
+      const itemId = params.get('item');
+      if (itemId && (!selectedItem || String(selectedItem.id) !== String(itemId))) {
+        const item = items.find(i => String(i.id) === String(itemId));
+        if (item) {
+          handleItemClick(item);
+        }
+      }
+    }
+  }, [loading, items, location.search, selectedItem]);
 
   useEffect(() => {
     setFeedbackForm((f) => ({

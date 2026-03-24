@@ -1,6 +1,6 @@
 // src/pages/Events/EventPage.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
 import { Analytics } from "../../api/analytics";
@@ -31,6 +31,7 @@ const MERCH_HEADING_TEXTS = [
 
 export default function EventPage() {
   const { eventKey } = useParams();
+  const location = useLocation();
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [productSelections, setProductSelections] = useState({});
@@ -346,6 +347,20 @@ export default function EventPage() {
     }
     return product?.price || 0;
   }
+
+  // Handle Deep Linking (Auto-open modal)
+  useEffect(() => {
+    if (!loadingSoldOut && eventProducts.length > 0) {
+      const params = new URLSearchParams(location.search);
+      const productId = params.get('product');
+      if (productId && !selectedProduct) {
+        const item = eventProducts.find(p => String(p.id) === String(productId));
+        if (item) {
+          setSelectedProduct(item);
+        }
+      }
+    }
+  }, [loadingSoldOut, eventProducts, location.search, selectedProduct]);
 
   async function adjustCart(tabKey, product, variant, delta) {
     if (!user) {

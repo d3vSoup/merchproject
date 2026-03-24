@@ -1,5 +1,6 @@
 // src/pages/Events/ClubPage.jsx
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { getCart, updateCartItem } from "../../api/cart";
 import { Analytics } from "../../api/analytics";
@@ -48,6 +49,7 @@ const DEPARTMENTS = [
 
 export default function ClubPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("clubs");
   const [selectedClub, setSelectedClub] = useState(null);
   const [selectedDept, setSelectedDept] = useState(null);
@@ -355,6 +357,40 @@ export default function ClubPage() {
     );
   }
 
+  // Handle Deep Linking (Auto-open modal & select tab/category)
+  useEffect(() => {
+    if (!loadingSoldOut && PRODUCT_CATALOG.club?.length > 0) {
+      const params = new URLSearchParams(location.search);
+      const tab = params.get('tab');
+      const category = params.get('category');
+      const productId = params.get('product');
+
+      if (tab && category && productId && !selectedProduct) {
+        if (tab === 'clubs') {
+          setActiveTab('clubs');
+          setSelectedClub(category);
+          setSelectedDept(null);
+          setIeeeSubclub(null);
+        } else if (tab === 'depts') {
+          setActiveTab('depts');
+          setSelectedDept(category);
+          setSelectedClub(null);
+          setIeeeSubclub(null);
+        } else if (tab === 'ieee') {
+          setActiveTab('ieee');
+          setSelectedClub('IEEE');
+          setIeeeSubclub(category);
+          setSelectedDept(null);
+        }
+
+        const item = PRODUCT_CATALOG.club.find(p => String(p.id) === String(productId));
+        if (item) {
+          setSelectedProduct(item);
+        }
+      }
+    }
+  }, [loadingSoldOut, location.search, selectedProduct]);
+
   if (loadingSoldOut) {
     return (
       <section className="product-section">
@@ -576,7 +612,7 @@ export default function ClubPage() {
                         title="Share"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const url = `${window.location.origin}/event/club?product=${product.id}`;
+                          const url = `${window.location.origin}/event/club?tab=${activeTab}&category=${encodeURIComponent(currentCategory)}&product=${product.id}`;
                           if (navigator.share) {
                             navigator.share({ title: product.name, text: `Check out ${product.name} on ALMA Store!`, url });
                           } else {
