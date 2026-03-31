@@ -107,7 +107,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="font-['Montserrat',sans-serif] text-[#111827] antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
+    <div className="font-['Montserrat',sans-serif] text-white antialiased w-full min-h-screen" style={{ margin: 0, padding: 0 }}>
       <main>
         {/* BEGIN: HeroSection */}
         <section className="relative flex flex-col w-screen min-h-screen overflow-hidden hero-curved-bottom" 
@@ -142,7 +142,7 @@ export default function Landing() {
             <h1 className="text-7xl md:text-[10rem] font-black leading-[0.9] tracking-tighter mb-6 text-white drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative z-30">
               ALMA<br/><span className="text-[#FF6B00]">STORE</span>
             </h1>
-            <p className="text-gray-100 text-lg md:text-2xl max-w-3xl mx-auto mb-10 leading-relaxed font-semibold drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <p className="text-gray-200 text-lg md:text-2xl max-w-3xl mx-auto mb-10 leading-relaxed font-semibold drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic' }}>
               Curated apparel for the modern engineer. Quality that speaks volumes, designs that define your campus journey.
             </p>
             <div>
@@ -184,11 +184,11 @@ export default function Landing() {
         })()}
 
         {/* BEGIN: EventsSection */}
-        <section className="py-24 bg-white overflow-hidden" id="events">
+        <section className="py-24 overflow-hidden" id="events" style={{ background: 'transparent' }}>
           <div className="max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end">
             <div>
-              <h2 className="text-3xl font-bold">Event Exclusives</h2>
-              <p className="text-gray-500 mt-2">Limited edition gear for our biggest campus fests.</p>
+              <h2 className="text-3xl font-bold text-white" style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}>Event Exclusives</h2>
+              <p className="text-gray-400 mt-2">Limited edition gear for our biggest campus fests.</p>
             </div>
             <div className="flex space-x-2">
               <button 
@@ -233,42 +233,6 @@ export default function Landing() {
         <PhilosophyCarousel />
 
       </main>
-      
-      {/* BEGIN: Footer */}
-      <footer className="bg-[#111827] text-white py-16">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 mb-6">
-              <img src="/assets/star-logo.jpeg" alt="Star Logo" className="w-14 h-14 mix-blend-screen mix-blend-lighten" style={{ filter: 'invert(1)' }} />
-              <span className="text-2xl font-bold tracking-tighter">ALMA<span className="text-[#FF6B00]"> STORE</span></span>
-            </div>
-            <p className="mt-6 text-gray-400 max-w-sm">The official campus store for BMS College of Engineering. Delivering premium quality apparel since 2026.</p>
-          </div>
-          <div>
-            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Quick Links</h4>
-            <ul className="space-y-4 text-sm">
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/about">About Us</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/shipping-policy">Shipping Policy</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/returns-exchanges">Returns &amp; Exchanges</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/size-chart">Size Guide</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/use-of-our-website">Terms &amp; Conditions</Link></li>
-              <li><Link className="text-white hover:text-[#FF6B00] transition-colors" to="/contact">Contact Us</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-6 uppercase text-xs tracking-widest text-white/80">Connect</h4>
-            <ul className="space-y-4 text-sm">
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://www.instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://www.linkedin.com/in/souparno-chakraborty-ab932b351?utm_source=share_via&utm_content=profile&utm_medium=member_ios" target="_blank" rel="noreferrer">LinkedIn</a></li>
-              <li><a className="text-white hover:text-[#FF6B00] transition-colors" href="https://twitter.com" target="_blank" rel="noreferrer">Twitter</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-gray-800 text-xs text-gray-500 flex justify-between">
-          <p>ALMA 2026</p>
-          <p>Handcrafted by Souparno Chakraborty</p>
-        </div>
-      </footer>
     </div>
   );
 }

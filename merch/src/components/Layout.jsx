@@ -8,6 +8,8 @@ import ProfileModal from "./ProfileModal";
 import ProfileCompletionPopup from "./ProfileCompletionPopup";
 import GlassToggle from "./GlassToggle";
 import VariableProximity from "./ui/VariableProximity";
+import DottedSurface from "./ui/DottedSurface";
+import MinimalFooter from "./ui/MinimalFooter";
 import { getUserIdByEmail, getCart } from "../supabase/client";
 import { PRODUCT_CATALOG, BASE_PRODUCT_IDS } from "../data/products";
 import api from "../api";
@@ -286,6 +288,7 @@ export default function Layout({ children, cartCount = 0 }) {
 
   return (
     <div className={`app-root theme-${activeTab || "default"}`}>
+      <DottedSurface />
       <header ref={topbarRef} className={`topbar${scrolled ? ' topbar--scrolled' : ''}`}>
         {/* Mobile Hamburger Menu Button - Only visible on phones */}
         <button
@@ -577,6 +580,8 @@ export default function Layout({ children, cartCount = 0 }) {
       <main className={`main-content ${location.pathname === "/" ? "main-content--home" : ""}`}>
         {children}
       </main>
+
+      <MinimalFooter />
 
       {searchOpen && (
         <div className="search-overlay" onClick={() => { setSearchOpen(false); setSearchQuery(""); }}>

@@ -5,9 +5,9 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--c-bg, #fff);
-  color: var(--c-text, #111827);
-  font-family: var(--font-body, 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+  background: var(--c-bg, #0a0a0a);
+  color: var(--c-text, #f1f5f9);
+  font-family: var(--font-body, 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
   font-size: var(--text-body, 15px);
   line-height: var(--lh-body, 1.5);
   -webkit-font-smoothing: antialiased;

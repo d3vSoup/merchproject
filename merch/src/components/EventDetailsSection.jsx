@@ -1,6 +1,7 @@
 // Event details section (Festival Grounds) - date, time, location, map link
 import React from "react";
 import FadeInSection from "./ui/FadeInSection";
+import LocationMap from "./ui/LocationMap";
 
 const CALENDAR_ICON = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,44 +26,22 @@ const TICKET_ICON = (
     <path d="M13 11v2" />
   </svg>
 );
-const MAP_PIN_ICON = (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
 
 export default function EventDetailsSection({ eventDetails, eventTitle }) {
   if (!eventDetails || (!eventDetails.event_date && !eventDetails.event_location && !eventDetails.event_gmaps_url)) {
     return null;
   }
 
-  const hasMap = eventDetails.event_gmaps_url;
-
   return (
     <FadeInSection className="festival-grounds">
       <h2 className="festival-grounds__title">THE FESTIVAL GROUNDS</h2>
       <div className="festival-grounds__grid">
-        <div className="festival-grounds__map-col">
-          {hasMap ? (
-            <a
-              href={eventDetails.event_gmaps_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="festival-grounds__map-link"
-              aria-label="Open location in Google Maps"
-            >
-              <div className="festival-grounds__map-placeholder">
-                <span className="festival-grounds__map-pin">{MAP_PIN_ICON}</span>
-                <span className="festival-grounds__map-text">View on Google Maps</span>
-              </div>
-            </a>
-          ) : (
-            <div className="festival-grounds__map-placeholder festival-grounds__map-placeholder--no-link">
-              <span className="festival-grounds__map-pin">{MAP_PIN_ICON}</span>
-              <span className="festival-grounds__map-text">Location</span>
-            </div>
-          )}
+        <div className="festival-grounds__map-col" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '200px' }}>
+          <LocationMap
+            location={eventDetails.event_location || eventTitle || 'BMS College of Engineering'}
+            coordinates={eventDetails.event_coordinates || '12.9411° N, 77.5659° E'}
+            mapsUrl={eventDetails.event_gmaps_url}
+          />
         </div>
         <div className="festival-grounds__info-col">
           {eventDetails.event_date && (
@@ -94,7 +73,12 @@ export default function EventDetailsSection({ eventDetails, eventTitle }) {
           )}
           {eventDetails.event_location && !eventDetails.merch_popup && (
             <div className="festival-grounds__info-item">
-              <span className="festival-grounds__icon festival-grounds__icon--orange">{MAP_PIN_ICON}</span>
+              <span className="festival-grounds__icon festival-grounds__icon--orange">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
               <div>
                 <strong>Location</strong>
                 <p>{eventDetails.event_location}</p>

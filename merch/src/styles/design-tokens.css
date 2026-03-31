@@ -1,31 +1,35 @@
 /* design-tokens.css — Single source of truth for the BMSCE merch design system */
+/* Dark theme overhaul — Montserrat + Instrument Serif */
 
 :root {
   /* ─── Color tokens ─── */
   --c-primary: #ff6600;
   --c-primary-hover: #ff7f2a;
   --c-primary-600: #ff7f2a;
-  --c-primary-muted: rgba(255, 102, 0, 0.12);
+  --c-primary-muted: rgba(255, 102, 0, 0.15);
 
-  --c-bg: #ffffff;
-  --c-surface: #ffffff;
-  --c-subtle: #f8fafc;
-  --c-text: #111827;
-  --c-muted: #64748b;
-  --c-shadow: rgba(15, 23, 42, 0.06);
+  --c-bg: #0a0a0a;
+  --c-surface: rgba(255, 255, 255, 0.04);
+  --c-surface-solid: #141414;
+  --c-subtle: rgba(255, 255, 255, 0.02);
+  --c-text: #f1f5f9;
+  --c-text-secondary: rgba(255, 255, 255, 0.7);
+  --c-muted: rgba(255, 255, 255, 0.45);
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-shadow: rgba(0, 0, 0, 0.3);
 
   --c-success: #22c55e;
   --c-error: #ef4444;
   --c-warning: #f59e0b;
 
   /* Gradients */
-  --g-hero: linear-gradient(180deg, rgba(255, 246, 240, 1), rgba(255, 251, 249, 1));
-  --g-card-hover: 0 20px 50px rgba(15, 23, 42, 0.12);
-  --g-card-rest: 0 12px 34px rgba(15, 23, 42, 0.05);
+  --g-hero: linear-gradient(180deg, rgba(10, 10, 10, 1), rgba(15, 15, 15, 1));
+  --g-card-hover: 0 20px 50px rgba(0, 0, 0, 0.4);
+  --g-card-rest: 0 12px 34px rgba(0, 0, 0, 0.2);
 
   /* ─── Typography ─── */
-  --font-display: 'Space Grotesk', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Instrument Serif', 'Georgia', serif;
+  --font-body: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 
   /* Type scale */
@@ -69,16 +73,7 @@
   --focus-ring: 0 0 0 3px rgba(255, 102, 0, 0.35);
 
   /* ─── Watermark ─── */
-  --watermark-opacity: 0.025;
-}
-
-/* Dark mode variables (when .dark or .app-root.dark is applied) */
-.dark,
-.app-root.dark {
-  --c-bg: #0f172a;
-  --c-surface: #1e293b;
-  --c-text: #f1f5f9;
-  --c-muted: #94a3b8;
+  --watermark-opacity: 0.015;
 }
 
 /* Remap legacy tokens for backward compat */
