@@ -20,7 +20,9 @@
 }
 
 .product-modal-content {
-  background: white;
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
   border-radius: 16px;
   max-width: 900px;
   width: 100%;
@@ -45,7 +47,8 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  background: white;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
   border: none;
   font-size: 32px;
   cursor: pointer;
@@ -95,7 +98,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
   border: none;
   width: 40px;
   height: 40px;
@@ -109,7 +113,7 @@
 }
 
 .image-nav:hover {
-  background: white;
+  background: rgba(0, 0, 0, 0.8);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -242,7 +246,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   padding: 6px 12px;
   border-radius: 8px;
 }
@@ -251,7 +255,8 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: white;
+  background: transparent;
+  color: var(--text);
   border-radius: 6px;
   font-size: 18px;
   cursor: pointer;
@@ -259,8 +264,8 @@
 }
 
 .modal-actions .qty-btn:hover:not(:disabled) {
-  background: var(--accent);
-  color: white;
+  background: rgba(255,255,255,0.1);
+  color: var(--accent);
 }
 
 .modal-actions .qty-btn:disabled {
