@@ -322,7 +322,7 @@ export default function Layout({ children, cartCount = 0 }) {
                 }}
               >
                 {(tab.catalogKey || tab.key === "resell") ? (
-                  <GradientText colors={["#1a1a1a", "#6b7280", "#9ca3af"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
+                  <GradientText colors={["#ffffff", "#e5e7eb", "#9ca3af"]} animationSpeed={8} showBorder={false} className="gradient-text--tab">
                     {tab.label}
                   </GradientText>
                 ) : (
@@ -385,8 +385,8 @@ export default function Layout({ children, cartCount = 0 }) {
           ))}
         </nav>
 
-        <Link to="/" className="brand" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/assets/star-logo.jpeg" alt="Star Logo" style={{ height: '44px', width: 'auto', mixBlendMode: 'multiply' }} />
+        <Link to="/" className="brand" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <img className="brand-logo-img" src="/assets/star-logo.jpeg" alt="Star Logo" style={{ mixBlendMode: 'multiply' }} />
           <VariableProximity
             label="ALMA"
             className="brand-variable"
@@ -407,8 +407,6 @@ export default function Layout({ children, cartCount = 0 }) {
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </button>
-
-            <GlassToggle />
 
             <Link
               to="/wishlist"
