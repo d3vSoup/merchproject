@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api, { setAuthToken } from "../api";
+import { withRetry } from "../utils/withRetry";
 
 const AuthContext = createContext();
 
@@ -35,7 +36,7 @@ export function AuthProvider({ children }) {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await api.get("/api/me");
+      const res = await withRetry(() => api.get("/api/me"), { maxRetries: 3, baseDelayMs: 2000 });
       if (res?.data?.user) setUser(res.data.user);
     } catch (err) {
       // Only sign out if server explicitly says 401 (token invalid/expired)

@@ -77,7 +77,8 @@ export default function LocationMap({
           transformStyle: 'preserve-3d',
         }}
         animate={{
-          width: isExpanded ? 360 : 240,
+          width: isExpanded ? '100%' : '100%',
+          maxWidth: isExpanded ? 360 : 240,
           height: isExpanded ? 280 : 140,
         }}
         transition={{

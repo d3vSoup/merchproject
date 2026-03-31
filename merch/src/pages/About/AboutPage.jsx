@@ -137,7 +137,7 @@ export default function AboutPage() {
         <BorderGlow
           edgeSensitivity={30}
           glowColor="40 80 80"
-          backgroundColor="#ffffff"
+          backgroundColor="#0a0a0a"
           borderRadius={24}
           glowRadius={150}
           glowIntensity={1}

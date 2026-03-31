@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import api from "../api";
+import { withRetry } from "../utils/withRetry";
 import { EVENT_CARDS } from "../data/eventCards";
 import { PRODUCT_CATALOG } from "../data/products";
 import PhilosophyCarousel from "../components/ui/PhilosophyCarousel";
@@ -22,7 +23,7 @@ export default function Landing() {
     let mounted = true;
     const fetchOverrides = async () => {
       try {
-        const res = await api.get('/api/catalog/overrides');
+        const res = await withRetry(() => api.get('/api/catalog/overrides'), { maxRetries: 4, baseDelayMs: 2000 });
         const overrides = res.data?.overrides || [];
         const heroConfig = overrides.find(o => o.tab_key === 'system' && o.product_id === 'hero_carousel');
         if (mounted && heroConfig && heroConfig.images && heroConfig.images.length > 0) {
