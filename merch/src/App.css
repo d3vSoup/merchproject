@@ -54,6 +54,7 @@ html,body{overflow-x:hidden;width:100%;max-width:100vw}
 .tab-preview-dot--active{background:var(--accent);transform:scale(1.3)}
 
 .brand{flex:0 0 auto;text-align:left;font-weight:900;font-size:2.2rem;letter-spacing:0.18em;font-family:'Roboto Flex','Space Grotesk',sans-serif;color:#111827;text-decoration:none;order:1;z-index:3;text-transform:uppercase}
+.brand-logo-img { height: 44px; width: auto; }
 
 /* Top-right actions: small compact */
 .top-actions{display:flex;align-items:center;gap:10px;order:3;z-index:3}
@@ -915,18 +916,17 @@ select:focus {
 
   /* Adjust brand on mobile */
   .brand {
-    flex: 0 1 auto;
-    min-width: 0;
-    font-size: 1.15rem;
-    letter-spacing: 0.05em;
+    flex: 0 0 auto;
+    min-width: max-content;
+    font-size: 1.4rem;
+    letter-spacing: 0.12em;
     text-align: left;
     order: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
     white-space: nowrap;
   }
   .brand-logo-img {
-    height: 34px;
+    height: 38px;
     width: auto;
   }
 
