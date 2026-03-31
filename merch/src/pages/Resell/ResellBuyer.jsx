@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import api from "../../api";
 import { SkeletonGrid } from "../../components/Skeleton";
 import GradientText from "../../components/ui/GradientText";
+import AnimatedDropdown from "../../components/ui/AnimatedDropdown";
 import "./ResellBuyer.css";
 
 const CONDITIONS = [
@@ -400,44 +401,33 @@ export default function ResellBuyer() {
           />
         </div>
         <div className="resell-filters-row">
-          <select
+          <AnimatedDropdown
+            label=""
+            options={CONDITIONS}
             value={filterCondition}
-            onChange={(e) => setFilterCondition(e.target.value)}
-            className="resell-filter-select"
-            aria-label="Filter by condition"
-          >
-            {CONDITIONS.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setFilterCondition}
+            id="condition-filter"
+          />
+          <AnimatedDropdown
+            label=""
+            options={[
+              { value: "", label: "Min year" },
+              ...YEARS.map((y) => ({ value: y, label: y.toString() }))
+            ]}
             value={filterMinYear}
-            onChange={(e) => setFilterMinYear(e.target.value)}
-            className="resell-filter-select"
-            aria-label="Min year"
-          >
-            <option value="">Min year</option>
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-          <select
+            onChange={setFilterMinYear}
+            id="min-year-filter"
+          />
+          <AnimatedDropdown
+            label=""
+            options={[
+              { value: "", label: "Max year" },
+              ...YEARS.map((y) => ({ value: y, label: y.toString() }))
+            ]}
             value={filterMaxYear}
-            onChange={(e) => setFilterMaxYear(e.target.value)}
-            className="resell-filter-select"
-            aria-label="Max year"
-          >
-            <option value="">Max year</option>
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+            onChange={setFilterMaxYear}
+            id="max-year-filter"
+          />
         </div>
       </div>
 

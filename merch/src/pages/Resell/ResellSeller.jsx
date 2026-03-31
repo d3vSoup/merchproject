@@ -4,6 +4,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { getUserIdByEmail, getUserResellItems, createResellItem, uploadResellImage } from "../../supabase/client";
 import toast from "react-hot-toast";
 import api from "../../api";
+import AnimatedDropdown from "../../components/ui/AnimatedDropdown";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -395,7 +396,7 @@ export default function ResellSeller() {
 
       {/* Create / Edit Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="listing-form" style={{ background: '#fff', padding: 24, borderRadius: 16, marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 20, border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+        <form onSubmit={handleSubmit} className="listing-form" style={{ background: '#131313', padding: 24, borderRadius: 16, marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 20, border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)', color: '#fff' }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{editingItem ? "Edit Listing" : "Create New Listing"}</h3>
           {editingItem && (
             <p className="help-text" style={{ background: 'rgba(245,158,11,0.08)', padding: '12px 16px', borderRadius: '12px', marginBottom: 0, fontSize: '0.85rem', border: '1px solid rgba(245,158,11,0.15)' }}>
@@ -406,31 +407,37 @@ export default function ResellSeller() {
           )}
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Title <span style={{ color: '#dc2626', fontWeight: 400 }}>*</span>
-            <input type="text" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} required placeholder="e.g., Utsav Varsity Jacket" style={{ padding: '12px 14px', border: '1.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit' }} />
+            <input type="text" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} required placeholder="e.g., Utsav Varsity Jacket" style={{ padding: '12px 14px', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', background: 'transparent', color: '#fff' }} />
           </label>
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Condition <span style={{ color: '#dc2626', fontWeight: 400 }}>*</span>
-            <select value={formData.condition} onChange={(e) => setFormData(prev => ({ ...prev, condition: e.target.value }))} required style={{ padding: '12px 14px', border: '1.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', background: '#fff' }}>
-              <option value="new">New</option>
-              <option value="like-new">Like New</option>
-              <option value="good">Good</option>
-              <option value="fair">Fair</option>
-            </select>
+            <AnimatedDropdown
+              label=""
+              options={[
+                { value: "new", label: "New" },
+                { value: "like-new", label: "Like New" },
+                { value: "good", label: "Good" },
+                { value: "fair", label: "Fair" }
+              ]}
+              value={formData.condition}
+              onChange={(val) => setFormData(prev => ({ ...prev, condition: val }))}
+              id="seller-condition-dropdown"
+            />
           </label>
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Year of Purchase
-            <input type="number" value={formData.year} onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="e.g., 2024" style={{ padding: '12px 14px', border: '1.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit' }} />
+            <input type="number" value={formData.year} onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))} placeholder="e.g., 2024" style={{ padding: '12px 14px', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', background: 'transparent', color: '#fff' }} />
           </label>
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Description <span style={{ color: '#dc2626', fontWeight: 400 }}>*</span> (Min 100 chars)
-            <textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the item in detail (minimum 100 characters)..." required minLength={100} style={{ padding: '12px 14px', border: '1.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', resize: 'vertical' }} />
+            <textarea value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={4} placeholder="Describe the item in detail (minimum 100 characters)..." required minLength={100} style={{ padding: '12px 14px', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', resize: 'vertical', background: 'transparent', color: '#fff' }} />
             <p style={{ fontSize: '0.8rem', color: formData.description.length >= 100 ? '#22c55e' : 'var(--muted)', marginTop: 2, fontWeight: 600 }}>
               {formData.description.length}/100 characters
             </p>
           </label>
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Price Range
-            <input type="text" value={formData.priceRange} onChange={(e) => setFormData(prev => ({ ...prev, priceRange: e.target.value }))} placeholder="e.g., ₹500-700" style={{ padding: '12px 14px', border: '1.5px solid rgba(0,0,0,0.08)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit' }} />
+            <input type="text" value={formData.priceRange} onChange={(e) => setFormData(prev => ({ ...prev, priceRange: e.target.value }))} placeholder="e.g., ₹500-700" style={{ padding: '12px 14px', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '10px', fontSize: '0.95rem', fontFamily: 'inherit', background: 'transparent', color: '#fff' }} />
           </label>
           <label style={{ fontWeight: 700, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.9rem' }}>
             Images (6-10 required) <span style={{ color: '#dc2626', fontWeight: 400 }}>*</span>

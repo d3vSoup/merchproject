@@ -11,23 +11,24 @@
   justify-content: space-between;
   gap: 8px;
   padding: 12px 18px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
-  background: #fff;
+  background: transparent;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   white-space: nowrap;
 }
 
 .animated-dropdown__trigger:hover {
-  border-color: rgba(255, 102, 0, 0.4);
-  background: rgba(255, 102, 0, 0.03);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .animated-dropdown__trigger.is-open {
+  background: #000000;
   border-color: var(--accent, #ff6600);
   box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.12);
 }
@@ -52,10 +53,10 @@
   left: 0;
   right: 0;
   min-width: 100%;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(16, 24, 40, 0.14), 0 4px 12px rgba(16, 24, 40, 0.06);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 60;
   overflow-y: auto;
   max-height: 320px;
@@ -103,8 +104,8 @@
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 500;
-  color: #374151;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  color: #ffffff;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease, text-shadow 0.15s ease;
   white-space: nowrap;
 
   /* Staggered entry */
@@ -131,13 +132,14 @@
 }
 
 .animated-dropdown__option:hover {
-  background: rgba(255, 102, 0, 0.08);
+  background: rgba(255, 102, 0, 0.1);
   color: var(--accent, #ff6600);
   transform: translateX(2px);
+  text-shadow: 0 0 8px var(--accent, #ff6600);
 }
 
 .animated-dropdown__option.is-selected {
-  background: rgba(255, 102, 0, 0.12);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--accent, #ff6600);
   font-weight: 700;
 }
