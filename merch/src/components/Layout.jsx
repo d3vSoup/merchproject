@@ -42,7 +42,7 @@ function mergeOverrides(catalogKey, overridesData) {
       return {
         ...p,
         ...(ov.name ? { name: ov.name } : {}),
-        ...(ov.image_url ? { imageUrl: ov.image_url } : {}),
+        ...(ov.images && ov.images.length > 0 ? { imageUrl: ov.images[0] } : ov.image_url ? { imageUrl: ov.image_url } : {}),
         ...(ov.price != null ? { price: Number(ov.price) } : {}),
       };
     });
@@ -234,14 +234,14 @@ export default function Layout({ children, cartCount = 0 }) {
     const results = [];
     const eventLabels = { utsav: "Utsav", phaseshift: "Phaseshift", farouche: "Farouche", club: "Club & Dept Merch" };
 
-    // Search through all products
-    Object.entries(PRODUCT_CATALOG).forEach(([tabKey, products]) => {
+    Object.keys(eventLabels).forEach(tabKey => {
+      const products = overrideCache[tabKey] || PRODUCT_CATALOG[tabKey] || [];
       products.forEach(product => {
-        const nameMatch = product.name.toLowerCase().includes(q);
+        const nameMatch = product.name?.toLowerCase().includes(q);
         const descMatch = product.description?.toLowerCase().includes(q);
         const eventMatch = eventLabels[tabKey]?.toLowerCase().includes(q);
         const typeMatch = product.previewLabel?.toLowerCase().includes(q) || 
-                         product.id.toLowerCase().includes(q);
+                         product.id?.toLowerCase().includes(q);
         
         if (nameMatch || descMatch || eventMatch || typeMatch) {
           results.push({
@@ -268,7 +268,7 @@ export default function Layout({ children, cartCount = 0 }) {
   function handleSearchResultClick(result) {
     setSearchOpen(false);
     setSearchQuery("");
-    navigate(`/event/${result.tabKey}`);
+    navigate(`/event/${result.tabKey}?product=${result.id}`);
   }
 
   const getActiveTab = () => {

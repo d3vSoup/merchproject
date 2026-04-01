@@ -46,7 +46,7 @@ export default function PhilosophyCarousel() {
         {/* Previous Button */}
         <button 
           aria-label="Previous Quote" 
-          className="absolute left-0 z-10 p-2 text-gray-400 hover:text-black transition-colors focus:outline-none hidden md:block" 
+          className="absolute left-0 z-10 p-2 text-white/30 hover:text-white transition-colors focus:outline-none hidden md:block" 
           onClick={handlePrev}
         >
           <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -55,7 +55,7 @@ export default function PhilosophyCarousel() {
         </button>
 
         {/* Main Quote Content */}
-        <div key={fadeKey} className="text-center px-4 md:px-16 animate-[fadeIn_0.5s_ease-in-out_forwards]" data-purpose="active-quote-text">
+        <div key={fadeKey} className="text-center px-4 md:px-16 flex items-center justify-center min-h-[160px] md:min-h-[220px] animate-[fadeIn_0.5s_ease-in-out_forwards]" data-purpose="active-quote-text">
           <blockquote className="font-['Playfair_Display',serif] leading-[1.2] text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight">
             "{quotes[currentIndex]}"
           </blockquote>
@@ -64,7 +64,7 @@ export default function PhilosophyCarousel() {
         {/* Next Button */}
         <button 
           aria-label="Next Quote" 
-          className="absolute right-0 z-10 p-2 text-gray-400 hover:text-black transition-colors focus:outline-none hidden md:block" 
+          className="absolute right-0 z-10 p-2 text-white/30 hover:text-white transition-colors focus:outline-none hidden md:block" 
           onClick={handleNext}
         >
           <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -74,11 +74,11 @@ export default function PhilosophyCarousel() {
       </div>
 
       {/* Pagination Dots */}
-      <div className="flex space-x-2 mt-12" data-purpose="carousel-pagination">
+      <div className="flex space-x-2 mt-8 md:mt-12" data-purpose="carousel-pagination">
         {quotes.map((_, idx) => (
           <div
             key={idx}
-            className={`w-2 h-2 rounded-full cursor-pointer transition-colors ${idx === currentIndex ? 'bg-black' : 'bg-gray-300 hover:bg-gray-400'}`}
+            className={`w-2 h-2 rounded-full cursor-pointer transition-colors ${idx === currentIndex ? 'bg-white' : 'bg-white/20 hover:bg-white/60'}`}
             onClick={() => setIndex(idx)}
           />
         ))}

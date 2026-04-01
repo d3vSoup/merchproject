@@ -133,6 +133,8 @@ export default function Landing() {
             )}
             {/* Overlay for contrast ensuring text is readable */}
             <div className="absolute inset-0 bg-black/40 z-20"></div>
+            {/* Bottom vignette fade to blend into the next section */}
+            <div className="absolute bottom-0 left-0 w-full h-80 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent z-20 pointer-events-none"></div>
           </div>
           
           {/* Center Overlay Typography */}
